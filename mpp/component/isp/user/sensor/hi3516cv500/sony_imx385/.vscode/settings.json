@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "imx385_cmos_ex.h": "c"
+    }
+}
