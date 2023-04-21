@@ -27,11 +27,11 @@ extern "C" {
 #define LOG_LVL_DEBUG   0x08
 
 /**
- * @brief Get the string-typed time 
+ * @brief Get the string typed time 
  * 
  * @return char* the formated time string
  */
-char* GetLocalTime(void);
+char*   GetLocalTime(void);
 
 void WriteLogFile(char *p_fmt, ...);
 
@@ -99,6 +99,33 @@ typedef struct RoomInfo {
 
 }RoomInfo;
 
+typedef struct LOTO_ROOM_INFO
+{
+    char	szStatus[32];
+    int 	iCode;
+
+    int		iRoomType;
+    int 	iSubType;
+    int		iVip;
+    int		iJP;
+    int		iMatchType;
+    int		iEncodeType;
+    int 	iPlayerCount;
+    int     iSupportMonster;
+
+    char	szRoomId[64];
+    char	szDomain[32];
+    char	szName[32];
+    char	szHostName[32];
+    char	szRouterIp[32];
+    char	szWebsocket[64];
+    char	szIp[32];
+    char	szRouterDNS[128];
+    char	szFrpPort[32];
+    char	szPushURL[256];
+    char    szScreenShot[256];
+} loto_room_info;
+
 typedef struct Msg {
 	int flag;//0为读，1为写
 	char pushurl[256];
@@ -126,8 +153,8 @@ int InitAvctlLogFile();
  */
 int InitRtmpLogFile(FILE **log_handle);
 
+int int2string(long long value, char * output);
 
-int     int2string(long long value, char * output);
 long long string2int(const char *str);
 
 /**
@@ -139,12 +166,12 @@ long long string2int(const char *str);
  */
 uint64_t GetTimestamp(char* pszTS, int isMSec);
 
-/**
- * @brief set system time from network time (ntp)
- * 
- * @return int 
- */
-int time_sync();
+int get_hash_code_24(char* psz_combined_string);
+
+char* encode(char* message, const char* codeckey);
+char* decode(char* message, const char* codeckey);
+
+static int base64_encode(const unsigned char *sourcedata, int datalength, char *base64);
 
 #ifdef __cplusplus
 }

@@ -4538,19 +4538,19 @@ HI_S32 LOTO_COMM_VI_GetSizeBySensor(SAMPLE_SNS_TYPE_E enMode, PIC_SIZE_E* penSiz
         //     *penSize = PIC_1080P;
         //     break;
 
-        case SONY_IMX327_MIPI_2M_30FPS_12BIT:
-        case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
-            *penSize = PIC_1080P;
-            break;
+        // case SONY_IMX327_MIPI_2M_30FPS_12BIT:
+        // case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
+        //     *penSize = PIC_1080P;
+        //     break;
 
-        case SONY_IMX307_MIPI_2M_30FPS_12BIT:
-        case SONY_IMX307_MIPI_2M_30FPS_12BIT_WDR2TO1:
-            *penSize = PIC_1080P;
-            break;
+        // case SONY_IMX307_MIPI_2M_30FPS_12BIT:
+        // case SONY_IMX307_MIPI_2M_30FPS_12BIT_WDR2TO1:
+        //     *penSize = PIC_1080P;
+        //     break;
 
-        case PANASONIC_MN34220_LVDS_2M_30FPS_12BIT:
-            *penSize = PIC_1080P;
-            break;
+        // case PANASONIC_MN34220_LVDS_2M_30FPS_12BIT:
+        //     *penSize = PIC_1080P;
+        //     break;
 
         case SONY_IMX335_MIPI_5M_30FPS_12BIT:
         case SONY_IMX335_MIPI_5M_30FPS_10BIT_WDR2TO1:
@@ -4562,43 +4562,43 @@ HI_S32 LOTO_COMM_VI_GetSizeBySensor(SAMPLE_SNS_TYPE_E enMode, PIC_SIZE_E* penSiz
             *penSize = PIC_2592x1536;
             break;
 
-        case SMART_SC4210_MIPI_3M_30FPS_12BIT:
-        case SMART_SC4210_MIPI_3M_30FPS_10BIT_WDR2TO1:
-            *penSize = PIC_2560x1440;
-            break;
+        // case SMART_SC4210_MIPI_3M_30FPS_12BIT:
+        // case SMART_SC4210_MIPI_3M_30FPS_10BIT_WDR2TO1:
+        //     *penSize = PIC_2560x1440;
+        //     break;
 
-        case OMNIVISION_OS08A10_MIPI_8M_30FPS_10BIT:
-        case SONY_IMX458_MIPI_8M_30FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_8M_30FPS_10BIT:
-        case SONY_IMX415_MIPI_8M_30FPS_12BIT:
-        case SONY_IMX415_MIPI_8M_20FPS_12BIT:
-            *penSize = PIC_3840x2160;
-            break;
-        case SONY_IMX458_MIPI_12M_20FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_12M_30FPS_10BIT:
-            *penSize = PIC_4000x3000;
-            break;
-        case SONY_IMX458_MIPI_4M_60FPS_10BIT:
-        case SONY_IMX458_MIPI_4M_40FPS_10BIT:
-            *penSize = PIC_2716x1524;
-            break;
-        case SONY_IMX458_MIPI_2M_90FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_2M_120FPS_10BIT:
-            *penSize = PIC_1080P;
-            break;
-        case SONY_IMX458_MIPI_1M_129FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_1M_240FPS_10BIT:
-            *penSize = PIC_720P;
-            break;
+        // case OMNIVISION_OS08A10_MIPI_8M_30FPS_10BIT:
+        // case SONY_IMX458_MIPI_8M_30FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_8M_30FPS_10BIT:
+        // case SONY_IMX415_MIPI_8M_30FPS_12BIT:
+        // case SONY_IMX415_MIPI_8M_20FPS_12BIT:
+        //     *penSize = PIC_3840x2160;
+        //     break;
+        // case SONY_IMX458_MIPI_12M_20FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_12M_30FPS_10BIT:
+        //     *penSize = PIC_4000x3000;
+        //     break;
+        // case SONY_IMX458_MIPI_4M_60FPS_10BIT:
+        // case SONY_IMX458_MIPI_4M_40FPS_10BIT:
+        //     *penSize = PIC_2716x1524;
+        //     break;
+        // case SONY_IMX458_MIPI_2M_90FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_2M_120FPS_10BIT:
+        //     *penSize = PIC_1080P;
+        //     break;
+        // case SONY_IMX458_MIPI_1M_129FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_1M_240FPS_10BIT:
+        //     *penSize = PIC_720P;
+        //     break;
 
-        case OMNIVISION_OS04B10_MIPI_4M_30FPS_10BIT:
-            *penSize = PIC_2560x1440;
-            break;
+        // case OMNIVISION_OS04B10_MIPI_4M_30FPS_10BIT:
+        //     *penSize = PIC_2560x1440;
+        //     break;
 
-        case OMNIVISION_OS05A_MIPI_4M_30FPS_12BIT:
-        case OMNIVISION_OS05A_MIPI_4M_30FPS_10BIT_WDR2TO1:
-            *penSize = PIC_2688x1536;
-            break;
+        // case OMNIVISION_OS05A_MIPI_4M_30FPS_12BIT:
+        // case OMNIVISION_OS05A_MIPI_4M_30FPS_10BIT_WDR2TO1:
+        //     *penSize = PIC_2688x1536;
+        //     break;
 
         default:
             *penSize = PIC_1080P;
@@ -4636,52 +4636,52 @@ HI_S32 LOTO_COMM_VI_GetFrameRateBySensor(SAMPLE_SNS_TYPE_E enMode, HI_U32* pu32F
 
         // case SONY_IMX219_MIPI_2M_30FPS_12BIT:
         // case SONY_IMX219_MIPI_2M_30FPS_12BIT_WDR2TO1:
-        case SONY_IMX327_MIPI_2M_30FPS_12BIT:
-        case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
-        case SONY_IMX307_MIPI_2M_30FPS_12BIT:
-        case SONY_IMX307_MIPI_2M_30FPS_12BIT_WDR2TO1:
+        // case SONY_IMX327_MIPI_2M_30FPS_12BIT:
+        // case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
+        // case SONY_IMX307_MIPI_2M_30FPS_12BIT:
+        // case SONY_IMX307_MIPI_2M_30FPS_12BIT_WDR2TO1:
         case SONY_IMX335_MIPI_5M_30FPS_12BIT:
         case SONY_IMX335_MIPI_5M_30FPS_10BIT_WDR2TO1:
         case SONY_IMX335_MIPI_4M_30FPS_12BIT:
         case SONY_IMX335_MIPI_4M_30FPS_10BIT_WDR2TO1:
-        case SMART_SC4210_MIPI_3M_30FPS_12BIT:
-        case SMART_SC4210_MIPI_3M_30FPS_10BIT_WDR2TO1:
-        case PANASONIC_MN34220_LVDS_2M_30FPS_12BIT:
-        case OMNIVISION_OS04B10_MIPI_4M_30FPS_10BIT:
-        case OMNIVISION_OS05A_MIPI_4M_30FPS_12BIT:
-        case OMNIVISION_OS05A_MIPI_4M_30FPS_10BIT_WDR2TO1:
-        case OMNIVISION_OS08A10_MIPI_8M_30FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_12M_30FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_8M_30FPS_10BIT:
+        // case SMART_SC4210_MIPI_3M_30FPS_12BIT:
+        // case SMART_SC4210_MIPI_3M_30FPS_10BIT_WDR2TO1:
+        // case PANASONIC_MN34220_LVDS_2M_30FPS_12BIT:
+        // case OMNIVISION_OS04B10_MIPI_4M_30FPS_10BIT:
+        // case OMNIVISION_OS05A_MIPI_4M_30FPS_12BIT:
+        // case OMNIVISION_OS05A_MIPI_4M_30FPS_10BIT_WDR2TO1:
+        // case OMNIVISION_OS08A10_MIPI_8M_30FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_12M_30FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_8M_30FPS_10BIT:
             *pu32FrameRate = 30;
             break;
 
-        case SONY_IMX458_MIPI_8M_30FPS_10BIT:
-        case SONY_IMX415_MIPI_8M_30FPS_12BIT:
-            *pu32FrameRate = 30;
-            break;
-        case SONY_IMX458_MIPI_12M_20FPS_10BIT:
-        case SONY_IMX415_MIPI_8M_20FPS_12BIT:
-            *pu32FrameRate = 20;
-            break;
-        case SONY_IMX458_MIPI_4M_60FPS_10BIT:
-            *pu32FrameRate = 60;
-            break;
-        case SONY_IMX458_MIPI_4M_40FPS_10BIT:
-            *pu32FrameRate = 40;
-            break;
-        case SONY_IMX458_MIPI_2M_90FPS_10BIT:
-            *pu32FrameRate = 90;
-            break;
-        case SONY_IMX458_MIPI_1M_129FPS_10BIT:
-            *pu32FrameRate = 129;
-            break;
-        case OMNIVISION_OV12870_MIPI_2M_120FPS_10BIT:
-            *pu32FrameRate = 120;
-            break;
-        case OMNIVISION_OV12870_MIPI_1M_240FPS_10BIT:
-            *pu32FrameRate = 240;
-            break;
+        // case SONY_IMX458_MIPI_8M_30FPS_10BIT:
+        // case SONY_IMX415_MIPI_8M_30FPS_12BIT:
+        //     *pu32FrameRate = 30;
+        //     break;
+        // case SONY_IMX458_MIPI_12M_20FPS_10BIT:
+        // case SONY_IMX415_MIPI_8M_20FPS_12BIT:
+        //     *pu32FrameRate = 20;
+        //     break;
+        // case SONY_IMX458_MIPI_4M_60FPS_10BIT:
+        //     *pu32FrameRate = 60;
+        //     break;
+        // case SONY_IMX458_MIPI_4M_40FPS_10BIT:
+        //     *pu32FrameRate = 40;
+        //     break;
+        // case SONY_IMX458_MIPI_2M_90FPS_10BIT:
+        //     *pu32FrameRate = 90;
+        //     break;
+        // case SONY_IMX458_MIPI_1M_129FPS_10BIT:
+        //     *pu32FrameRate = 129;
+        //     break;
+        // case OMNIVISION_OV12870_MIPI_2M_120FPS_10BIT:
+        //     *pu32FrameRate = 120;
+        //     break;
+        // case OMNIVISION_OV12870_MIPI_1M_240FPS_10BIT:
+        //     *pu32FrameRate = 240;
+        //     break;
 
         default:
             *pu32FrameRate = 30;
@@ -4722,33 +4722,33 @@ combo_dev_t LOTO_COMM_VI_GetComboDevBySensor(SAMPLE_SNS_TYPE_E enMode, HI_S32 s3
         case SONY_IMX385_MIPI_2M_30FPS_12BIT:
         case SONY_IMX385_MIPI_2M_60FPS_12BIT:
         case GALAXYCORE_GC2053_MIPI_2M_30FPS_10BIT:
-        case SONY_IMX327_MIPI_2M_30FPS_12BIT:
-        case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
-        case SONY_IMX307_MIPI_2M_30FPS_12BIT:
-        case SONY_IMX307_MIPI_2M_30FPS_12BIT_WDR2TO1:
+        // case SONY_IMX327_MIPI_2M_30FPS_12BIT:
+        // case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
+        // case SONY_IMX307_MIPI_2M_30FPS_12BIT:
+        // case SONY_IMX307_MIPI_2M_30FPS_12BIT_WDR2TO1:
         case SONY_IMX335_MIPI_5M_30FPS_12BIT:
         case SONY_IMX335_MIPI_5M_30FPS_10BIT_WDR2TO1:
         case SONY_IMX335_MIPI_4M_30FPS_12BIT:
         case SONY_IMX335_MIPI_4M_30FPS_10BIT_WDR2TO1:
-        case SONY_IMX458_MIPI_8M_30FPS_10BIT:
-        case SONY_IMX458_MIPI_12M_20FPS_10BIT:
-        case SONY_IMX458_MIPI_4M_60FPS_10BIT:
-        case SONY_IMX458_MIPI_4M_40FPS_10BIT:
-        case SONY_IMX458_MIPI_2M_90FPS_10BIT:
-        case SONY_IMX458_MIPI_1M_129FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_1M_240FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_2M_120FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_8M_30FPS_10BIT:
-        case OMNIVISION_OV12870_MIPI_12M_30FPS_10BIT:
-        case PANASONIC_MN34220_LVDS_2M_30FPS_12BIT:
-        case OMNIVISION_OS04B10_MIPI_4M_30FPS_10BIT:
-        case OMNIVISION_OS05A_MIPI_4M_30FPS_12BIT:
-        case OMNIVISION_OS05A_MIPI_4M_30FPS_10BIT_WDR2TO1:
-        case OMNIVISION_OS08A10_MIPI_8M_30FPS_10BIT:
-        case SMART_SC4210_MIPI_3M_30FPS_12BIT:
-        case SMART_SC4210_MIPI_3M_30FPS_10BIT_WDR2TO1:
-        case SONY_IMX415_MIPI_8M_30FPS_12BIT:
-        case SONY_IMX415_MIPI_8M_20FPS_12BIT:
+        // case SONY_IMX458_MIPI_8M_30FPS_10BIT:
+        // case SONY_IMX458_MIPI_12M_20FPS_10BIT:
+        // case SONY_IMX458_MIPI_4M_60FPS_10BIT:
+        // case SONY_IMX458_MIPI_4M_40FPS_10BIT:
+        // case SONY_IMX458_MIPI_2M_90FPS_10BIT:
+        // case SONY_IMX458_MIPI_1M_129FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_1M_240FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_2M_120FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_8M_30FPS_10BIT:
+        // case OMNIVISION_OV12870_MIPI_12M_30FPS_10BIT:
+        // case PANASONIC_MN34220_LVDS_2M_30FPS_12BIT:
+        // case OMNIVISION_OS04B10_MIPI_4M_30FPS_10BIT:
+        // case OMNIVISION_OS05A_MIPI_4M_30FPS_12BIT:
+        // case OMNIVISION_OS05A_MIPI_4M_30FPS_10BIT_WDR2TO1:
+        // case OMNIVISION_OS08A10_MIPI_8M_30FPS_10BIT:
+        // case SMART_SC4210_MIPI_3M_30FPS_12BIT:
+        // case SMART_SC4210_MIPI_3M_30FPS_10BIT_WDR2TO1:
+        // case SONY_IMX415_MIPI_8M_30FPS_12BIT:
+        // case SONY_IMX415_MIPI_8M_20FPS_12BIT:
             if (0 == s32SnsIdx)
             {
                 dev = 0;

@@ -14,6 +14,5 @@ int LOTO_RGN_InitCoverRegion() ;
 int LOTO_RGN_UninitCoverRegion();
 int LOTO_VENC_DisplayCover();
 int LOTO_VENC_RemoveCover();
-int rgn_test_cover(int *cover_state, int *cover_action);
 
 #endif // LOTO_VENC_H

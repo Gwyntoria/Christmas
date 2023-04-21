@@ -37,7 +37,7 @@ static HI_U8 *bmpBuffer[FILE_COUNT];
 static OSD_BITMAPFILEHEADER bmpFileHeader[FILE_COUNT];
 static OSD_BITMAPINFO bmpInfo[FILE_COUNT];
 
-extern char device_num[16];
+extern char g_device_num[16];
 
 OSD_COMP_INFO s_OSDCompInfo[OSD_COLOR_FMT_BUTT] = {
 	{0, 4, 4, 4}, /*RGB444*/
@@ -277,7 +277,7 @@ HI_VOID LOTO_OSD_GetDeviceNum(HI_S16 *deviceNum)
 {
 	for (int i = 0; i < 3; i++)
 	{
-		switch (device_num[i])
+		switch (g_device_num[i])
 		{
 		case '0':
 			deviceNum[i] = 0;

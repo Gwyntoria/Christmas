@@ -1361,7 +1361,7 @@ HI_S32 LOTO_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E
      step 2:  Start Recv Venc Pictures
     ******************************************/
     stRecvParam.s32RecvPicNum = -1;
-    s32Ret = HI_MPI_VENC_StartRecvFrame(VencChn,&stRecvParam);
+    s32Ret = HI_MPI_VENC_StartRecvFrame(VencChn, &stRecvParam);
     if (HI_SUCCESS != s32Ret)
     {
         LOGE("HI_MPI_VENC_StartRecvPic faild with%#x! \n", s32Ret);

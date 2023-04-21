@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/timeb.h>
 #include <fcntl.h>
@@ -24,59 +23,86 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <time.h>
 #include <pthread.h>
 #include <stdarg.h>
-#include <sys/socket.h>
 #include <netdb.h>
-#include <unistd.h>
+#include <sys/socket.h>
 #include <errno.h>
-#include <sys/select.h>
 
 #define LOG_FOLDER "/root/log"
 #define LOG_AVCTL_FILE "avctl_log"
 #define LOG_RTMP_FILE "rtmp_log"
 #define MAX_FILE_SIZE (5 * 1024 * 1024)
 #define MAX_FILE_COUNT 5
-// #define NTP_TIMESTAMP_DELTA 2208988800ull // NTP 时间戳的起始时间（1900 年 1 月 1 日）
-
 static FILE *log_handle = NULL;
 static pthread_mutex_t _vLogMutex;
 
 char *GetLocalTime(void)
 {
-    static char time[32] = {0};
+    struct tm *ptm;
+    struct timeb stTimeb;
+    static char szTime[32] = {0};
 
-    // 获取当前系统时间
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
+    ftime(&stTimeb);
+    ptm = localtime(&stTimeb.time);
+    sprintf(szTime, "%04d-%02d-%02d %02d:%02d:%02d.%03d", ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec, stTimeb.millitm);
+    // szTime[23] = 0;
+    return szTime;
+}
 
-    // 将时间转换为本地时间
-    struct tm *lt = localtime(&tv.tv_sec);
+int get_mac(char *mac)
+{
+    int sockfd;
+    struct ifreq tmp;
+    char mac_addr[30];
 
-    // 格式化输出本地时间（精确到毫秒）
-    snprintf(time, sizeof(time), "%04d-%02d-%02d %02d:%02d:%02d.%03ld",
-             lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-             lt->tm_hour, lt->tm_min, lt->tm_sec, tv.tv_usec / 1000);
-    return time;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+    {
+        perror("create socket fail\n");
+        return -1;
+    }
+
+    memset(&tmp, 0, sizeof(struct ifreq));
+    strncpy(tmp.ifr_name, "eth0", sizeof(tmp.ifr_name) - 1);
+    if ((ioctl(sockfd, SIOCGIFHWADDR, &tmp)) < 0)
+    {
+        printf("mac ioctl error\n");
+        return -1;
+    }
+
+    sprintf(mac_addr, "%02x%02x%02x%02x%02x%02x",
+            (unsigned char)tmp.ifr_hwaddr.sa_data[0],
+            (unsigned char)tmp.ifr_hwaddr.sa_data[1],
+            (unsigned char)tmp.ifr_hwaddr.sa_data[2],
+            (unsigned char)tmp.ifr_hwaddr.sa_data[3],
+            (unsigned char)tmp.ifr_hwaddr.sa_data[4],
+            (unsigned char)tmp.ifr_hwaddr.sa_data[5]);
+    printf("local mac:%s\n", mac_addr);
+    close(sockfd);
+    memcpy(mac, mac_addr, strlen(mac_addr));
+
+    return 0;
 }
 
 long long string2int(const char *str)
 {
-    char flag = '+'; //指示结果是否带符号
+    char flag = '+'; // 指示结果是否带符号
     long long res = 0;
 
-    if (*str == '-') //字符串带负号
+    if (*str == '-') // 字符串带负号
     {
-        ++str;      //指向下一个字符
-        flag = '-'; //将标志设为负号
+        ++str;      // 指向下一个字符
+        flag = '-'; // 将标志设为负号
     }
-    //逐个字符转换，并累加到结果res
-    while (*str >= 48 && *str <= 57) //如果是数字才进行转换，数字0~9的ASCII码：48~57
+    // 逐个字符转换，并累加到结果res
+    while (*str >= 48 && *str <= 57) // 如果是数字才进行转换，数字0~9的ASCII码：48~57
     {
-        res = 10 * res + *str++ - 48; //字符'0'的ASCII码为48,48-48=0刚好转化为数字0
+        res = 10 * res + *str++ - 48; // 字符'0'的ASCII码为48,48-48=0刚好转化为数字0
     }
 
-    if (flag == '-') //处理是负数的情况
+    if (flag == '-') // 处理是负数的情况
     {
         res = -res;
     }
@@ -98,13 +124,13 @@ int string_reverse(char *strSrc)
     output = (char *)malloc(len);
     if (output == NULL)
     {
-        LOGE("malloc");
+        perror("malloc");
         return -1;
     }
     for (i = 0; i < len; i++)
     {
         output[i] = strSrc[len - i - 1];
-        // LOGE("output[%d] = %c\n",len - i -1,strSrc[len - i - 1]);
+        // printf("output[%d] = %c\n",len - i -1,strSrc[len - i - 1]);
     }
     output[len] = '\0';
     strcpy(strSrc, output);
@@ -254,6 +280,175 @@ void WriteLogFile(char *p_fmt, ...)
     pthread_mutex_unlock(&_vLogMutex);
 }
 
+int get_hash_code_24(char *psz_combined_string)
+{
+    int hash_code = 0;
+    if (psz_combined_string == NULL || strlen(psz_combined_string) <= 0)
+        return 0;
+
+    uint i = 0;
+    for (i = 0; i < strlen(psz_combined_string); i++)
+    {
+        hash_code = ((hash_code << 5) - hash_code) + (int)psz_combined_string[i];
+        hash_code = hash_code & 0x00FFFFFF;
+    }
+    return hash_code;
+}
+
+
+const char * base64char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const char padding_char = '=';
+
+static int base64_encode(const unsigned char *sourcedata, int datalength, char *base64)
+{
+    int i = 0, j = 0;
+    unsigned char trans_index = 0; // 索引是8位，但是高两位都为0
+    // const int datalength = strlen((const char*)sourcedata);
+    for (; i < datalength; i += 3)
+    {
+        // 每三个一组，进行编码
+        // 要编码的数字的第一个
+        trans_index = ((sourcedata[i] >> 2) & 0x3f);
+        base64[j++] = base64char[(int)trans_index];
+        // 第二个
+        trans_index = ((sourcedata[i] << 4) & 0x30);
+        if (i + 1 < datalength)
+        {
+            trans_index |= ((sourcedata[i + 1] >> 4) & 0x0f);
+            base64[j++] = base64char[(int)trans_index];
+        }
+        else
+        {
+            base64[j++] = base64char[(int)trans_index];
+
+            base64[j++] = padding_char;
+
+            base64[j++] = padding_char;
+
+            break; // 超出总长度，可以直接break
+        }
+        // 第三个
+        trans_index = ((sourcedata[i + 1] << 2) & 0x3c);
+        if (i + 2 < datalength)
+        { // 有的话需要编码2个
+            trans_index |= ((sourcedata[i + 2] >> 6) & 0x03);
+            base64[j++] = base64char[(int)trans_index];
+
+            trans_index = sourcedata[i + 2] & 0x3f;
+            base64[j++] = base64char[(int)trans_index];
+        }
+        else
+        {
+            base64[j++] = base64char[(int)trans_index];
+
+            base64[j++] = padding_char;
+
+            break;
+        }
+    }
+    base64[j] = '\0';
+    return 0;
+}
+
+/** 在字符串中查询特定字符位置索引
+* const char *str ，字符串
+* char c，要查找的字符
+*/
+static int num_strchr(const char *str, char c) //
+{
+    const char *pindex = strchr(str, c);
+    if (NULL == pindex){
+        return -1;
+    }
+    return pindex - str;
+}
+
+/* 解码
+* const char * base64 码字
+* unsigned char * dedata， 解码恢复的数据
+*/
+static int base64_decode(const char * base64, unsigned char * dedata)
+{
+    int i = 0, j=0;
+    int trans[4] = {0,0,0,0};
+    for (;base64[i]!='\0';i+=4){
+        // 每四个一组，译码成三个字符
+        trans[0] = num_strchr(base64char, base64[i]);
+        trans[1] = num_strchr(base64char, base64[i+1]);
+        // 1/3
+        dedata[j++] = ((trans[0] << 2) & 0xfc) | ((trans[1]>>4) & 0x03);
+
+        if (base64[i+2] == '='){
+            continue;
+        }
+        else{
+            trans[2] = num_strchr(base64char, base64[i + 2]);
+        }
+        // 2/3
+        dedata[j++] = ((trans[1] << 4) & 0xf0) | ((trans[2] >> 2) & 0x0f);
+
+        if (base64[i + 3] == '='){
+            continue;
+        }
+        else{
+            trans[3] = num_strchr(base64char, base64[i + 3]);
+        }
+
+        // 3/3
+        dedata[j++] = ((trans[2] << 6) & 0xc0) | (trans[3] & 0x3f);
+    }
+
+    dedata[j] = '\0';
+
+    return j;
+}
+
+char *encode(char *message, const char *codeckey)
+{
+    int src_length = strlen(message);
+    int keyLength = strlen(codeckey);
+
+    char *des_buf = (char *)malloc(sizeof(char) * (src_length + 1));
+    memset(des_buf, 0, sizeof(char) * (src_length + 1));
+
+    for (int i = 0; i < src_length; i++)
+    {
+        int a = message[i];
+        int b = codeckey[i % keyLength];
+        des_buf[i] = (a ^ b) ^ i;
+    }
+    int base64_length = 0;
+    if (src_length % 3 == 0)
+        base64_length = src_length / 3 * 4;
+    else
+        base64_length = (src_length / 3 + 1) * 4;
+
+    char *base64_enc = (char *)malloc(sizeof(char) * (base64_length + 1));
+    base64_encode((const unsigned char *)des_buf, src_length, base64_enc);
+    free(des_buf);
+    return base64_enc;
+}
+
+char *decode(char *message, const char *codeckey)
+{
+    int base64_length = strlen(message);
+    int dec_length = base64_length / 4 * 3;
+    char *base64_dec = (char *)malloc(sizeof(char) * (dec_length + 1));
+    base64_decode(message, (unsigned char *)base64_dec);
+    char *des_buf = (char *)malloc(sizeof(char) * (dec_length + 1));
+    memset(des_buf, 0, sizeof(char) * (dec_length + 1));
+
+    int keyLength = strlen(codeckey);
+    for (int i = 0; i < dec_length; i++)
+    {
+        int a = base64_dec[i];
+        int b = codeckey[i % keyLength];
+        des_buf[i] = (i ^ a) ^ b;
+    }
+    free(base64_dec);
+
+    return des_buf;
+}
 
 #define NTP_PORT 123
 #define NTP_PACKET_SIZE 48

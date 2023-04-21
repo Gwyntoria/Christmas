@@ -32,6 +32,7 @@ extern SAMPLE_VI_CONFIG_S g_stViConfig;
 extern SIZE_S g_stSize[2];
 extern PIC_SIZE_E g_enSize[2];
 extern PIC_SIZE_E g_resolution;
+extern int g_profile;
 
 HI_S32 LOTO_VENC_VB_SYS_Init(HI_U32 u32SupplementConfig, SIZE_S stSnsSize)
 {
@@ -145,8 +146,7 @@ HI_S32 LOTO_VENC_VI_Init(SAMPLE_VI_CONFIG_S *pstViConfig, HI_BOOL bLowDelay,
     DYNAMIC_RANGE_E enDynamicRange = DYNAMIC_RANGE_SDR8;
     PIXEL_FORMAT_E enPixFormat = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     VIDEO_FORMAT_E enVideoFormat = VIDEO_FORMAT_LINEAR;
-    // COMPRESS_MODE_E enCompressMode = COMPRESS_MODE_NONE;
-    COMPRESS_MODE_E enCompressMode = COMPRESS_MODE_SEG;
+    COMPRESS_MODE_E enCompressMode = COMPRESS_MODE_NONE;
     VI_VPSS_MODE_E enMastPipeMode = VI_OFFLINE_VPSS_OFFLINE;
 
     if (bLowDelay == HI_TRUE)
@@ -300,7 +300,7 @@ void *LOTO_VENC_CLASSIC(void *arg)
     VPSS_CHN VpssChn[2] = {0, 1};
     HI_BOOL abChnEnable[VPSS_MAX_PHY_CHN_NUM] = {1, 0, 0};
 
-    HI_U32 u32Profile[2] = {0, 2};
+    // HI_U32 u32Profile[2] = {0, 2};
     PAYLOAD_TYPE_E enPayLoad[2] = {PT_H265, PT_H264};
     VENC_GOP_MODE_E enGopMode;
     VENC_GOP_ATTR_S stGopAttr;
@@ -371,16 +371,16 @@ void *LOTO_VENC_CLASSIC(void *arg)
     switch (g_resolution)
     {
     case PIC_1080P:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_1080P, enRcMode, u32Profile[1], bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     case PIC_720P:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_720P, enRcMode, u32Profile[1], bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_720P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     case PIC_2592x1944:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_2592x1944, enRcMode, u32Profile[1], bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_2592x1944, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     default:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_1080P, enRcMode, u32Profile[1], bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     }
 
@@ -517,8 +517,8 @@ HI_S32 LOTO_VENC_FramerateDown(HI_BOOL enable)
 }
 
 static RGN_HANDLE g_rgnHandle = 5;
-static MPP_CHN_S g_stMppChnAttr;
-static RGN_CHN_ATTR_S g_stRgnChnAttr;
+static MPP_CHN_S g_stMppChnAttr = {0};
+static RGN_CHN_ATTR_S g_stRgnChnAttr = {0};
 
 HI_S32 LOTO_RGN_CreateCoverRegion(RGN_HANDLE rgnHandle, MPP_CHN_S *stMppChnAttr, RGN_CHN_ATTR_S *stRgnChnAttr)
 {
@@ -627,29 +627,4 @@ HI_S32 LOTO_VENC_DisplayCover()
 HI_S32 LOTO_VENC_RemoveCover()
 {
     return LOTO_RGN_DetachCover(g_rgnHandle, &g_stMppChnAttr);
-}
-
-int rgn_test_cover(int *cover_state, int *cover_action)
-{
-    int ret;
-    if (*cover_state != *cover_action)
-    {
-        if (*cover_action == 1)
-        {
-            ret = LOTO_VENC_DisplayCover();
-        }
-        else
-        {
-            ret = LOTO_VENC_RemoveCover();
-        }
-        *cover_state = *cover_action;
-    }
-
-    if (ret != 0)
-    {
-        LOGE("cover test failed!\n");
-        return HI_FAILURE;
-    }
-
-    return HI_SUCCESS;
 }
