@@ -28,7 +28,7 @@ void delete_char(char str[], char target)
     str[j] = '\0';
 }
 
-char *GetIniKeyString(char *title, char *key, char *filename)
+char *GetIniKeyString(char *title, char *key, const char *filename)
 {
     FILE *fp;
     int flag = 0;
@@ -78,6 +78,7 @@ char *GetIniKeyString(char *title, char *key, char *filename)
         }
     }
     fclose(fp);
+    printf("get title failed!\n");
     return NULL;
 }
 

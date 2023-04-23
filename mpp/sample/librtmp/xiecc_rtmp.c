@@ -520,7 +520,7 @@ int rtmp_sender_write_video_frame(void *handle,
     {
         if (!RTMP_IsConnected(rtmp))
         {
-            RTMP_Log(RTMP_LOGERROR, "vedio: connect failed");
+            RTMP_Log(RTMP_LOGERROR, "video: connect failed");
             return -1;
         }
         // ts = RTMP_GetTime() - start_time;  //

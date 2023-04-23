@@ -33,6 +33,7 @@ extern SIZE_S g_stSize[2];
 extern PIC_SIZE_E g_enSize[2];
 extern PIC_SIZE_E g_resolution;
 extern int g_profile;
+extern PAYLOAD_TYPE_E g_payload;
 
 HI_S32 LOTO_VENC_VB_SYS_Init(HI_U32 u32SupplementConfig, SIZE_S stSnsSize)
 {
@@ -371,16 +372,16 @@ void *LOTO_VENC_CLASSIC(void *arg)
     switch (g_resolution)
     {
     case PIC_1080P:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     case PIC_720P:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_720P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_720P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     case PIC_2592x1944:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_2592x1944, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_2592x1944, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     default:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], enPayLoad[1], PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
         break;
     }
 

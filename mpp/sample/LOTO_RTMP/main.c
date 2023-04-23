@@ -52,6 +52,7 @@ PIC_SIZE_E g_enSize[2] = {PIC_1080P, PIC_720P};
 #endif
 char g_device_num[16];
 PIC_SIZE_E g_resolution;
+PAYLOAD_TYPE_E g_payload = PT_BUTT;
 
 static char gs_url_buf[1024] = {0};
 // static int g_pushurl_switch = 0;
@@ -108,7 +109,10 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
         return HI_FAILURE;
     }
 
+    /* video thread */
     pthread_create(&vid, NULL, LOTO_VENC_CLASSIC, NULL);
+
+    /* audio thread */
     if (gs_audio_state == 1) {
         if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
             pthread_create(&aid, NULL, LOTO_AENC_CLASSIC, NULL);
@@ -214,7 +218,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         }
 
 
-        /* send vedio frame */
+        /* send video frame */
         v_ring_buf_len = ringget(&v_ringinfo);
         if (v_ring_buf_len != 0)
         {
@@ -230,7 +234,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             if (prtmp != NULL) {
                 s32Ret = rtmp_sender_write_video_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0, start_time);
                 if (-1 == s32Ret) {
-                    LOGE("Vedio: Request reconnection.\n");
+                    LOGE("video: Request reconnection.\n");
                 }
             }
         }
@@ -253,18 +257,20 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 void parse_config_file(const char *config_file_path){
     char resolution[16];
 
-    // device num
+    /* device num */
     strncpy(g_device_num, GetIniKeyString("device", "device_num", config_file_path), 3);
+    LOGI("device_num = %s\n", g_device_num);
 
-    // url
+    /* url */
     strcpy(gs_url_buf, GetIniKeyString("push", "push_url", config_file_path));
     if (strncmp("on", GetIniKeyString("push", "requested_url", config_file_path), 2) == 0) {
         loto_room_info *pRoomInfo = loto_room_init();
         memset(gs_url_buf, 0, sizeof(gs_url_buf));
         strcpy(gs_url_buf, pRoomInfo->szPushURL);
     }
+    LOGI("push_url = %s\n", gs_url_buf);
 
-    // resolution
+    /* resolution */
     strcpy(resolution, GetIniKeyString("push", "resolution", config_file_path));
     if (0 == strncmp("1080", resolution, 4)) {
         g_resolution = PIC_1080P;
@@ -275,18 +281,42 @@ void parse_config_file(const char *config_file_path){
     } else {
         LOGE("The set value of resolution is not supported!\n");
     }
+    LOGI("resolution = %s\n", resolution);
 
-    // profile
-    if (strncmp("baseline", GetIniKeyString("push", "profile", config_file_path), 8) == 0) {
-        g_profile = 0;
-    } else if (strncmp("high", GetIniKeyString("push", "profile", config_file_path), 4) == 0) {
-        g_profile = 2;
-    } else {
-        LOGE("The set value of profile is wrong! Please set on or off.\n");
-        exit(1);
+    const char *video_encoder = GetIniKeyString("push", "video_encoder", config_file_path);
+    LOGI("video_encoder = %s\n", video_encoder);
+    
+    if (strncmp("h264", video_encoder, 4) == 0) {
+        /* video encoder */
+        g_payload = PT_H264;
+
+        /* profile */
+        if (strncmp("baseline", GetIniKeyString(video_encoder, "profile", config_file_path), 8) == 0) {
+            g_profile = 0;
+        } else if (strncmp("main", GetIniKeyString(video_encoder, "profile", config_file_path), 4) == 0) {
+            g_profile = 1;
+        } else if (strncmp("high", GetIniKeyString(video_encoder, "profile", config_file_path), 4) == 0) {
+            g_profile = 2;
+        } else {
+            LOGE("The set value of profile is wrong! Please set baseline, main or high.\n");
+            exit(1);
+        }
+    } else if (strncmp("h265", video_encoder, 4) == 0) {
+        /* video encoder */
+        g_payload = PT_H265;
+
+         /* profile */
+        if (strncmp("main", GetIniKeyString(video_encoder, "profile", config_file_path), 4) == 0) {
+            g_profile = 0;
+        } else if (strncmp("main_10", GetIniKeyString(video_encoder, "profile", config_file_path), 7) == 0) {
+            g_profile = 1;
+        } else {
+            LOGE("The set value of profile is wrong! Please set main or main_10.\n");
+            exit(1);
+        }
     }
 
-    // audio_state
+    /* audio_state */
     if (strncmp("off", GetIniKeyString("push", "audio_state", config_file_path), 3) == 0) {
         gs_audio_state = 0;
     } else if (strncmp("on", GetIniKeyString("push", "audio_state", config_file_path), 2) == 0) {
@@ -296,25 +326,24 @@ void parse_config_file(const char *config_file_path){
         exit(1);
     }
 
-    // audio_encoder
-    if (strncmp("aac", GetIniKeyString("push", "audio_encoder", config_file_path), 3) == 0) {
+    /* audio_encoder */
+    const char *audio_encoder = GetIniKeyString("push", "audio_encoder", config_file_path);
+    LOGI("audio_encoder = %s\n", audio_encoder);
+    
+    if (strncmp("aac", audio_encoder, 3) == 0) {
         gs_audio_encoder = AUDIO_ENCODER_AAC;
-    } else if (strncmp("opus", GetIniKeyString("push", "audio_encoder", config_file_path), 4) == 0) {
+    } else if (strncmp("opus", audio_encoder, 4) == 0) {
         gs_audio_encoder = AUDIO_ENCODER_OPUS;
     } else {
         LOGE("The set value of audio_encoder is wrong! The supported audio encoders: aac, opus\n");
         exit(1);
     }
-
-    LOGI("push_url = %s\n", gs_url_buf);
-    LOGI("resolution = %s\n", resolution);
-    LOGI("device_num = %s\n", g_device_num);
 }
 
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 1
-#define VER_EXTEN 1
+#define VER_EXTEN 7
 
 int main(int argc, char *argv[]) {
     int s32Ret;

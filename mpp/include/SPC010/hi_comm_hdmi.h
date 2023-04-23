@@ -594,7 +594,7 @@ typedef struct hiHDMI_ATTR_S
     HI_U8                   u83DParam;           /**< 3D Parameter. The default value is 9. */
     HI_HDMI_FORCE_ACTION_E  enDefaultMode;         /**< When get capability fail,HDMI forcily(priority) judgments output video mode.Default is HI_HDMI_FORCE_HDMI.*/
     HI_BOOL                 bAuthMode;           /**< Whether to enable auth mode. 0: disabled 1: enabled */
-    HI_BOOL                 bEnableVidModeAdapt; /**< Enable flag of vedio mode & DVI adapting case of user setting incorrect,default:HI_TRUE.When user have no any adapting strategy,suggestion HI_TRUE*/
+    HI_BOOL                 bEnableVidModeAdapt; /**< Enable flag of video mode & DVI adapting case of user setting incorrect,default:HI_TRUE.When user have no any adapting strategy,suggestion HI_TRUE*/
     HI_BOOL                 bEnableDeepClrAdapt; /**< Enable flag of deep color mode adapting case of user setting incorrect,default: HI_FALSE.When user have no any adapting strategy,suggestion HI_TRUE*/
     HI_U32                  u32PixClk;           /**< Pixclk of enVideoFmt(unit is kHz).(This param is valid only when enVideoFmt is HI_HDMI_VIDEO_FMT_VESA_CUSTOMER_DEFINE) */
 }HI_HDMI_ATTR_S;

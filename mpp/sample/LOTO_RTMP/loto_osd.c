@@ -1,7 +1,7 @@
 /**
  * @file Loto_osd.c
  * @copyright 2022, Lotogram Tech. Co., Ltd.
- * @brief Add vedio OSD on hi3516dv300
+ * @brief Add video OSD on hi3516dv300
  * @version 0.1
  * @date 2022-10-19
  *
