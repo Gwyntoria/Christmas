@@ -2230,7 +2230,7 @@ HI_VOID* LOTO_COMM_VENC_GetVencStreamProc(HI_VOID* p)
 
 #ifndef __HuaweiLite__
                     // s32Ret = LOTO_COMM_VENC_SaveStream(pFile[i], &stStream);
-		            s32Ret = HisiPutH264DataToBuffer(&stStream);
+                    s32Ret = HisiPutH264DataToBuffer(&stStream);
 #else
                     s32Ret = LOTO_COMM_VENC_SaveStream_PhyAddr(pFile[i], &stStreamBufInfo[i], &stStream);
 #endif

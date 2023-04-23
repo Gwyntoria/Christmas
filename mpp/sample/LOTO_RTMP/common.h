@@ -127,8 +127,8 @@ typedef struct LOTO_ROOM_INFO
 } loto_room_info;
 
 typedef struct Msg {
-	int flag;//0为读，1为写
-	char pushurl[256];
+    int flag;//0为读，1为写
+    char pushurl[256];
     int  is_open;
 }Loto_Msg;
 

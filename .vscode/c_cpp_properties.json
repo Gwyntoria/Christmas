@@ -11,10 +11,6 @@
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "D:\\Development\\mingw64\\bin\\gcc.exe",
-            "cStandard": "c11",
-            "cppStandard": "gnu++11",
-            "intelliSenseMode": "windows-gcc-x64",
             "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],

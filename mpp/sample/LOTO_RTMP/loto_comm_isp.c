@@ -249,11 +249,11 @@ HI_S32 LOTO_COMM_ISP_GetIspAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR_S
     switch (enSnsType)
     {
         case SONY_IMX385_MIPI_2M_30FPS_12BIT:
-			memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX385_2M_30FPS, sizeof(ISP_PUB_ATTR_S));
+            memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX385_2M_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
         case SONY_IMX385_MIPI_2M_60FPS_12BIT:
-			memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX385_2M_60FPS, sizeof(ISP_PUB_ATTR_S));
+            memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX385_2M_60FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
         case GALAXYCORE_GC2053_MIPI_2M_30FPS_10BIT:
@@ -347,7 +347,7 @@ ISP_SNS_OBJ_S* LOTO_COMM_ISP_GetSnsObj(HI_U32 u32SnsId)
     {
         case SONY_IMX385_MIPI_2M_30FPS_12BIT:
         case SONY_IMX385_MIPI_2M_60FPS_12BIT:
-			return &stSnsImx385Obj;
+            return &stSnsImx385Obj;
 
         // case GALAXYCORE_GC2053_MIPI_2M_30FPS_10BIT:
         //     return &stSnsGc2053Obj;
