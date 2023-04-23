@@ -5,6 +5,7 @@
 - chip: hi3516dv300
 - architecture: arm
 - system: linux
+- sdk_version: 2.0.2.0
 
 ## Dependency
 
