@@ -639,7 +639,6 @@ void *LOTO_OPUS_StartAenc(void *arg)
                 }
 
                 ret = g_stOpusEncFunc.opusEncode(opusEncoder, data, frame_size, out_buf, max_data_bytes);
-                // ret = opus_encode(opusEncoder, data, frame_size, out_buf, max_data_bytes);
                 if (ret < 0)
                 {
                     LOGE("Opus encode failed with %#x\n", ret);
@@ -739,12 +738,12 @@ void *LOTO_OPUS_AudioEncode(void *p)
             break;
         }
 
-        ret = LOTO_OPUS_ConfigAudioIn(stAioAttr.enSamplerate);
-        if (ret != 0)
-        {
-            LOGE("LOTO_OPUS_ConfigAudioIn failed\n");
-            break;
-        }
+        // ret = LOTO_OPUS_ConfigAudioIn(stAioAttr.enSamplerate);
+        // if (ret != 0)
+        // {
+        //     LOGE("LOTO_OPUS_ConfigAudioIn failed\n");
+        //     break;
+        // }
 
         do
         {

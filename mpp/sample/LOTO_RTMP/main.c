@@ -115,8 +115,10 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
     /* audio thread */
     if (gs_audio_state == 1) {
         if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
+            /* aac */
             pthread_create(&aid, NULL, LOTO_AENC_CLASSIC, NULL);
         } else if (gs_audio_encoder == AUDIO_ENCODER_OPUS) {
+            /* opus */
             pthread_create(&aid, NULL, LOTO_OPUS_AudioEncode, NULL);
         }
     }
@@ -343,7 +345,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 1
-#define VER_EXTEN 7
+#define VER_EXTEN 9
 
 int main(int argc, char *argv[]) {
     int s32Ret;
