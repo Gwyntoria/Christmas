@@ -257,12 +257,6 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 }
 
 void parse_config_file(const char *config_file_path){
-    char resolution[16];
-
-    /* device num */
-    strncpy(g_device_num, GetIniKeyString("device", "device_num", config_file_path), 3);
-    LOGI("device_num = %s\n", g_device_num);
-
     /* url */
     strcpy(gs_url_buf, GetIniKeyString("push", "push_url", config_file_path));
     if (strncmp("on", GetIniKeyString("push", "requested_url", config_file_path), 2) == 0) {
@@ -273,7 +267,7 @@ void parse_config_file(const char *config_file_path){
     LOGI("push_url = %s\n", gs_url_buf);
 
     /* resolution */
-    strcpy(resolution, GetIniKeyString("push", "resolution", config_file_path));
+    char *resolution = GetIniKeyString("push", "resolution", config_file_path);
     if (0 == strncmp("1080", resolution, 4)) {
         g_resolution = PIC_1080P;
     } else if (0 == strncmp("1944", resolution, 4)) {
@@ -284,6 +278,10 @@ void parse_config_file(const char *config_file_path){
         LOGE("The set value of resolution is not supported!\n");
     }
     LOGI("resolution = %s\n", resolution);
+
+    /* device num */
+    strncpy(g_device_num, GetIniKeyString("device", "device_num", config_file_path), 3);
+    LOGI("device_num = %s\n", g_device_num);
 
     const char *video_encoder = GetIniKeyString("push", "video_encoder", config_file_path);
     LOGI("video_encoder = %s\n", video_encoder);
@@ -344,8 +342,8 @@ void parse_config_file(const char *config_file_path){
 
 #define VER_MAJOR 1
 #define VER_MINOR 4
-#define VER_BUILD 1
-#define VER_EXTEN 9
+#define VER_BUILD 2
+#define VER_EXTEN 0
 
 int main(int argc, char *argv[]) {
     int s32Ret;

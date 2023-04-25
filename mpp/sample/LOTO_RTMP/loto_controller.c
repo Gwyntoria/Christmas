@@ -52,7 +52,7 @@ uint16_t calculate_checksum(uint8_t *data, int len) {
     return checksum;
 }
 
-void serialize_control_packet(uint8_t *buffer, const ControlPacket *packet) {
+void serialize_control_packet(uint8_t *buffer, ControlPacket *packet) {
     buffer[0] = (packet->header.type >> 8) & 0x00FF;
     buffer[1] = packet->header.type & 0xFF;
 
@@ -62,8 +62,11 @@ void serialize_control_packet(uint8_t *buffer, const ControlPacket *packet) {
     buffer[4] = (packet->command >> 8) & 0x00FF;
     buffer[5] = packet->command & 0xFF;
 
-    buffer[6] = (packet->checksum >> 8) & 0x00FF;
-    buffer[7] = packet->checksum & 0xFF;
+    uint16_t checksum = calculate_checksum(buffer, sizeof(ControlPacket) - 2);
+    packet->checksum = checksum;
+
+    buffer[6] = (checksum >> 8) & 0x00FF;
+    buffer[7] = checksum & 0xFF;
 }
 
 void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet) {
@@ -224,20 +227,32 @@ void *server_thread(void *arg) {
 }
 
 int create_client_socket(const char *server_ip_addr) {
-    int client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    int client_socket;
+
+    do {
+        client_socket = socket(AF_INET, SOCK_STREAM, 0);
+        if (client_socket >= 0) {
+            break;
+        } else {
+            printf("recreate socket\n");
+        }
+    } while (1);
+    
 
     struct sockaddr_in server_address;
     server_address.sin_family = AF_INET;
-    inet_pton(AF_INET, server_ip_addr, &server_address.sin_addr);
-    // serv_addr.sin_addr.s_addr = inet_addr(server_ip_addr);
+    // inet_pton(AF_INET, server_ip_addr, &server_address.sin_addr);
+    server_address.sin_addr.s_addr = inet_addr(server_ip_addr);
     server_address.sin_port = htons(PORT);
 
-
-    int connection_status = connect(client_socket, (struct sockaddr*)&server_address, sizeof(server_address));
-    if (connection_status == -1) {
-        LOGE("connect failed!\n");
-        return -1;
-    }
+    do {
+        int connection_status = connect(client_socket, (struct sockaddr*)&server_address, sizeof(server_address));
+        if (connection_status < 0) {
+            printf("connect failed!\n");
+        } else {
+            break;
+        }
+    } while (1);
 
     return client_socket;
 }
@@ -254,61 +269,62 @@ void *client_thread(void *arg) {
     uint8_t send_buffer[MAX_BUF_SIZE] = {0};
     uint8_t recv_buffer[MAX_BUF_SIZE] = {0};
 
+    // int cover_state = COVER_NULL;
     int cover_state = COVER_OFF;
+    int resend_state = 0;
+
+    ControlPacket control_packet;
+    memset(&control_packet, 0, sizeof(control_packet));
+    ControlPacket recv_packet;
+    memset(&recv_packet, 0, sizeof(recv_packet));
+    
+    // initialize socket
+    client_socket = create_client_socket(server_ip_addr);
 
     memset(send_buffer, 0, MAX_BUF_SIZE);
-
-    ControlPacket add_cover_pack;
-    ControlPacket rmv_cover_pack;
-    
-    add_cover_pack.header.type = 0x01;
-    add_cover_pack.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
-    add_cover_pack.command = CONTROL_ADD_COVER;
-    add_cover_pack.checksum = calculate_checksum((uint8_t*)&add_cover_pack, sizeof(add_cover_pack) - 2);
-
-    rmv_cover_pack.header.type = 0x01;
-    rmv_cover_pack.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
-    rmv_cover_pack.command = CONTROL_RMV_COVER;
-    rmv_cover_pack.checksum = calculate_checksum((uint8_t*)&rmv_cover_pack, sizeof(rmv_cover_pack) - 2);
-    
+    memset(recv_buffer, 0, MAX_BUF_SIZE);
 
     while (retry < MAX_RETRIES) {
-        client_socket = create_client_socket(server_ip_addr);
-
-        memset(send_buffer, 0, MAX_BUF_SIZE);
-        if (cover_state == COVER_OFF) {
-            serialize_control_packet(send_buffer, &add_cover_pack);
-            printf("checksum = %d\n", add_cover_pack.checksum);
+        if (cover_state == COVER_NULL) {
+            control_packet.header.type = PACK_TYPE_CTRL;
+            control_packet.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
+            control_packet.command = CONTROL_GET_COVER_STATE;
+        } else if (cover_state == COVER_OFF) {
+            control_packet.header.type = PACK_TYPE_CTRL;
+            control_packet.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
+            control_packet.command = CONTROL_ADD_COVER;
         } else if (cover_state == COVER_ON) {
-            serialize_control_packet(send_buffer, &rmv_cover_pack);
-            printf("checksum = %d\n", rmv_cover_pack.checksum);
+            control_packet.header.type = PACK_TYPE_CTRL;
+            control_packet.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
+            control_packet.command = CONTROL_RMV_COVER;
         }
 
         // printf("size of PacketHeader = %d\n", sizeof(PacketHeader));
         // printf("size of ControlPacket = %d\n", sizeof(ControlPacket));
-        // for (int i = 0; i < sizeof(ControlPacket); i++) {
-        //     printf("%#x\n", send_buffer[i]);
-        // }
 
-        ret = send(client_socket, send_buffer, sizeof(ControlPacket), 0);
-        if (ret == -1) {
+        serialize_control_packet(send_buffer, &control_packet);
+
+        // sended data
+        printf("send_buffer:\n");
+        for (int i = 0; i < sizeof(ControlPacket); i++) {
+            printf("%#x\n", send_buffer[i]);
+        }
+        printf("send_checksum = %d\n", control_packet.checksum);
+
+        if (send(client_socket, send_buffer, sizeof(ControlPacket), 0) < 0) {
             printf("Error: Failed to send message.\n");
-            close(client_socket);
             retry++;
             continue;
         }
 
-        memset(recv_buffer, 0, MAX_BUF_SIZE);
-        ret = recv(client_socket, recv_buffer, sizeof(recv_buffer), 0);
-        if (ret == -1) {
+        if (recv(client_socket, recv_buffer, sizeof(recv_buffer), 0) < 0) {
             printf("Error: Failed to receive massage.\n");
-            close(client_socket);
             retry++;
             continue;
         }
 
-        printf("[CLIENT] Received: %s\n", recv_buffer);
-        
+        printf("recv_buffer: %s\n", recv_buffer);
+
         if (strncmp(recv_buffer, "COVER ON", 8) == 0) {
             cover_state = COVER_ON;
         } else if (strncmp(recv_buffer, "COVER OFF", 9) == 0) {
@@ -318,13 +334,21 @@ void *client_thread(void *arg) {
         } else if (strncmp(recv_buffer, "RESEND", 6) == 0) {
             printf("recv_mess: %s\n", recv_buffer);
             retry++;
-            close(client_socket);
             continue;
         }
 
-        close(client_socket);
+        memset(&recv_packet, 0, sizeof(recv_packet));
+        memset(recv_buffer, 0, MAX_BUF_SIZE);
+
+        if (resend_state != 0) {
+            memset(&control_packet, 0, sizeof(control_packet));
+            memset(send_buffer, 0, MAX_BUF_SIZE);
+        }
+
         sleep(MAX_PENDING);
     }
+
+    close(client_socket);
 
     pthread_exit(NULL);
 }
