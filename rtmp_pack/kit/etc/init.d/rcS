@@ -1,0 +1,57 @@
+#! /bin/sh
+
+/bin/mount -a
+
+echo "
+            _ _ _ _ _ _ _ _ _ _ _ _
+            \  _  _   _  _ _ ___
+            / /__/ \ |_/
+           / __   /  -  _ ___
+          / /  / /  / /
+  _ _ _ _/ /  /  \_/  \_ ______
+___________\___\__________________
+"
+for initscript in /etc/init.d/S[0-9][0-9]*
+do
+        if [ -x $initscript ] ;
+        then
+                echo "[RCS]: $initscript"
+                $initscript
+        fi
+done
+
+
+macaddr=undefined
+while read LINE
+        do
+                macaddr=$LINE
+        done < /etc/macaddr
+
+#echo $macaddr
+if [ "$macaddr" = "undefined" ];then
+        macaddr=C6:F4:7E:$(($RANDOM%100)):$(($RANDOM%100)):$(($RANDOM%100))
+        echo $macaddr > /etc/macaddr
+        chmod 766 /etc/macaddr
+fi
+ifconfig eth0 down
+ifconfig eth0 hw ether $macaddr
+ifconfig eth0 up
+route add default gw 10.0.1.1
+
+echo "########## Load .ko files ############" 
+cd /ko
+./load3516dv300 -i -osmem 256 -total 1024
+
+# telnetd &
+
+# sleep 3
+
+echo "########## Run loto_conf.sh ##########"
+/etc/init.d/loto_conf.sh &
+
+# mount tmpfs /tmp -t tmpfs
+
+# /bin/ircut1 &
+
+#himm 0x114F0000 0x0532
+#himm 0x114F0004 0x0432

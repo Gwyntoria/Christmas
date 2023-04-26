@@ -1,7 +1,9 @@
-/mpp/sample/LOTO_RTMP/loto_rtmp
+mpp/sample/LOTO_RTMP/loto_rtmp
+rtmp_pack/kit/root/loto_rtmp
 
 # Prerequisites
 *.d
+!init.d
 
 # Object files
 *.o
