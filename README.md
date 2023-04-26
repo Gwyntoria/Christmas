@@ -12,3 +12,5 @@
 1. openssl-1.0.1p
 2. zlib-1.2.8
 3. rtmpdump
+4. http
+5. cJOSN
