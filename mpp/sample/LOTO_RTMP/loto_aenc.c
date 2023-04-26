@@ -167,6 +167,7 @@ HI_S32 LOTO_AUDIO_AiAenc(HI_VOID)
 
     stAioAttr.enBitwidth = AUDIO_BIT_WIDTH_16;
     stAioAttr.enWorkmode = AIO_MODE_I2S_MASTER;
+    // stAioAttr.enWorkmode = AIO_MODE_PCM_MASTER_STD;
     stAioAttr.enSoundmode = AUDIO_SOUND_MODE_STEREO;
     stAioAttr.u32EXFlag = 1;
     stAioAttr.u32FrmNum = 5;
