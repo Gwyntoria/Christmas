@@ -14,3 +14,4 @@
 3. rtmpdump
 4. http
 5. cJOSN
+6. [libopus](https://www.opus-codec.org/)
