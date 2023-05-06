@@ -7,6 +7,7 @@ KIT_DIR=$WORK_DIR/kit
 
 echo "===== 1. /root ====="
 mv $KIT_DIR/root/loto_rtmp /root
+chmod 777 /root/loto_rtmp
 mv $KIT_DIR/root/push.config /root
 mv $KIT_DIR/root/update.sh /root
 

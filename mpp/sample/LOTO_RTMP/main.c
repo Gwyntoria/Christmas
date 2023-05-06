@@ -354,7 +354,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 5
+#define VER_EXTEN 6
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -427,7 +427,6 @@ int main(int argc, char *argv[]) {
     /* Push video and audio stream through rtmp. */
     pthread_t rtmp_pid;
     pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr);
-    gs_cover_switch = COVER_ON;
 
     /* socket: server */
     pthread_t socket_server_pid;
