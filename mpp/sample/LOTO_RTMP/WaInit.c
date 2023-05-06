@@ -246,15 +246,18 @@ char *decode_response(const char *response, char *codec_key)
     return NULL;
 }
 
-loto_room_info *loto_room_init()
+loto_room_info* loto_room_init(const char* server_url, const char* server_token)
 {
     loto_room_info *pRoomInfo = NULL;
-    char szServerUrl[256] = "https://t.zhuagewawa.com/admin/room/register.pusher";
-    // char szServerUrl[256] = "http://t.zhuagewawa.com/admin/room/register.pusher";
-    // strcpy(szServerUrl, GetIniKeyString((char*)"server", (char*)"url", (char*)"/home/pi/wawaji/WaController/server.ini"));
+    char szServerUrl[256] = {0};
+    char szServerToken[256] = {0};
+
+    strcpy(szServerUrl, server_url);
     if (strlen(szServerUrl) > 0)
     {
-        char szServerToken[256] = "dadq0(~@E#Q)DSD12E1@_2{[QWE]2125+_a)E_QISDJ8NC8281@njfsGj";
+        // char szServerToken[256] = "dadq0(~@E#Q)DSD12E1@_2{[QWE]2125+_a)E_QISDJ8NC8281@njfsGj";
+        strcpy(szServerToken, server_token);
+
         // char* pszServerToken = GetIniKeyString((char*)"server", (char*)"token", (char*)"/home/pi/wawaji/WaController/server.ini");
         // if (pszServerToken != NULL)
         // strcpy(szServerToken, pszServerToken);
@@ -317,7 +320,7 @@ loto_room_info *loto_room_init()
 
             const char *response = NULL;
             response = ft_http_sync_request(http, szServerUrl, M_POST, szPostBody, strlen(szPostBody), szHttpHeader, strlen(szHttpHeader));
-            printf("response: %s\n", response);
+            // printf("response: %s\n", response);
 
             pRoomInfo = (loto_room_info *)malloc(sizeof(loto_room_info));
             memset(pRoomInfo, 0, sizeof(loto_room_info));

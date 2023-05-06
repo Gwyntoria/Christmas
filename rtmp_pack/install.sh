@@ -8,6 +8,7 @@ KIT_DIR=$WORK_DIR/kit
 echo "===== 1. /root ====="
 mv $KIT_DIR/root/loto_rtmp /root
 mv $KIT_DIR/root/push.config /root
+mv $KIT_DIR/root/update.sh /root
 
 if [ -d "/root/res" ]; then
     rm -rf /root/res

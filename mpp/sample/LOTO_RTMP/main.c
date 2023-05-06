@@ -54,7 +54,8 @@ char g_device_num[16];
 PIC_SIZE_E g_resolution;
 PAYLOAD_TYPE_E g_payload = PT_BUTT;
 
-static char gs_url_buf[1024] = {0};
+// static char gs_server_url_buf[1024] = {0};
+static char gs_push_url_buf[1024] = {0};
 // static int g_pushurl_switch = 0;
 int g_profile = -1;
 static int gs_audio_state = -1;
@@ -257,14 +258,24 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 }
 
 void parse_config_file(const char *config_file_path){
-    /* url */
-    strcpy(gs_url_buf, GetIniKeyString("push", "push_url", config_file_path));
+    /* get server url */
+    char server_url[1024];
+    strcpy(server_url, GetIniKeyString("push", "server_url", config_file_path));
+    LOGI("server_url = %s\n", server_url);
+
+    /* get server token */
+    char server_token[1024] = {0};
+    strcpy(server_token, GetIniKeyString("push", "server_token", config_file_path));
+    // LOGD("server_token = %s\n", server_token);
+
+    /* push_url */
+    strcpy(gs_push_url_buf, GetIniKeyString("push", "push_url", config_file_path));
     if (strncmp("on", GetIniKeyString("push", "requested_url", config_file_path), 2) == 0) {
-        loto_room_info *pRoomInfo = loto_room_init();
-        memset(gs_url_buf, 0, sizeof(gs_url_buf));
-        strcpy(gs_url_buf, pRoomInfo->szPushURL);
+        loto_room_info *pRoomInfo = loto_room_init(server_url, server_token);
+        memset(gs_push_url_buf, 0, sizeof(gs_push_url_buf));
+        strcpy(gs_push_url_buf, pRoomInfo->szPushURL);
     }
-    LOGI("push_url = %s\n", gs_url_buf);
+    LOGI("push_url = %s\n", gs_push_url_buf);
 
     /* resolution */
     char *resolution = GetIniKeyString("push", "resolution", config_file_path);
@@ -342,8 +353,8 @@ void parse_config_file(const char *config_file_path){
 
 #define VER_MAJOR 1
 #define VER_MINOR 4
-#define VER_BUILD 2
-#define VER_EXTEN 1
+#define VER_BUILD 3
+#define VER_EXTEN 4
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -410,7 +421,7 @@ int main(int argc, char *argv[]) {
 
     /* Initialize rtmp_sender */
     RtmpThrArg *rtmp_attr = (RtmpThrArg *)malloc(sizeof(RtmpThrArg));
-    rtmp_attr->url = gs_url_buf;
+    rtmp_attr->url = gs_push_url_buf;
     rtmp_attr->rtmp_xiecc = rtmp_sender_alloc((const char *)rtmp_attr->url);
 
     /* Push video and audio stream through rtmp. */

@@ -79,7 +79,7 @@ int get_mac(char *mac)
             (unsigned char)tmp.ifr_hwaddr.sa_data[3],
             (unsigned char)tmp.ifr_hwaddr.sa_data[4],
             (unsigned char)tmp.ifr_hwaddr.sa_data[5]);
-    printf("local mac:%s\n", mac_addr);
+    printf("MAC: %s\n", mac_addr);
     close(sockfd);
     memcpy(mac, mac_addr, strlen(mac_addr));
 

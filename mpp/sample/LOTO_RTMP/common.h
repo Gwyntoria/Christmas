@@ -173,6 +173,8 @@ char* decode(char* message, const char* codeckey);
 
 static int base64_encode(const unsigned char *sourcedata, int datalength, char *base64);
 
+int get_mac(char *mac);
+
 #ifdef __cplusplus
 }
 #endif

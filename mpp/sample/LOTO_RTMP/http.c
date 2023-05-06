@@ -959,7 +959,7 @@ static int http_internal_sync_request(ft_http_client_t* http, const char* url,
 	if(user_header != NULL)
 	{
 		CHECK(http_read_write(http, user_header, user_header_len, 0));
-		printf("user_header:\n %s \n-----\n",user_header);
+		printf("user_header:\n%s \n-----\n",user_header);
 	}
 
 	// if(post_data && post_data_len > 0)
