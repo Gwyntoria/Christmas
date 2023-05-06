@@ -556,7 +556,8 @@ HI_S32 LOTO_RGN_CreateCoverRegion(RGN_HANDLE rgnHandle, MPP_CHN_S *stMppChnAttr,
     stRgnChnAttr->unChnAttr.stCoverExChn.stRect.s32Y = 0;
     stRgnChnAttr->unChnAttr.stCoverExChn.stRect.u32Width = 1080;
     stRgnChnAttr->unChnAttr.stCoverExChn.stRect.u32Height = 1920;
-    stRgnChnAttr->unChnAttr.stCoverExChn.u32Color = 0xFF4500;
+    // stRgnChnAttr->unChnAttr.stCoverExChn.u32Color = 0xFF4500;
+    stRgnChnAttr->unChnAttr.stCoverExChn.u32Color = 0x202020;
     stRgnChnAttr->unChnAttr.stCoverExChn.u32Layer = 0;
 
     ret = ret = HI_MPI_RGN_Create(rgnHandle, &stRgnAttr);

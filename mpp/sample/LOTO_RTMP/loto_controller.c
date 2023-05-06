@@ -139,6 +139,10 @@ void *server_thread(void *arg) {
 
     do {
         server_socket = create_server_socket(&server_address);
+
+        if (server_socket < 0) {
+            sleep(5);
+        }
     } while (server_socket < 0);
     LOGI("Waiting for connections...\n");
 
