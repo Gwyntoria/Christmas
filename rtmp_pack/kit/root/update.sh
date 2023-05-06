@@ -13,6 +13,8 @@ fi
 # kill processes
 /etc/init.d/kill_process.sh
 
+sleep 1
+
 # echo "Update push.config"
 # tftp -g -r push.config $1
 
