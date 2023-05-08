@@ -385,12 +385,10 @@ void *LOTO_AAC_StartEncode(void *arg) {
                     if (outargs.numOutBytes > 0) {
                         aac_data_len = outargs.numOutBytes;
                         memcpy(outputBufferTem, outputBuffer, aac_data_len);
+                    } else if (outargs.numOutBytes == 0) {
+                        memcpy(outputBuffer, outputBufferTem, aac_data_len);
+                        memset(outputBufferTem, 0, sizeof(outputBufferTem));
                     }
-                }
-
-                if (outargs.numOutBytes == 0) {
-                    memcpy(outputBuffer, outputBufferTem, aac_data_len);
-                    memset(outputBufferTem, 0, sizeof(outputBufferTem));
                 }
 
                 LOGD("aac_data_len = %d\n", aac_data_len);
@@ -441,7 +439,7 @@ HI_S32 LOTO_AAC_CreateAacThread(pthread_t *aac_aenc_id, HANDLE_AACENCODER aacEnc
 void *LOTO_AAC_AudioEncoder(void *arg) {
     LOGI("=== LOTO_AAC_AudioEncoder ===\n");
 
-     HI_S32 ret;
+    HI_S32 ret;
     AUDIO_DEV AiDev = AAC_AI_DEV;
     AI_CHN AiChn = AAC_AI_CHN;
     HI_S32 s32AiChnCnt = 1;
