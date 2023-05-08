@@ -7,9 +7,9 @@ route add default gw 10.0.1.1
 telnetd &
 
 # echo "########## Set System Time #############"
-# /etc/init.d/time_conf.sh
+# /root/scripts/time_conf.sh
 
 echo "########## Run RTMP App #################"
 /root/loto_rtmp
 
-/etc/init.d/check_process.sh
+/root/scripts/check_process.sh

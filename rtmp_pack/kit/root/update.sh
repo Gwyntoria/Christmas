@@ -11,7 +11,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # kill processes
-/etc/init.d/kill_process.sh
+/root/scripts/kill_process.sh
 
 sleep 1
 

@@ -33,8 +33,8 @@
 #include "loto_controller.h"
 #include "WaInit.h"
 
-#define AUDIO_ENCODER_AAC     0xAC
-#define AUDIO_ENCODER_OPUS    0xFF
+#define AUDIO_ENCODER_AAC       0xAC
+#define AUDIO_ENCODER_OPUS      0xFF
 
 typedef struct RtmpThrArg {
     char *url;
@@ -60,6 +60,27 @@ static char gs_push_url_buf[1024] = {0};
 int g_profile = -1;
 static int gs_audio_state = -1;
 static int gs_audio_encoder = -1;
+
+static int gs_server_option = SERVER_TEST;
+
+static int gs_cover_switch = 0;
+static int gs_cover_state = COVER_OFF;
+
+void get_server_option(int *server_option) {
+    *server_option = gs_server_option;
+}
+
+void set_server_option(int *server_option) {
+    gs_server_option = *server_option;
+}
+
+void get_cover_state(int *cover_state) {
+    *cover_state = gs_cover_state;
+}
+
+void set_cover_switch(int *cover_switch) {
+    gs_cover_switch = *cover_switch;
+}
 
 HI_S32 LOTO_RTMP_VA_CLASSIC()
 {
@@ -127,17 +148,6 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
     LOGI("vid = %#x, aid = %#x\n", vid, aid);
 
     return s32Ret;
-}
-
-static int gs_cover_switch = 0;
-static int gs_cover_state = COVER_OFF;
-
-void get_cover_state(int *cover_state) {
-    *cover_state = gs_cover_state;
-}
-
-void set_cover_switch(int *cover_switch) {
-    gs_cover_switch = *cover_switch;
 }
 
 void *LOTO_VIDEO_AUDIO_RTMP(void *p)
@@ -260,7 +270,11 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 void parse_config_file(const char *config_file_path){
     /* get server url */
     char server_url[1024];
-    strcpy(server_url, GetIniKeyString("push", "server_url", config_file_path));
+    if (gs_server_option == SERVER_TEST) {
+        strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
+    } else if (gs_server_option == SERVER_OFFI) {
+        strcpy(server_url, GetIniKeyString("push", "offi_server_url", config_file_path));
+    }
     LOGI("server_url = %s\n", server_url);
 
     /* get server token */
@@ -354,7 +368,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 6
+#define VER_EXTEN 7
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -374,6 +388,10 @@ int main(int argc, char *argv[]) {
         LOGE("Time sync failed\n");
         exit(1);
     }
+
+    /* socket: server */
+    pthread_t socket_server_pid;
+    pthread_create(&socket_server_pid, NULL, server_thread, NULL);
 
     /* get global variables from config file */
     parse_config_file(config_file_path);
@@ -428,11 +446,7 @@ int main(int argc, char *argv[]) {
     pthread_t rtmp_pid;
     pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr);
 
-    /* socket: server */
-    pthread_t socket_server_pid;
-    pthread_create(&socket_server_pid, NULL, server_thread, NULL);
     pthread_join(socket_server_pid, 0);
-
     pthread_join(rtmp_pid, 0);
 
     LOTO_RGN_UninitCoverRegion();

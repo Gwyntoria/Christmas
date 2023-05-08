@@ -20,5 +20,8 @@ while true; do
         reboot
 
         break
+    else
+        PID=$(ps aux | grep '[l]oto_rtmp' | awk '{print $1}')
+        echo "PID=$PID"
     fi
 done

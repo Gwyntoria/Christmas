@@ -10,6 +10,10 @@
 #define COVER_ON    0x01
 #define COVER_NULL  0xFF
 
+// server_url option
+#define SERVER_TEST 0x21
+#define SERVER_OFFI 0x22
+
 // message
 #define MESSAGE_COVER_ON            0x00A0
 #define MESSAGE_COVER_OFF           0x00A1
@@ -21,6 +25,9 @@
 #define CONTROL_ADD_COVER           0x01A1
 #define CONTROL_RMV_COVER           0x01A2
 #define CONTROL_GET_COVER_STATE     0x01A3
+#define CONTROL_SET_COVER_STATE     0x01A4
+#define CONTROL_GET_SERVER_OPTION   0x01A5
+#define CONTROL_SET_SERVER_OPTION   0x01A6
 #define CONTROL_REQUEST_RESEND      0x01C0
 
 #define PACK_TYPE_INFO              0x0000

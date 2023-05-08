@@ -18,6 +18,13 @@ else
     mv $KIT_DIR/root/res/ /root
 fi
 
+if [ -d "/root/scripts" ]; then
+    rm -rf /root/scripts
+    mv $KIT_DIR/root/scripts/ /root
+else 
+    mv $KIT_DIR/root/scripts/ /root
+fi
+
 echo "===== 2. /etc ====="
 mv $KIT_DIR/etc/localtime /etc
 mv $KIT_DIR/etc/resolv.conf /etc
