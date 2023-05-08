@@ -174,6 +174,8 @@ char* decode(char* message, const char* codeckey);
 static int base64_encode(const unsigned char *sourcedata, int datalength, char *base64);
 
 int get_mac(char *mac);
+int time_sync();
+void HexToString(const uint8_t *data, unsigned long len);
 
 #ifdef __cplusplus
 }

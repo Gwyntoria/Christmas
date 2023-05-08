@@ -32,6 +32,7 @@
 #include "ConfigParser.h"
 #include "loto_controller.h"
 #include "WaInit.h"
+#include"loto_aac.h"
 
 #define AUDIO_ENCODER_AAC       0xAC
 #define AUDIO_ENCODER_OPUS      0xFF
@@ -138,7 +139,8 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
     if (gs_audio_state == 1) {
         if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
             /* aac */
-            pthread_create(&aid, NULL, LOTO_AENC_CLASSIC, NULL);
+            // pthread_create(&aid, NULL, LOTO_AENC_CLASSIC, NULL);
+            pthread_create(&aid, NULL, LOTO_AAC_AudioEncoder, NULL);
         } else if (gs_audio_encoder == AUDIO_ENCODER_OPUS) {
             /* opus */
             pthread_create(&aid, NULL, LOTO_OPUS_AudioEncode, NULL);
