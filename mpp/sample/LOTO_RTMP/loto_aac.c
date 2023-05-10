@@ -255,7 +255,7 @@ void *LOTO_AAC_StartEncode(void *arg) {
     void* inBuffer[] = {inputBuffer};
     INT inBufferIds[] = {IN_AUDIO_DATA};
     INT inBufferSize[] = {frame_size};
-    INT inBufferElSize[] = {sizeof(HI_S16)};
+    INT inBufferElSize[] = {sizeof(HI_U16)};
 
     void* outBuffer[] = {outputBuffer};
     INT outBufferIds[]= {OUT_BITSTREAM_DATA};
@@ -295,11 +295,9 @@ void *LOTO_AAC_StartEncode(void *arg) {
 
         ret = select(ai_fd + 1, &read_fds, NULL, NULL, &timeoutVal);
         if (ret < 0) {
-            start = HI_FALSE;
             break;
         } else if (0 == ret) {
             LOGE("Get aenc stream select time out\n");
-            start = HI_FALSE;
             break;
         }
 
@@ -308,7 +306,6 @@ void *LOTO_AAC_StartEncode(void *arg) {
             ret = HI_MPI_AI_GetFrame(AiDevId, AiChn, &pstFrm, &pstAecFrm, 0);
             if (ret != HI_SUCCESS) {
                 LOGE("HI_MPI_AI_GetFrame failed with %#x\n", ret);
-                start = HI_FALSE;
                 break;
             }
 
@@ -321,7 +318,7 @@ void *LOTO_AAC_StartEncode(void *arg) {
             }
 
             do {
-                /* Opus encode */
+                /* AAC encode */
                 point_num = pstFrm.u32Len / (pstFrm.enBitwidth + 1);
                 water_line = AAC_ENC_FRAME_SIZE;
 
@@ -329,7 +326,6 @@ void *LOTO_AAC_StartEncode(void *arg) {
 
                 if (point_num != water_line) {
                     LOGE("Invalid point number %d for default opus encoder setting!\n", point_num);
-                    start = HI_FALSE;
                     break;
                 }
                 
@@ -379,7 +375,6 @@ void *LOTO_AAC_StartEncode(void *arg) {
                 ret = aacEncEncode(aacEncoder, &inBufDesc, &outBufDesc, &inargs, &outargs);
                 if (ret != AACENC_OK) {
                     LOGE("Failed to encode AAC frame with %#x\n", ret);
-                    start = HI_FALSE;
                     break;
                 } else {
                     if (outargs.numOutBytes > 0) {
@@ -398,7 +393,6 @@ void *LOTO_AAC_StartEncode(void *arg) {
                 ret = HisiPutOpusDataToBuffer(outputBuffer, aac_data_len, pstFrm.u64TimeStamp);
                 if (ret != HI_SUCCESS) {
                     LOGE("HisiPutOpusDataToBuffer failed!\n");
-                    start = HI_FALSE;
                     break;
                 }
 
@@ -442,7 +436,7 @@ void *LOTO_AAC_AudioEncoder(void *arg) {
     HI_S32 ret;
     AUDIO_DEV AiDev = AAC_AI_DEV;
     AI_CHN AiChn = AAC_AI_CHN;
-    HI_S32 s32AiChnCnt = 1;
+    HI_S32 s32AiChnCnt = -1;
     HANDLE_AACENCODER aacEncoder;
 
     pthread_t aac_aenc_id;
