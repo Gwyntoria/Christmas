@@ -85,6 +85,8 @@ void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet) {
 
 extern void get_cover_state(int *cover_state);
 extern void set_cover_switch(int *cover_switch);
+extern void get_server_option(int *server_option);
+extern void set_server_option(int *server_option);
 
 int create_server_socket(struct sockaddr_in *server_address) {
     int server_socket;
@@ -129,6 +131,8 @@ void *server_thread(void *arg) {
     int cover_state;
     const int cover_state_on = COVER_ON;
     const int cover_state_off = COVER_OFF;
+    const int server_state_test = SERVER_TEST;
+    const int server_state_offi = SERVER_OFFI;
 
     // uint8_t recv_buffer[MAX_BUF_SIZE];
     // memset(recv_buffer, 0, MAX_BUF_SIZE);
@@ -170,6 +174,7 @@ void *server_thread(void *arg) {
                 LOGE("Client disconnected\n");
                 break;
             }
+
             LOGD("recv_buffer: \n");
             for (int i = 0; i < sizeof(ControlPacket); i++) {
                 LOGD("%#x\n", recv_buffer[i]);
@@ -178,7 +183,7 @@ void *server_thread(void *arg) {
             // 将数组中的内容保存近本地结构体
             deserialize_control_packet(recv_buffer, &recv_packet);
 
-            LOGD("length = %d\n", recv_packet.header.length);
+            // LOGD("length = %d\n", recv_packet.header.length);
 
             uint16_t checksum = calculate_checksum(recv_buffer, sizeof(ControlPacket) - 2);
             if (checksum != recv_packet.checksum) {
@@ -199,17 +204,21 @@ void *server_thread(void *arg) {
                     } else if (recv_packet.command == CONTROL_RMV_COVER) {
                         set_cover_switch(&cover_state_off);
                         sprintf(send_buffer, "COVER OFF");
-                    } else if (recv_packet.command == CONTROL_GET_COVER_STATE) {
-                        get_cover_state(&cover_state);
-                        send_packet.header.type = PACK_TYPE_INFO;
-                        send_packet.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
-                        if (cover_state == COVER_ON) {
-                            send_packet.command = MESSAGE_COVER_ON;
-                        } else if (cover_state == COVER_OFF) {
-                            send_packet.command = MESSAGE_COVER_OFF;
-                        }
-                        send_packet.checksum = calculate_checksum((uint8_t*)&send_packet, sizeof(send_packet) - 2);
-                        serialize_control_packet(send_buffer, &send_packet);
+                    // } else if (recv_packet.command == CONTROL_GET_COVER_STATE) {
+                    //     get_cover_state(&cover_state);
+                    //     send_packet.header.type = PACK_TYPE_INFO;
+                    //     send_packet.header.length = sizeof(ControlPacket) - sizeof(PacketHeader);
+                    //     if (cover_state == COVER_ON) {
+                    //         send_packet.command = MESSAGE_COVER_ON;
+                    //     } else if (cover_state == COVER_OFF) {
+                    //         send_packet.command = MESSAGE_COVER_OFF;
+                    //     }
+                    //     send_packet.checksum = calculate_checksum((uint8_t*)&send_packet, sizeof(send_packet) - 2);
+                    //     serialize_control_packet(send_buffer, &send_packet);
+                    } else if (recv_packet.command = CONTROL_SERVER_TEST) {
+                        set_server_option(&server_state_test);
+                    } else if (recv_packet.command = CONTROL_SERVER_OFFI) {
+                        set_server_option(&server_state_offi);
                     }
                 }
             }

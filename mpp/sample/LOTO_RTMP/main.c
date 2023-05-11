@@ -54,6 +54,8 @@ char g_device_num[16];
 PIC_SIZE_E g_resolution;
 PAYLOAD_TYPE_E g_payload = PT_BUTT;
 
+static char BIN_VERSION[8];
+
 // static char gs_server_url_buf[1024] = {0};
 static char gs_push_url_buf[1024] = {0};
 // static int g_pushurl_switch = 0;
@@ -61,7 +63,7 @@ int g_profile = -1;
 static int gs_audio_state = -1;
 static int gs_audio_encoder = -1;
 
-static int gs_server_option = SERVER_TEST;
+static int gs_server_option = SERVER_NULL;
 
 static int gs_cover_switch = 0;
 static int gs_cover_state = COVER_OFF;
@@ -268,23 +270,35 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 }
 
 void parse_config_file(const char *config_file_path){
-    /* get server url */
-    char server_url[1024];
-    if (gs_server_option == SERVER_TEST) {
-        strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
-    } else if (gs_server_option == SERVER_OFFI) {
-        strcpy(server_url, GetIniKeyString("push", "offi_server_url", config_file_path));
-    }
-    LOGI("server_url = %s\n", server_url);
-
-    /* get server token */
-    char server_token[1024] = {0};
-    strcpy(server_token, GetIniKeyString("push", "server_token", config_file_path));
-    // LOGD("server_token = %s\n", server_token);
-
-    /* push_url */
+    /* Get default push_url */
     strcpy(gs_push_url_buf, GetIniKeyString("push", "push_url", config_file_path));
+
+    /* If push address should be requested, server address must be set first */
     if (strncmp("on", GetIniKeyString("push", "requested_url", config_file_path), 2) == 0) {
+        /* Get server token */
+        char server_token[1024] = {0};
+        strcpy(server_token, GetIniKeyString("push", "server_token", config_file_path));
+        // LOGD("server_token = %s\n", server_token);
+
+        /* Get server url */
+        char server_url[1024];
+        LOGI("Waiting for updating server address\n");
+        while (1) {
+            if (gs_server_option != SERVER_NULL) {
+                break;
+            } else {
+                LOGE("Waiting......\n");
+                sleep(3);
+            }
+        }
+        
+        if (gs_server_option == SERVER_TEST) {
+            strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
+        } else if (gs_server_option == SERVER_OFFI) {
+            strcpy(server_url, GetIniKeyString("push", "offi_server_url", config_file_path));
+        }
+        LOGI("server_url = %s\n", server_url);
+
         loto_room_info *pRoomInfo = loto_room_init(server_url, server_token);
         memset(gs_push_url_buf, 0, sizeof(gs_push_url_buf));
         strcpy(gs_push_url_buf, pRoomInfo->szPushURL);
@@ -368,7 +382,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 7
+#define VER_EXTEN 9
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -381,8 +395,10 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    LOGI("RTMP App Version: %d.%d.%d.%d\n", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
+    sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
+    LOGI("RTMP App Version: %s\n", BIN_VERSION);
 
+    /* sync local time from net_time */
     s32Ret = time_sync();
     if (s32Ret != HI_SUCCESS) {
         LOGE("Time sync failed\n");
