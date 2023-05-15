@@ -30,7 +30,7 @@ void delete_char(char str[], char target);
  * @return char* If the value to be queried is found, the correct result will be returned; 
  *               Otherwise, NULL will be returned
  */
-char *GetIniKeyString(char *title, char *key, const char *filename);
+char *GetIniKeyString(const char *title, const char *key, const char *filename);
 
 /**
  * @brief Get the Ini Key String object

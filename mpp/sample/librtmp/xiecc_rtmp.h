@@ -33,24 +33,27 @@ int rtmp_sender_stop_publish(void *handle);
 // @param [in] data       : aac audio data
 // @param [in] size       : aac audio data size
 // @param [in] dts_us     : decode timestamp of frame
-int rtmp_sender_write_audio_frame(void *handle,
-                                        uint8_t *data,
-                                        int size,
-                                        uint64_t dts_us,
-                                        uint32_t start_time);
+int rtmp_sender_write_aac_frame(void *handle,
+                                  uint8_t *data,
+                                  int size,
+                                  uint64_t dts_us,
+                                  uint32_t start_time);
 
-// @brief send video frame, now only H264 supported
-// @param [in] rtmp_sender handler
-// @param [in] data       : video data, (Full frames are required)
-// @param [in] size       : video data size
-// @param [in] dts_us     : decode timestamp of frame
-// @param [in] key        : key frame indicate, [0: non key] [1: key]
-int rtmp_sender_write_video_frame(void *handle,
-                                        uint8_t *data,
-                                        int size,
-                                        uint64_t dts_us,
-                                        int key,
-                                        uint32_t start_time);
+/**
+ * @brief send avc(h.264) frame
+ * 
+ * @param handle rtmp_sender handler
+ * @param data video data, (Full frames are required)
+ * @param size video data size
+ * @param dts_us timestamp
+ * @param key 
+ * @return int 
+ */
+int rtmp_sender_write_avc_frame(void *handle,
+                                  uint8_t *data,
+                                  int size,
+                                  uint64_t dts_us,
+                                  int key);
 
 
 /**
@@ -76,6 +79,22 @@ int rtmp_sender_write_opus_frame(void *handle,
                                  int size,
                                  uint64_t dts_us,
                                  uint32_t start_time);
+
+/**
+ * @brief send hevc(h.265) frame
+ * 
+ * @param handle rtmp_sender
+ * @param data frame
+ * @param size frame size
+ * @param dts_us timestamp
+ * @param key 
+ * @return int 
+ */
+int rtmp_sender_write_hevc_frame(void *handle,
+                                  uint8_t *data,
+                                  int size,
+                                  uint64_t dts_us,
+                                  int key);
 
 #ifdef __cplusplus
 }

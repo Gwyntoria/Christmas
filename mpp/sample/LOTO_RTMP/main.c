@@ -32,9 +32,10 @@
 #include "ConfigParser.h"
 #include "loto_controller.h"
 #include "WaInit.h"
+#include "flv.h"
 
 #define AUDIO_ENCODER_AAC       0xAC
-#define AUDIO_ENCODER_OPUS      0xFF
+#define AUDIO_ENCODER_OPUS      0xAF
 
 typedef struct RtmpThrArg {
     char *url;
@@ -137,7 +138,7 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
     pthread_create(&vid, NULL, LOTO_VENC_CLASSIC, NULL);
 
     /* audio thread */
-    if (gs_audio_state == 1) {
+    if (gs_audio_state == TRUE) {
         if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
             /* aac */
             pthread_create(&aid, NULL, LOTO_AENC_CLASSIC, NULL);
@@ -206,7 +207,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         // cur_time = RTMP_GetTime();          // get current time(ms)
         cur_time = GetTimestamp(NULL, 1); // get current time(ms)
 
-        if (gs_audio_state == 1) {
+        if (gs_audio_state == TRUE) {
             /* send audio frame */
             a_ring_buf_len = ringget_audio(&a_ringinfo);
             if (a_ring_buf_len != 0) {
@@ -221,7 +222,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 
                 if (prtmp != NULL) {
                     if (gs_audio_encoder = AUDIO_ENCODER_AAC) {
-                        s32Ret = rtmp_sender_write_audio_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
+                        s32Ret = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
                     } else if (gs_audio_encoder = AUDIO_ENCODER_OPUS) {
                         s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
                     }
@@ -247,7 +248,12 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
 
             if (prtmp != NULL) {
-                s32Ret = rtmp_sender_write_video_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0, start_time);
+                if (g_payload == PT_H264) {
+                    s32Ret = rtmp_sender_write_avc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+                } else if (g_payload == PT_H265) {
+                    s32Ret = rtmp_sender_write_hevc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+                }
+                
                 if (-1 == s32Ret) {
                     LOGE("video: Request reconnection.\n");
                 }
@@ -329,52 +335,57 @@ void parse_config_file(const char *config_file_path){
         /* video encoder */
         g_payload = PT_H264;
 
+        char *video_encoder_profile = GetIniKeyString("h264", "profile", config_file_path);
+
         /* profile */
-        if (strncmp("baseline", GetIniKeyString(video_encoder, "profile", config_file_path), 8) == 0) {
+        if (strncmp("baseline", video_encoder_profile, 8) == 0) {
             g_profile = 0;
-        } else if (strncmp("main", GetIniKeyString(video_encoder, "profile", config_file_path), 4) == 0) {
+        } else if (strncmp("main", video_encoder_profile, 4) == 0) {
             g_profile = 1;
-        } else if (strncmp("high", GetIniKeyString(video_encoder, "profile", config_file_path), 4) == 0) {
+        } else if (strncmp("high", video_encoder_profile, 4) == 0) {
             g_profile = 2;
         } else {
-            LOGE("The set value of profile is wrong! Please set baseline, main or high.\n");
+            LOGE("The set value of profile is %s! Please set baseline, main or high.\n", video_encoder_profile);
             exit(1);
         }
     } else if (strncmp("h265", video_encoder, 4) == 0) {
         /* video encoder */
         g_payload = PT_H265;
 
+        char *video_encoder_profile = GetIniKeyString("h265", "profile", config_file_path);
+
          /* profile */
-        if (strncmp("main", GetIniKeyString(video_encoder, "profile", config_file_path), 4) == 0) {
+        if (strncmp("main", video_encoder_profile, 4) == 0) {
             g_profile = 0;
-        } else if (strncmp("main_10", GetIniKeyString(video_encoder, "profile", config_file_path), 7) == 0) {
+        } else if (strncmp("main_10", video_encoder_profile, 7) == 0) {
             g_profile = 1;
         } else {
-            LOGE("The set value of profile is wrong! Please set main or main_10.\n");
+            LOGE("The set value of profile is %s! Please set main or main_10.\n", video_encoder_profile);
             exit(1);
         }
     }
 
     /* audio_state */
-    if (strncmp("off", GetIniKeyString("push", "audio_state", config_file_path), 3) == 0) {
-        gs_audio_state = 0;
-    } else if (strncmp("on", GetIniKeyString("push", "audio_state", config_file_path), 2) == 0) {
-        gs_audio_state = 1;
-    } else {
-        LOGE("The set value of audio_state is wrong! Please set on or off.\n");
-        exit(1);
-    }
+    char *audio_state = GetIniKeyString("push", "audio_state", config_file_path);
+    if (strncmp("off", audio_state, 3) == 0) {
+        gs_audio_state = FALSE;
+    } else if (strncmp("on", audio_state, 2) == 0) {
+        gs_audio_state = TRUE;
 
-    /* audio_encoder */
-    const char *audio_encoder = GetIniKeyString("push", "audio_encoder", config_file_path);
-    LOGI("audio_encoder = %s\n", audio_encoder);
-    
-    if (strncmp("aac", audio_encoder, 3) == 0) {
-        gs_audio_encoder = AUDIO_ENCODER_AAC;
-    } else if (strncmp("opus", audio_encoder, 4) == 0) {
-        gs_audio_encoder = AUDIO_ENCODER_OPUS;
+        /* audio_encoder */
+        const char *audio_encoder = GetIniKeyString("push", "audio_encoder", config_file_path);
+        LOGI("audio_encoder = %s\n", audio_encoder);
+        
+        if (strncmp("aac", audio_encoder, 3) == 0) {
+            gs_audio_encoder = AUDIO_ENCODER_AAC;
+        } else if (strncmp("opus", audio_encoder, 4) == 0) {
+            gs_audio_encoder = AUDIO_ENCODER_OPUS;
+        } else {
+            LOGE("The set value of audio_encoder is %s! The supported audio encoders: aac, opus\n", audio_encoder);
+            exit(1);
+        }
     } else {
-        LOGE("The set value of audio_encoder is wrong! The supported audio encoders: aac, opus\n");
+        LOGE("The set value of audio_state is %s! Please set on or off.\n", audio_state);
         exit(1);
     }
 }
@@ -382,7 +393,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 9
+#define VER_EXTEN 12
 
 int main(int argc, char *argv[]) {
     int s32Ret;

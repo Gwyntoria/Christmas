@@ -369,22 +369,23 @@ void *LOTO_VENC_CLASSIC(void *arg)
     /* Encode h.264 */
     /* Modify the resolution   g_enSize[0]: 1080p; g_enSize[1]: 720p */
     // g_resolution = PIC_2592x1944;
-    switch (g_resolution)
-    {
-    case PIC_1080P:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-        break;
-    case PIC_720P:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_720P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-        break;
-    case PIC_2592x1944:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_2592x1944, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-        break;
-    default:
-        s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-        break;
-    }
+    // switch (g_resolution)
+    // {
+    // case PIC_1080P:
+    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+    //     break;
+    // case PIC_720P:
+    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_720P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+    //     break;
+    // case PIC_2592x1944:
+    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_2592x1944, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+    //     break;
+    // default:
+    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
+    //     break;
+    // }
 
+    s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, g_resolution, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
     if (HI_SUCCESS != s32Ret)
     {
         LOGE("Venc Start failed with %#x!\n", s32Ret);

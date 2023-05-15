@@ -28,58 +28,79 @@ void delete_char(char str[], char target)
     str[j] = '\0';
 }
 
-char *GetIniKeyString(char *title, char *key, const char *filename)
+char *GetIniKeyString(const char *title, const char *key, const char *filename)
 {
     FILE *fp;
-    int flag = 0;
-    char sTitle[32], *wTmp;
-    static char sLine[1024];
+    int title_state = 0;
+    char sTitle[32], *value;
+    static char line[1024];
 
     sprintf(sTitle, "[%s]", title);
-    if (NULL == (fp = fopen(filename, "r")))
-    {
+    // printf("sTitle = %s\n", sTitle);
+    
+    if (NULL == (fp = fopen(filename, "r"))) {
         perror("fopen");
         return "NULL";
     }
 
-    while (NULL != fgets(sLine, 1024, fp))
-    {
+    while (NULL != fgets(line, 1024, fp)) {
         // skip comment line
-        if (0 == strncmp("//", sLine, 2))
+        if (0 == strncmp("//", line, 2))
             continue;
-        if ('#' == sLine[0])
+        if ('#' == line[0])
             continue;
 
+        // find title
+        if (title_state == 0 && strncmp(sTitle, line, strlen(sTitle)) == 0) {
+            title_state = 1;
+            continue;
+        }
+
         // find the specified key and return the value
-        wTmp = strchr(sLine, '=');
-        if ((NULL != wTmp) && (1 == flag))
-        {
-            if (0 == strncmp(key, sLine, wTmp - sLine))
-            {
-                if (sLine[strlen(sLine) - 1] == 0b1010) // 0b1010 refers to '\n'
-                {
-                    sLine[strlen(sLine) - 1] = '\0';
-                }
-                else if (sLine[strlen(sLine) - 1] > 0b00011111)
-                {
-                    sLine[strlen(sLine)] = '\0';
+        if (title_state == 1) {
+            value = strchr(line, '=');
+            if (value != NULL && (strncmp(key, line, value - line) == 0)) {
+                // 0b1010 refers to '\n'
+                if (line[strlen(line) - 1] == 0b1010) { 
+                    line[strlen(line) - 1] = '\0';
+                } else if (line[strlen(line) - 1] > 0b00011111) {
+                    line[strlen(line)] = '\0';
                 }
                 fclose(fp);
-                return wTmp + 1;
+                return value + 1;
             }
         }
-        else
-        {
-            // find the title
-            if (0 == strncmp(sTitle, sLine, strlen(sLine) - 1))
-            {
-                flag = 1;
-            }
-        }
+
+        // // find the specified key and return the value
+        // value = strchr(line, '=');
+        // if ((NULL != value) && (1 == title_state))
+        // {
+        //     if (0 == strncmp(key, line, value - line))
+        //     {
+        //         if (line[strlen(line) - 1] == 0b1010) // 0b1010 refers to '\n'
+        //         {
+        //             line[strlen(line) - 1] = '\0';
+        //         }
+        //         else if (line[strlen(line) - 1] > 0b00011111)
+        //         {
+        //             line[strlen(line)] = '\0';
+        //         }
+        //         fclose(fp);
+        //         return value + 1;
+        //     }
+        // }
+        // else
+        // {
+        //     // find the title
+        //     if (0 == strncmp(sTitle, line, strlen(sTitle)))
+        //     {
+        //         title_state = 1;
+        //     }
+        // }
     }
     fclose(fp);
     printf("get title failed!\n");
-    return NULL;
+    exit(1);
 }
 
 int GetIniKeyInt(char *title, char *key, char *filename)
@@ -90,54 +111,54 @@ int GetIniKeyInt(char *title, char *key, char *filename)
 int PutIniKeyString(char *title, char *key, char *val, char *filename)
 {
     FILE *fpr, *fpw;
-    int flag = 0;
-    char sLine[1024], sTitle[32], *wTmp;
+    int title_state = 0;
+    char line[1024], sTitle[32], *value;
 
     sprintf(sTitle, "[%s]", title);
     if (NULL == (fpr = fopen(filename, "r")))
         printf("fopen"); // 读取原文件
-    sprintf(sLine, "%s.tmp", filename);
-    if (NULL == (fpw = fopen(sLine, "w")))
+    sprintf(line, "%s.tmp", filename);
+    if (NULL == (fpw = fopen(line, "w")))
         printf("fopen"); // 写入临时文件
 
     if (fpr == NULL)
     {
         fputs(sTitle, fpw); // 写入临时文件
-        sprintf(sLine, "\n%s=%s\n", key, val);
-        fputs(sLine, fpw);
+        sprintf(line, "\n%s=%s\n", key, val);
+        fputs(line, fpw);
     }
     else
     {
-        while (NULL != fgets(sLine, 1024, fpr))
+        while (NULL != fgets(line, 1024, fpr))
         {
-            if (2 != flag)
+            if (2 != title_state)
             { // 如果找到要修改的那一行，则不会执行内部的操作
-                wTmp = strchr(sLine, '=');
-                if ((NULL != wTmp) && (1 == flag))
+                value = strchr(line, '=');
+                if ((NULL != value) && (1 == title_state))
                 {
-                    if (0 == strncmp(key, sLine, wTmp - sLine))
+                    if (0 == strncmp(key, line, value - line))
                     {             // 长度依文件读取的为准
-                        flag = 2; // 更改值，方便写入文件
-                        sprintf(wTmp + 1, "%s\n", val);
+                        title_state = 2; // 更改值，方便写入文件
+                        sprintf(value + 1, "%s\n", val);
                     }
                 }
                 else
                 {
-                    if (0 == strncmp(sTitle, sLine, strlen(sLine) - 1))
+                    if (0 == strncmp(sTitle, line, strlen(sTitle)))
                     {             // 长度依文件读取的为准
-                        flag = 1; // 找到标题位置
+                        title_state = 1; // 找到标题位置
                     }
                 }
             }
-            fputs(sLine, fpw); // 写入临时文件
+            fputs(line, fpw); // 写入临时文件
         }
         fclose(fpr);
     }
 
     fclose(fpw);
 
-    sprintf(sLine, "%s.tmp", filename);
-    return rename(sLine, filename); // 将临时文件更新到原文件
+    sprintf(line, "%s.tmp", filename);
+    return rename(line, filename); // 将临时文件更新到原文件
 }
 
 /*

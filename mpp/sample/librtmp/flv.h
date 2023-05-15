@@ -1,5 +1,5 @@
 /*
- * FLV common header
+ FLV common header
  *
  * Copyright (c) 2006 The FFmpeg Project
  *
@@ -20,9 +20,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * @file
- * FLV common header
+/*
+ *@file
+ *FLV common header
  */
 
 #ifndef AVFORMAT_FLV_H
@@ -34,6 +34,20 @@
 #define FLV_AUDIO_CODECID_OFFSET     4
 
 #define FLV_VIDEO_FRAMETYPE_OFFSET   4
+#define FRAME_HEADER_EX              (8 << FLV_VIDEO_FRAMETYPE_OFFSET)
+
+enum video_frametype_t {
+	FT_KEY = 1 << FLV_VIDEO_FRAMETYPE_OFFSET,
+	FT_INTER = 2 << FLV_VIDEO_FRAMETYPE_OFFSET,
+};
+
+enum packet_type_t {
+	PACKETTYPE_SEQ_START = 0,
+	PACKETTYPE_FRAMES = 1,
+	PACKETTYPE_SEQ_END = 2,
+	PACKETTYPE_FRAMESX = 3,
+	PACKETTYPE_METADATA = 4
+};
 
 /* bitmasks to isolate specific values */
 #define FLV_AUDIO_CHANNEL_MASK    0x01
@@ -50,6 +64,16 @@
 #define KEYFRAMES_TIMESTAMP_TAG  "times"
 #define KEYFRAMES_BYTEOFFSET_TAG "filepositions"
 
+#define IS_EXT_HEADER(x) (((x) & FRAME_HEADER_EX) == FRAME_HEADER_EX)
+#define GET_PACKET_TYPE(x) ((x) & FLV_VIDEO_CODECID_MASK)
+#define EXT_HEADER_IS_SEQFRAME(x) (((x) & FLV_VIDEO_CODECID_MASK) == PACKETTYPE_SEQ_START)
+#define EXT_HEADER_IS_FRAMES(x) (((x) & FLV_VIDEO_CODECID_MASK) == PACKETTYPE_FRAMES)
+#define EXT_HEADER_IS_FRAMESX(x) (((x) & FLV_VIDEO_CODECID_MASK) == PACKETTYPE_FRAMESX)
+#define EXT_HEADER_IS_ENDFRAME(x) (((x) & FLV_VIDEO_CODECID_MASK) == PACKETTYPE_SEQ_END)
+
+#define EXT_HEADER_IS_KEYFRAME(x) (((x) & FLV_VIDEO_FRAMETYPE_MASK) == FT_KEY)
+#define EXT_HEADER_IS_INTERFRAME(x) (((x) & FLV_VIDEO_FRAMETYPE_MASK) == FT_INTER)
+
 
 enum {
     FLV_HEADER_FLAG_HASVIDEO = 1,
@@ -65,6 +89,7 @@ enum FlvTagType {
 enum {
     FLV_STREAM_TYPE_VIDEO,
     FLV_STREAM_TYPE_AUDIO,
+    FLV_STREAM_TYPE_SUBTITLE,
     FLV_STREAM_TYPE_DATA,
     FLV_STREAM_TYPE_NB,
 };
@@ -124,7 +149,7 @@ enum {
     FLV_FRAME_VIDEO_INFO_CMD = 5 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< video info/command frame
 };
 
-typedef enum {
+/* typedef enum {
     AMF_DATA_TYPE_NUMBER      = 0x00,
     AMF_DATA_TYPE_BOOL        = 0x01,
     AMF_DATA_TYPE_STRING      = 0x02,
@@ -138,6 +163,6 @@ typedef enum {
     AMF_DATA_TYPE_DATE        = 0x0b,
     AMF_DATA_TYPE_LONG_STRING = 0x0c,
     AMF_DATA_TYPE_UNSUPPORTED = 0x0d,
-} AMFDataType;
+} AMFDataType; */
 
 #endif /* AVFORMAT_FLV_H */

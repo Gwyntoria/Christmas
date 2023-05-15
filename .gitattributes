@@ -1,0 +1,8 @@
+*               text=auto
+*.txt           text eol=lf
+*.sh            text eol=lf
+*.c             text eol=lf
+*.h             text eol=lf
+*.config        text eol=lf
+*.a             binary
+*.so            binary

@@ -170,10 +170,13 @@ HI_S32 HisiPutH264DataToBuffer(VENC_STREAM_S *pstStream)
         ringfifo[iput].getframe_timestamp = RTMP_GetTime();
         for (i = 0; i < pstStream->u32PackCount; i++)
         {
-            memcpy(ringfifo[iput].buffer + off, pstStream->pstPack[i].pu8Addr + pstStream->pstPack[i].u32Offset, pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset);
+            memcpy(ringfifo[iput].buffer + off, 
+                   pstStream->pstPack[i].pu8Addr + pstStream->pstPack[i].u32Offset, 
+                   pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset);
+                   
             off += pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset;
             pstr = pstStream->pstPack[i].pu8Addr + pstStream->pstPack[i].u32Offset;
-            if (pstr[4] == 0x67)
+            if ((pstr[4] & 0x1f) == 0x05)
             {
                 iframe = 1;
             }
@@ -194,13 +197,11 @@ HI_S32 HisiPutH264DataToBuffer(VENC_STREAM_S *pstStream)
 
         // LOGD("HisiPutH264DataToBuffer: ringfifo[iput].timestamp = %"PRIu64" \n ", ringfifo[iput].timestamp);
         // LOGD("iframe=%d\n",iframe);
-        if (iframe)
-        {
+        if (iframe) {
             ringfifo[iput].frame_type = FRAME_TYPE_I;
-        }
-
-        else
+        } else {
             ringfifo[iput].frame_type = FRAME_TYPE_P;
+        }
         iput = addring(iput);
         n++;
 

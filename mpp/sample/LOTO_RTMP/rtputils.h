@@ -16,14 +16,18 @@ extern "C" {
 #define H264                    96
 #define G711					97
 
-typedef enum
-{
+typedef enum {
 	_h264		= 0x100,
 	_h264nalu,
 	_mjpeg,
 	_g711		= 0x200,
 }EmRtpPayload;
-enum H264_FRAME_TYPE {FRAME_TYPE_I, FRAME_TYPE_P, FRAME_TYPE_B};
+
+enum H264_FRAME_TYPE {
+	FRAME_TYPE_I, 
+	FRAME_TYPE_P, 
+	FRAME_TYPE_B
+};
 
 unsigned int RtpCreate(unsigned int u32IP, int s32Port, EmRtpPayload emPayload);
 void RtpDelete(unsigned int u32Rtp);

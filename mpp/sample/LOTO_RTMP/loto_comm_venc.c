@@ -714,7 +714,8 @@ HI_S32 LOTO_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E
                         stH265Cbr.u32BitRate = 1024 * 2 + 1024*u32FrameRate/30;
                         break;
                     case PIC_1080P:
-                        stH265Cbr.u32BitRate = 1024 * 2 + 2048*u32FrameRate/30;
+                        // stH265Cbr.u32BitRate = 1024 * 2 + 2048*u32FrameRate/30;
+                        stH265Cbr.u32BitRate = 1024 * 3;
                         break;
                     case PIC_2592x1944:
                         stH265Cbr.u32BitRate = 1024 * 3 + 3072*u32FrameRate/30;
@@ -733,6 +734,9 @@ HI_S32 LOTO_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E
                         break;
                 }
                 memcpy(&stVencChnAttr.stRcAttr.stH265Cbr, &stH265Cbr, sizeof(VENC_H265_CBR_S));
+
+                LOGD("H265_CBR: u32BitRate = %u kbps\n", stH265Cbr.u32BitRate);
+
             }
             else if (SAMPLE_RC_FIXQP == enRcMode)
             {
