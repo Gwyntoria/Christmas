@@ -108,7 +108,7 @@ int GetIniKeyInt(char *title, char *key, char *filename)
     return atoi(GetIniKeyString(title, key, filename));
 }
 
-int PutIniKeyString(char *title, char *key, char *val, char *filename)
+int PutIniKeyString(const char *title, const char *key, const char *val, const char *filename)
 {
     FILE *fpr, *fpw;
     int title_state = 0;

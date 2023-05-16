@@ -51,7 +51,7 @@ int GetIniKeyInt(char *title ,char *key, char *filename);
  * @param filename 要读取的文件路径
  * @return int 0: success, -1: failure
  */
-int PutIniKeyString(char *title, char *key, char *val, char *filename);
+int PutIniKeyString(const char *title, const char *key, const char *val, const char *filename);
 
 /**
  * @brief 

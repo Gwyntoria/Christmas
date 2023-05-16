@@ -744,10 +744,7 @@ int rtmp_sender_isOK(void *handle)
 
 static void bytestream_put(char *const header_box, const uint32_t value, uint8_t length, uint32_t *offset)
 {
-    // RTMP_Log(RTMP_LOGINFO, "=== bytestream_put_%d ===", length);
-
-    for (int i = 0; i < length; i++)
-    {
+    for (int i = length - 1; i >= 0; i--) {
         *(header_box + *offset) = (uint8_t)(value >> (8 * i));
         (*offset) += 1;
     }
@@ -755,7 +752,6 @@ static void bytestream_put(char *const header_box, const uint32_t value, uint8_t
 
 static void libopus_write_header(char *const header_box, uint32_t *offset)
 {
-    RTMP_Log(RTMP_LOGINFO, "=== libopus_write_header ===");
     OpusHeader opus_header;
 
     opus_header.version = 0x01;
@@ -842,7 +838,8 @@ int rtmp_sender_write_opus_frame(void *handle,
             output[offset++] = 0x00;                      // StreamID (Always 0)
 
             // flv AudioTagHeader
-            output[offset++] = 0xDF;
+            // output[offset++] = 0xDF;
+            output[offset++] = FLV_CODECID_OPUS | FLV_SAMPLERATE_44100HZ | FLV_SAMPLESSIZE_16BIT | FLV_STEREO;
             output[offset++] = 0x00; // opus sequence header
 
             // flv AudioTagBody -- OpusHeader
@@ -891,10 +888,8 @@ int rtmp_sender_write_opus_frame(void *handle,
             output[offset++] = 0x00;                      // StreamID (Always 0)
 
             // flv AudioTagHeader
-            //  uint8_t header = gen_audio_tag_header(rtmp_xiecc->config);
-            //  printf("rtmp_sender_write_aac_audio_frame--config = 1: header=%X\n", header);
-
-            output[offset++] = 0xDF;
+            // output[offset++] = 0xDF;
+            output[offset++] = FLV_CODECID_OPUS | FLV_SAMPLERATE_44100HZ | FLV_SAMPLESSIZE_16BIT | FLV_STEREO;
             output[offset++] = 0x01; // opus raw data
 
             // flv AudioTagBody --raw opus data
