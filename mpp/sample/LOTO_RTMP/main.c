@@ -64,25 +64,25 @@ int g_profile = -1;
 static int gs_audio_state = -1;
 static int gs_audio_encoder = -1;
 
-static int gs_server_option = SERVER_NULL;
+static int gs_server_option = SERVER_TEST;
 
 static int gs_cover_switch = 0;
 static int gs_cover_state = COVER_OFF;
 
-void get_server_option(int *server_option) {
-    *server_option = gs_server_option;
+int get_server_option() {
+    return gs_server_option;
 }
 
-void set_server_option(int *server_option) {
-    gs_server_option = *server_option;
+void set_server_option(int server_option) {
+    gs_server_option = server_option;
 }
 
-void get_cover_state(int *cover_state) {
-    *cover_state = gs_cover_state;
+int get_cover_state() {
+    return gs_cover_state;
 }
 
-void set_cover_switch(int *cover_switch) {
-    gs_cover_switch = *cover_switch;
+void set_cover_switch(int cover_switch) {
+    gs_cover_switch = cover_switch;
 }
 
 HI_S32 LOTO_RTMP_VA_CLASSIC()
@@ -288,15 +288,15 @@ void parse_config_file(const char *config_file_path){
 
         /* Get server url */
         char server_url[1024];
-        LOGI("Waiting for updating server address\n");
-        while (1) {
-            if (gs_server_option != SERVER_NULL) {
-                break;
-            } else {
-                LOGE("Waiting......\n");
-                sleep(3);
-            }
-        }
+        // LOGI("Waiting for updating server address\n");
+        // while (1) {
+        //     if (gs_server_option != SERVER_NULL) {
+        //         break;
+        //     } else {
+        //         LOGE("Waiting......\n");
+        //         sleep(3);
+        //     }
+        // }
         
         if (gs_server_option == SERVER_TEST) {
             strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
@@ -393,11 +393,11 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 13
+#define VER_EXTEN 18
 
 int main(int argc, char *argv[]) {
     int s32Ret;
-    char config_file_path[] = "/root/push.config";
+    char config_file_path[] = "/root/push.conf";
 
     /* Initialize avctl_log file */
     s32Ret = InitAvctlLogFile();

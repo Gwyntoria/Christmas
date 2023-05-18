@@ -15,8 +15,8 @@ fi
 
 sleep 1
 
-# echo "Update push.config"
-# tftp -g -r push.config $1
+# echo "Update push.conf"
+# tftp -g -r push.conf $1
 
 echo "Update loto_rtmp"
 tftp -g -r loto_rtmp $1

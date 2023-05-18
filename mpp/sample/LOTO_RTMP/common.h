@@ -1,11 +1,12 @@
-/*
- * Common.h:
- *
- ***********************************************************************
- * by Jessica Mao
- * Lotogram Inc,. 2020/05/18
- *
- ***********************************************************************
+/**
+ * @file common.h
+ * @author Karl Meng (karlmfloating@gmail.com)
+ * @brief General function 
+ * @version 0.1
+ * @date 2023-05-18
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
 
 #ifndef COMMON_H
@@ -78,6 +79,11 @@ void WriteLogFile(char *p_fmt, ...);
 #define LOGD(format, ...) \
     do { } while (0)
 #endif
+
+#define LOGF(format, ...) \
+    do { \
+        WriteLogFile("[%s]-[DEB]-[%s]-[%d]: " format "", GetLocalTime(), __FILE__, __LINE__, ##__VA_ARGS__); \
+    } while (0)
 
 #define WORK_FOLDER     "/root"
 
@@ -174,8 +180,34 @@ char* decode(char* message, const char* codeckey);
 static int base64_encode(const unsigned char *sourcedata, int datalength, char *base64);
 
 int get_mac(char *mac);
+
+/**
+ * @brief Using the NTP protocol, 
+ *        request the network time by sending a socket packet of UDP to the NTP server, 
+ *        and set the local time as the network time
+ * 
+ */
 int time_sync();
+
+/**
+ * @brief Output the hexadecimal data stream, along with the corresponding string
+ * 
+ * @param data The pointer to hexadecimal data stream
+ * @param len The length of the byte stream that needs to be output
+ */
 void HexToString(const uint8_t *data, unsigned long len);
+
+
+uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset);
+
+
+uint64_t GetByteStream(uint8_t* stream, size_t numBytes, uint32_t* offset);
+
+
+uint8_t* SaveInBigEndian(uint8_t* array, uint64_t value, size_t numBytes);
+
+
+uint64_t ExtractFromBigEndian(uint8_t* array, size_t numBytes);
 
 #ifdef __cplusplus
 }

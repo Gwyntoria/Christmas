@@ -1,13 +1,14 @@
-/*
- * Common.c:
- *
- * By Jessica Mao 2020/05/18
- *
- * Copyright (c) 2012-2020 Lotogram Inc. <lotogram.com, zhuagewawa.com>
-
- * Version 1.0.0.73	Details in update.log
- ***********************************************************************
+/**
+ * @file common.c
+ * @author Karl Meng (karlmfloating@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-05-18
+ * 
+ * @copyright Copyright (c) 2023
+ * 
  */
+
 #include "common.h"
 
 #include <unistd.h>
@@ -627,4 +628,44 @@ void HexToString(const uint8_t *data, unsigned long len)
     }
 
     printf("%s\n", line);
+}
+
+uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset) {
+    for (int i = 0; i < numBytes; i++) {
+        *(stream + *offset) = (uint8_t)(srcValue >> (8 * i));
+        (*offset) += 1;
+    }
+
+    return stream;
+}
+
+uint64_t GetByteStream(uint8_t* stream, size_t numBytes, uint32_t* offset) {
+    uint64_t result = 0;
+
+    if (stream == NULL || numBytes > 8) return -1;
+
+    for (size_t i = 0; i < numBytes; i++) {
+        result = (result << 8) | stream[*offset];
+        (*offset) += 1;
+    }
+
+    return result;
+}
+
+uint8_t* SaveInBigEndian(uint8_t* array, uint64_t value, size_t numBytes) {
+    for (int i = 0; i < numBytes; i++) {
+        array[numBytes - 1 - i] = (value >> (8 * i)) & 0xFF;
+    }
+
+    return array;
+}
+
+uint64_t ExtractFromBigEndian(uint8_t* array, size_t numBytes) {
+    uint64_t result = 0;
+
+    for (size_t i = 0; i < numBytes; i++) {
+        result = (result << 8) | array[i];
+    }
+
+    return result;
 }

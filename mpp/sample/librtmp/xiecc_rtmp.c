@@ -742,10 +742,11 @@ int rtmp_sender_isOK(void *handle)
     return 0;
 }
 
-static void bytestream_put(char *const header_box, const uint32_t value, uint8_t length, uint32_t *offset)
+static void bytestream_put(char *const stream, const uint32_t value, uint8_t length, uint32_t *offset)
 {
+    /* big-endian */
     for (int i = length - 1; i >= 0; i--) {
-        *(header_box + *offset) = (uint8_t)(value >> (8 * i));
+        *(stream + *offset) = (uint8_t)(value >> (8 * i));
         (*offset) += 1;
     }
 }

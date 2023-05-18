@@ -1,7 +1,7 @@
 VER_MAJOR:=1
 VER_MINOR:=4
 VER_BUILD:=3
-VER_EXTEN:=12
+VER_EXTEN:=18
 BIN_VERSION:=$(VER_MAJOR).$(VER_MINOR).$(VER_BUILD).$(VER_EXTEN)
 
 include ../Makefile.param
@@ -60,6 +60,7 @@ $(TARGET):$(OBJS)
 release:
 	@mkdir -p ./bin
 	@cp $(TARGET) ./bin/$(TARGET)-$(BIN_VERSION)
+	@cp $(TARGET) ../../../rtmp_pack/kit/root/$(TARGET)
 
 delete_release:
 	@rm -f ./bin/$(TARGET)-$(BIN_VERSION)
