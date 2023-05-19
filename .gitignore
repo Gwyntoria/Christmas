@@ -66,3 +66,4 @@ rtmp_pack.tgz
 !mpp/sample/openssl-1.0.1p/arm/lib/libssl.a
 !mpp/sample/openssl-1.0.1p/arm/lib/libcrypto.a
 !mpp/sample/zlib-1.2.8/arm/lib/libz.a
+!/rtmp_pack/kit/lib/rtmp_lib/*

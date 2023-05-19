@@ -23,13 +23,3 @@ done
 # else
 #     echo "Process 'loto_conf.sh' is not running"
 # fi
-
-# # loto_rtmp
-# pid=$(ps aux | grep '[l]oto_rtmp' | awk '{print $1}')
-
-# if [ ! -z "$pid" ]; then
-#     echo "Killing process 'loto_rtmp', pid=$pid"
-#     kill $pid
-# else
-#     echo "Process 'loto_rtmp' is not running"
-# fi

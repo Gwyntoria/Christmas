@@ -8,7 +8,7 @@ KIT_DIR=$WORK_DIR/kit
 echo "===== 1. /root ====="
 mv $KIT_DIR/root/loto_rtmp /root
 chmod 777 /root/loto_rtmp
-mv $KIT_DIR/root/push.config /root
+mv $KIT_DIR/root/push.conf /root
 mv $KIT_DIR/root/update.sh /root
 
 if [ -d "/root/res" ]; then
@@ -21,8 +21,10 @@ fi
 if [ -d "/root/scripts" ]; then
     rm -rf /root/scripts
     mv $KIT_DIR/root/scripts/ /root
+    chmod 777 /root/scripts/*
 else 
     mv $KIT_DIR/root/scripts/ /root
+    chmod 777 /root/scripts/*
 fi
 
 echo "===== 2. /etc ====="
@@ -54,4 +56,4 @@ echo "===== install complete ====="
 echo "Please modify some essential files"
 echo "1. rcS:           the value of argument 'osmem' of program 'load3516dv300'"
 echo "2. loto_conf.sh:  IP address and so on"
-echo "3. push.config:   device_num, push_url, requested_url, profile and so on"
+echo "3. push.conf:   device_num, push_url, requested_url, profile and so on"
