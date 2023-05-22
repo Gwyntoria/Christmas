@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 #define FT_SUPPORT_HTTPS 1
-//#define USEOPENSSL 1
+#define USEOPENSSL 1
 
 typedef enum http_request_method_e 
 { 

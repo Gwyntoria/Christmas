@@ -264,14 +264,14 @@ void *server_thread(void *arg) {
                 break;
             }
 
-            printf("recv_buffer: \n");
-            HexToString(recv_buffer, recv_buffer_len);
+            // printf("recv_buffer: \n");
+            // HexToString(recv_buffer, recv_buffer_len);
 
             /* Get type of packet */
             uint16_t packet_type = 0;
             packet_type = (uint16_t)ExtractFromBigEndian(recv_buffer, 2);
 
-            LOGD("packet_type = %04x\n", packet_type);
+            // LOGD("packet_type = %04x\n", packet_type);
 
             if (packet_type == PACK_TYPE_CTRL) {
                 int offset = 0;
@@ -327,12 +327,12 @@ void *server_thread(void *arg) {
 
                 deserialize_heartbeat_packet(recv_buffer, &recv_heart_packet, &offset);
 
-                LOGD("recv_heart_packet.header.length = %04x\n", recv_heart_packet.header.length);
-                LOGD("recv_heart_packet.cover_state = %02x\n", recv_heart_packet.cover_state);
-                LOGD("recv_heart_packet.checksum = %02x\n", recv_heart_packet.checksum);
+                // LOGD("recv_heart_packet.header.length = %04x\n", recv_heart_packet.header.length);
+                // LOGD("recv_heart_packet.cover_state = %02x\n", recv_heart_packet.cover_state);
+                // LOGD("recv_heart_packet.checksum = %02x\n", recv_heart_packet.checksum);
 
                 uint8_t checksum = CalculateCRC8(recv_buffer, recv_buffer_len - 1);
-                LOGD("calculated_checksum = %02x\n", checksum);
+                // LOGD("calculated_checksum = %02x\n", checksum);
 
                 if (checksum != recv_heart_packet.checksum) {
                     LOGE("the received packet is wrong! Please resend.\n");

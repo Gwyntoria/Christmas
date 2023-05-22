@@ -1,7 +1,7 @@
 VER_MAJOR:=1
 VER_MINOR:=4
 VER_BUILD:=3
-VER_EXTEN:=18
+VER_EXTEN:=22
 BIN_VERSION:=$(VER_MAJOR).$(VER_MINOR).$(VER_BUILD).$(VER_EXTEN)
 
 include ../Makefile.param
@@ -14,6 +14,7 @@ TARGET:=loto_rtmp
 INC_FLAGS+=-I./audio_adp
 INC_FLAGS+=-I../librtmp
 INC_FLAGS+=-I$(INC_DIR)/opus
+INC_FLAGS+=-I../openssl-1.0.1p/arm/include
 
 RTMP_LIBS+=../librtmp/librtmp.a
 RTMP_LIBS+=../openssl-1.0.1p/arm/lib/libssl.a

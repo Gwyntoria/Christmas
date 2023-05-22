@@ -64,7 +64,7 @@ int g_profile = -1;
 static int gs_audio_state = -1;
 static int gs_audio_encoder = -1;
 
-static int gs_server_option = SERVER_TEST;
+static int gs_server_option = SERVER_OFFI;
 
 static int gs_cover_switch = 0;
 static int gs_cover_state = COVER_OFF;
@@ -298,11 +298,13 @@ void parse_config_file(const char *config_file_path){
         //     }
         // }
         
-        if (gs_server_option == SERVER_TEST) {
-            strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
-        } else if (gs_server_option == SERVER_OFFI) {
-            strcpy(server_url, GetIniKeyString("push", "offi_server_url", config_file_path));
-        }
+        // if (gs_server_option == SERVER_TEST) {
+        //     strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
+        // } else if (gs_server_option == SERVER_OFFI) {
+        //     strcpy(server_url, GetIniKeyString("push", "offi_server_url", config_file_path));
+        // }
+
+        strcpy(server_url, GetIniKeyString("push", "server_url", config_file_path));
         LOGI("server_url = %s\n", server_url);
 
         loto_room_info *pRoomInfo = loto_room_init(server_url, server_token);
@@ -393,7 +395,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 18
+#define VER_EXTEN 22
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -416,9 +418,9 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    /* socket: server */
-    pthread_t socket_server_pid;
-    pthread_create(&socket_server_pid, NULL, server_thread, NULL);
+    // /* socket: server */
+    // pthread_t socket_server_pid;
+    // pthread_create(&socket_server_pid, NULL, server_thread, NULL);
 
     /* get global variables from config file */
     parse_config_file(config_file_path);
@@ -473,8 +475,15 @@ int main(int argc, char *argv[]) {
     pthread_t rtmp_pid;
     pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr);
 
-    pthread_join(socket_server_pid, 0);
+    usleep(1000 * 3);
+
+    /* socket: server */
+    pthread_t socket_server_pid;
+    pthread_create(&socket_server_pid, NULL, server_thread, NULL);
+    
     pthread_join(rtmp_pid, 0);
+
+    // pthread_join(socket_server_pid, 0);
 
     LOTO_RGN_UninitCoverRegion();
 

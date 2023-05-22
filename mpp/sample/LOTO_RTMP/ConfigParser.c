@@ -70,33 +70,6 @@ char *GetIniKeyString(const char *title, const char *key, const char *filename)
                 return value + 1;
             }
         }
-
-        // // find the specified key and return the value
-        // value = strchr(line, '=');
-        // if ((NULL != value) && (1 == title_state))
-        // {
-        //     if (0 == strncmp(key, line, value - line))
-        //     {
-        //         if (line[strlen(line) - 1] == 0b1010) // 0b1010 refers to '\n'
-        //         {
-        //             line[strlen(line) - 1] = '\0';
-        //         }
-        //         else if (line[strlen(line) - 1] > 0b00011111)
-        //         {
-        //             line[strlen(line)] = '\0';
-        //         }
-        //         fclose(fp);
-        //         return value + 1;
-        //     }
-        // }
-        // else
-        // {
-        //     // find the title
-        //     if (0 == strncmp(sTitle, line, strlen(sTitle)))
-        //     {
-        //         title_state = 1;
-        //     }
-        // }
     }
     fclose(fp);
     printf("get title failed!\n");

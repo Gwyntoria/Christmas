@@ -320,7 +320,7 @@ loto_room_info* loto_room_init(const char* server_url, const char* server_token)
 
             const char *response = NULL;
             response = ft_http_sync_request(http, szServerUrl, M_POST, szPostBody, strlen(szPostBody), szHttpHeader, strlen(szHttpHeader));
-            // printf("response: %s\n", response);
+            printf("response: %s\n", response);
 
             pRoomInfo = (loto_room_info *)malloc(sizeof(loto_room_info));
             memset(pRoomInfo, 0, sizeof(loto_room_info));
