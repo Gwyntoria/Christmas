@@ -13,13 +13,18 @@ TARGET:=loto_rtmp
 
 INC_FLAGS+=-I./audio_adp
 INC_FLAGS+=-I../librtmp
+INC_FLAGS+=-I$(INC_DIR)
 INC_FLAGS+=-I$(INC_DIR)/opus
-INC_FLAGS+=-I../openssl-1.0.1p/arm/include
+INC_FLAGS+=-I$(INC_DIR)/zlib
+# INC_FLAGS+=-I../openssl-1.0.1p/arm/include
 
 RTMP_LIBS+=../librtmp/librtmp.a
-RTMP_LIBS+=../openssl-1.0.1p/arm/lib/libssl.a
-RTMP_LIBS+=../openssl-1.0.1p/arm/lib/libcrypto.a 
-RTMP_LIBS+=../zlib-1.2.8/arm/lib/libz.a
+# RTMP_LIBS+=../openssl-1.0.1p/arm/lib/libssl.a
+# RTMP_LIBS+=../openssl-1.0.1p/arm/lib/libcrypto.a
+# RTMP_LIBS+=../zlib-1.2.8/arm/lib/libz.a
+RTMP_LIBS+=$(LIB_DIR)/openssl/libssl.a
+RTMP_LIBS+=$(LIB_DIR)/openssl/libcrypto.a
+RTMP_LIBS+=$(LIB_DIR)/zlib/libz.a
 
 CFLAGS+=-L$(REL_LIB) -lsecurec -Wl,-rpath=/usr/lib
 # CFLAGS+=-DBIN_VERSION=\"$(BIN_VERSION)\"
