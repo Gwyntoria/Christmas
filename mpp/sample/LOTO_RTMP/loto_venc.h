@@ -8,11 +8,13 @@ HI_S32 LOTO_VENC_ModifyResolution(SAMPLE_SNS_TYPE_E enSnsType, PIC_SIZE_E *penSi
 HI_S32 LOTO_VENC_VI_Init(SAMPLE_VI_CONFIG_S *pstViConfig, HI_BOOL bLowDelay, HI_U32 u32SupplementConfig);
 HI_S32 LOTO_VENC_FramerateDown(HI_BOOL enable);
 
-void *LOTO_VENC_CLASSIC(void *p);
+HI_VOID *LOTO_VENC_CLASSIC(void *p);
 
-int LOTO_RGN_InitCoverRegion() ;
-int LOTO_RGN_UninitCoverRegion();
-int LOTO_VENC_DisplayCover();
-int LOTO_VENC_RemoveCover();
+HI_S32 LOTO_RGN_InitCoverRegion() ;
+HI_S32 LOTO_RGN_UninitCoverRegion();
+HI_S32 LOTO_VENC_AttachCover();
+HI_S32 LOTO_VENC_DetachCover();
+HI_S32 LOTO_VENC_AddCover();
+HI_S32 LOTO_VENC_RemoveCover();
 
 #endif // LOTO_VENC_H

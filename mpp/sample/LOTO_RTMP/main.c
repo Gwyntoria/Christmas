@@ -265,7 +265,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         }
 
         if (gs_cover_state == COVER_OFF && gs_cover_switch == COVER_ON) {
-            LOTO_VENC_DisplayCover();
+            LOTO_VENC_AddCover();
             gs_cover_state = gs_cover_switch;
         } else if (gs_cover_state == COVER_ON && gs_cover_switch == COVER_OFF) {
             LOTO_VENC_RemoveCover();
@@ -308,6 +308,10 @@ void parse_config_file(const char *config_file_path){
         LOGI("server_url = %s\n", server_url);
 
         loto_room_info *pRoomInfo = loto_room_init(server_url, server_token);
+        if (!pRoomInfo) {
+            LOGE("room_info is empty\n");
+            exit(2);
+        }
         memset(gs_push_url_buf, 0, sizeof(gs_push_url_buf));
         strcpy(gs_push_url_buf, pRoomInfo->szPushURL);
     }
@@ -395,7 +399,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 3
-#define VER_EXTEN 22
+#define VER_EXTEN 26
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -463,6 +467,8 @@ int main(int argc, char *argv[]) {
         LOGE("LOTO_RGN_InitCoverRegion failed!\n");
         return HI_FAILURE;
     }
+
+    s32Ret = LOTO_VENC_AttachCover();
 
     usleep(1000 * 3);
 

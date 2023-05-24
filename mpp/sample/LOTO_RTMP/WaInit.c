@@ -311,6 +311,11 @@ loto_room_info* loto_room_init(const char* server_url, const char* server_token)
             ft_http_client_t *http = 0;
             ft_http_init();
             http = ft_http_new();
+            if (!http)
+            {
+                LOGE("http is null\n");
+                break;
+            }
 
             //char *pszHttpHeader = get_http_header_body("POST", szServerUrl, szPostBody, szCodecKey, szT);
             char szContentType[64] = "application/json";

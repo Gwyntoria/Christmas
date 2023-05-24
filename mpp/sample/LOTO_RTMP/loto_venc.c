@@ -518,9 +518,9 @@ HI_S32 LOTO_VENC_FramerateDown(HI_BOOL enable)
     return HI_SUCCESS;
 }
 
-static RGN_HANDLE g_rgnHandle = 5;
-static MPP_CHN_S g_stMppChnAttr = {0};
-static RGN_CHN_ATTR_S g_stRgnChnAttr = {0};
+static RGN_HANDLE gs_rgnHandle = 5;
+static MPP_CHN_S gs_stMppChnAttr = {0};
+static RGN_CHN_ATTR_S gs_stRgnChnAttr = {0};
 
 HI_S32 LOTO_RGN_CreateCoverRegion(RGN_HANDLE rgnHandle, MPP_CHN_S *stMppChnAttr, RGN_CHN_ATTR_S *stRgnChnAttr)
 {
@@ -553,7 +553,7 @@ HI_S32 LOTO_RGN_CreateCoverRegion(RGN_HANDLE rgnHandle, MPP_CHN_S *stMppChnAttr,
     stRgnChnAttr->bShow = HI_TRUE;
     stRgnChnAttr->enType = COVEREX_RGN;
     stRgnChnAttr->unChnAttr.stCoverExChn.enCoverType = AREA_RECT;
-    stRgnChnAttr->unChnAttr.stCoverExChn.stRect.s32X = 0;
+    stRgnChnAttr->unChnAttr.stCoverExChn.stRect.s32X = 1080;
     stRgnChnAttr->unChnAttr.stCoverExChn.stRect.s32Y = 0;
     stRgnChnAttr->unChnAttr.stCoverExChn.stRect.u32Width = 1080;
     stRgnChnAttr->unChnAttr.stCoverExChn.stRect.u32Height = 1920;
@@ -561,7 +561,7 @@ HI_S32 LOTO_RGN_CreateCoverRegion(RGN_HANDLE rgnHandle, MPP_CHN_S *stMppChnAttr,
     stRgnChnAttr->unChnAttr.stCoverExChn.u32Color = 0x202020;
     stRgnChnAttr->unChnAttr.stCoverExChn.u32Layer = 0;
 
-    ret = ret = HI_MPI_RGN_Create(rgnHandle, &stRgnAttr);
+    ret = HI_MPI_RGN_Create(rgnHandle, &stRgnAttr);
     if (ret != HI_SUCCESS)
     {
         LOGE("HI_MPI_RGN_Create failed with %#x!\n", ret);
@@ -593,7 +593,7 @@ HI_S32 LOTO_RGN_AttachCover(RGN_HANDLE rgnHandle, const MPP_CHN_S *stMppChnAttr,
         return HI_FAILURE;
     }
 
-    LOGI("cover_add!\n");
+    // LOGI("cover_add!\n");
     return HI_SUCCESS;
 }
 
@@ -608,26 +608,72 @@ HI_S32 LOTO_RGN_DetachCover(RGN_HANDLE rgnHandle, const MPP_CHN_S *stMppChnAttr)
         return HI_FAILURE;
     }
 
-    LOGI("cover_remove!\n");
+    // LOGI("cover_remove!\n");
     return HI_SUCCESS;
 }
 
 HI_S32 LOTO_RGN_InitCoverRegion()
 {
-    return LOTO_RGN_CreateCoverRegion(g_rgnHandle, &g_stMppChnAttr, &g_stRgnChnAttr);
+    return LOTO_RGN_CreateCoverRegion(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
 }
 
 HI_S32 LOTO_RGN_UninitCoverRegion()
 {
-    return LOTO_RGN_DestroyCoverRegion(g_rgnHandle);
+    return LOTO_RGN_DestroyCoverRegion(gs_rgnHandle);
 }
 
-HI_S32 LOTO_VENC_DisplayCover()
+HI_S32 LOTO_VENC_AttachCover()
 {
-    return LOTO_RGN_AttachCover(g_rgnHandle, &g_stMppChnAttr, &g_stRgnChnAttr);
+    return LOTO_RGN_AttachCover(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
 }
 
-HI_S32 LOTO_VENC_RemoveCover()
+HI_S32 LOTO_VENC_DetachCover()
 {
-    return LOTO_RGN_DetachCover(g_rgnHandle, &g_stMppChnAttr);
+    return LOTO_RGN_DetachCover(gs_rgnHandle, &gs_stMppChnAttr);
+}
+
+HI_S32 LOTO_VENC_AddCover() {
+    HI_S32 ret;
+
+    ret = HI_MPI_RGN_GetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
+    if (ret != HI_SUCCESS) {
+        LOGE("HI_MPI_RGN_GetDisplayAttr failed with %#x\n", ret);
+        return ret;
+    }
+
+    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32X = 0;
+    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32Y = 0;
+
+    ret = HI_MPI_RGN_SetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
+    if (ret != HI_SUCCESS) {
+        LOGE("HI_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
+        return ret;
+    }
+
+    LOGI("cover_add!\n");
+
+    return ret;
+}
+
+HI_S32 LOTO_VENC_RemoveCover () {
+    HI_S32 ret;
+
+    ret = HI_MPI_RGN_GetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
+    if (ret != HI_SUCCESS) {
+        LOGE("HI_MPI_RGN_GetDisplayAttr failed with %#x\n", ret);
+        return ret;
+    }
+
+    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32X = 1080;
+    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32Y = 0;
+
+    ret = HI_MPI_RGN_SetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
+    if (ret != HI_SUCCESS) {
+        LOGE("HI_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
+        return ret;
+    }
+
+    LOGI("cover_remove!\n");
+
+    return ret;
 }
