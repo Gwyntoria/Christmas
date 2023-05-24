@@ -31,8 +31,8 @@ RTMP_LIBS+=$(LIB_DIR)/openssl-1.0.1p/libssl.a
 RTMP_LIBS+=$(LIB_DIR)/openssl-1.0.1p/libcrypto.a
 
 # curl-8.1.0
-# INC_FLAGS+=-I$(INC_DIR)/curl-8.1.0
-# RTMP_LIBS+=$(LIB_DIR)/curl-8.1.0/libcurl.a
+INC_FLAGS+=-I$(INC_DIR)/curl-8.1.0
+RTMP_LIBS+=$(LIB_DIR)/curl-8.1.0/libcurl.a
 
 CFLAGS+=-L$(REL_LIB) -lsecurec -Wl,-rpath=/usr/lib
 # CFLAGS+=-DBIN_VERSION=\"$(BIN_VERSION)\"
