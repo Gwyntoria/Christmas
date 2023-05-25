@@ -34,10 +34,8 @@
 
 static HI_U8 *bmpBuffer[FILE_COUNT];
 
-static OSD_BITMAPFILEHEADER bmpFileHeader[FILE_COUNT];
-static OSD_BITMAPINFO bmpInfo[FILE_COUNT];
-
-extern char g_device_num[16];
+static OSD_BITMAPFILEHEADER gs_bmpFileHeader[FILE_COUNT];
+static OSD_BITMAPINFO gs_bmpInfo[FILE_COUNT];
 
 OSD_COMP_INFO s_OSDCompInfo[OSD_COLOR_FMT_BUTT] = {
     {0, 4, 4, 4}, /*RGB444*/
@@ -272,6 +270,8 @@ HI_S32 LOTO_OSD_GetBmpInfo(const char *filename, OSD_BITMAPFILEHEADER *pBmpFileH
 
     return 0;
 }
+
+extern char g_device_num[16];
 
 HI_VOID LOTO_OSD_GetDeviceNum(HI_S16 *deviceNum)
 {
@@ -650,7 +650,7 @@ HI_S32 LOTO_OSD_LoadBmp_DeviceNum(OSD_LOGO_T *pCanvas, OSD_COLOR_FMT_E enFmt)
 
     for (int k = 0; k < 3; k++)
     {
-        bmpInfoTem = bmpInfo[deviceNum[k]];
+        bmpInfoTem = gs_bmpInfo[deviceNum[k]];
         pBitmapAddr = bmpBuffer[deviceNum[k]];
 
         if (pBitmapAddr == NULL)
@@ -752,13 +752,13 @@ HI_S32 LOTO_OSD_LoadBmp_Timestamp(OSD_LOGO_T *pCanvas, OSD_COLOR_FMT_E enFmt)
         if (k == 4 || k == 7)
         {
             // bmpFileHeaderTem = bmpFileHeader[10];
-            bmpInfoTem = bmpInfo[10];
+            bmpInfoTem = gs_bmpInfo[10];
             pBitmapAddr = bmpBuffer[10];
         }
         else if (k == 12 || k == 15)
         {
             // bmpFileHeaderTem = bmpFileHeader[11];
-            bmpInfoTem = bmpInfo[11];
+            bmpInfoTem = gs_bmpInfo[11];
             pBitmapAddr = bmpBuffer[11];
         }
         else
@@ -766,7 +766,7 @@ HI_S32 LOTO_OSD_LoadBmp_Timestamp(OSD_LOGO_T *pCanvas, OSD_COLOR_FMT_E enFmt)
             if (timeNum[k] != -1)
             {
                 // bmpFileHeaderTem = bmpFileHeader[timeNum[k]];
-                bmpInfoTem = bmpInfo[timeNum[k]];
+                bmpInfoTem = gs_bmpInfo[timeNum[k]];
                 pBitmapAddr = bmpBuffer[timeNum[k]];
             }
             else
@@ -1076,7 +1076,7 @@ HI_S32 LOTO_OSD_GetBmpBuffer()
     /* 获取BMP文件信息，检测BMP信息是否正确 */
     for (int f = 0; f < FILE_COUNT; f++)
     {
-        if (LOTO_OSD_GetBmpInfo(*(fileName + f), bmpFileHeader + f, bmpInfo + f) < 0)
+        if (LOTO_OSD_GetBmpInfo(*(fileName + f), gs_bmpFileHeader + f, gs_bmpInfo + f) < 0)
         {
             return -1;
         };
@@ -1091,9 +1091,9 @@ HI_S32 LOTO_OSD_GetBmpBuffer()
 
     for (int f = 0; f < FILE_COUNT; f++)
     {
-        Bpp = (HI_U16)bmpInfo[f].bmiHeader.biBitCount / 8;
-        bmpWidth = (HI_U16)bmpInfo[f].bmiHeader.biWidth;
-        bmpHeight = (HI_U16)((bmpInfo[f].bmiHeader.biHeight > 0) ? bmpInfo[f].bmiHeader.biHeight : (-bmpInfo[f].bmiHeader.biHeight));
+        Bpp = (HI_U16)gs_bmpInfo[f].bmiHeader.biBitCount / 8;
+        bmpWidth = (HI_U16)gs_bmpInfo[f].bmiHeader.biWidth;
+        bmpHeight = (HI_U16)((gs_bmpInfo[f].bmiHeader.biHeight > 0) ? gs_bmpInfo[f].bmiHeader.biHeight : (-gs_bmpInfo[f].bmiHeader.biHeight));
 
         stride = bmpWidth * Bpp;
         if (stride % 4)
@@ -1115,7 +1115,7 @@ HI_S32 LOTO_OSD_GetBmpBuffer()
             return -1;
         }
 
-        fseek(*(pFile + f), bmpFileHeader[f].bfOffBits, 0);
+        fseek(*(pFile + f), gs_bmpFileHeader[f].bfOffBits, 0);
         if (fread(bmpBufferTem, 1, bmpHeight * stride, *(pFile + f)) != (bmpHeight * stride))
         {
             LOGE("fread (%d*%d)error!\n", bmpHeight, stride);
@@ -1308,14 +1308,14 @@ HI_S32 LOTO_OSD_CreateVideoOsdThread(HI_VOID)
     s32Ret = LOTO_OSD_REGION_Create(handle_info->deviceNum, deviceNumRgnInfo.width, deviceNumRgnInfo.height);
     if (s32Ret != HI_SUCCESS)
     {
-        LOGE("Creaate OSD Region failed with %#x\n", s32Ret);
+        LOGE("LOTO_OSD_REGION_Create failed\n");
         return HI_FAILURE;
     }
 
     s32Ret = LOTO_OSD_REGION_AttachToChn(handle_info->deviceNum, deviceNumRgnInfo.pointX, deviceNumRgnInfo.pointY);
     if (s32Ret != HI_SUCCESS)
     {
-        LOGE("LOTO_OSD_REGION_AttachToChn failed with %#x\n", s32Ret);
+        LOGE("LOTO_OSD_REGION_AttachToChn failed\n");
         return HI_FAILURE;
     }
 
@@ -1323,14 +1323,14 @@ HI_S32 LOTO_OSD_CreateVideoOsdThread(HI_VOID)
     s32Ret = LOTO_OSD_REGION_Create(handle_info->timestamp, timestampRgnInfo.width, timestampRgnInfo.height);
     if (s32Ret != HI_SUCCESS)
     {
-        LOGE("Creaate OSD Region failed with %#x\n", s32Ret);
+        LOGE("LOTO_OSD_REGION_Create failed\n");
         return HI_FAILURE;
     }
 
     s32Ret = LOTO_OSD_REGION_AttachToChn(handle_info->timestamp, timestampRgnInfo.pointX, timestampRgnInfo.pointY);
     if (s32Ret != HI_SUCCESS)
     {
-        LOGE("LOTO_OSD_REGION_AttachToChn failed with %#x\n", s32Ret);
+        LOGE("LOTO_OSD_REGION_AttachToChn failed\n");
         return HI_FAILURE;
     }
 

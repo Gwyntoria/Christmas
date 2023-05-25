@@ -21,11 +21,11 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #include "common.h"
 #include "loto_venc.h"
-
-#include <stdint.h>
+#include "loto_cover.h"
 
 static const uint8_t crc8Table[256] = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
@@ -140,8 +140,6 @@ void deserialize_heartbeat_packet(const uint8_t* buffer, HeartbeatPacket *packet
 #define MAX_PENDING 5
 #define MAX_BUF_SIZE 1024
 
-extern int get_cover_state();
-extern void set_cover_switch(int cover_switch);
 extern int get_server_option();
 extern void set_server_option(int server_option);
 
@@ -264,8 +262,8 @@ void *server_thread(void *arg) {
                 break;
             }
 
-            // printf("recv_buffer: \n");
-            // HexToString(recv_buffer, recv_buffer_len);
+            printf("recv_buffer: \n");
+            HexToString(recv_buffer, recv_buffer_len);
 
             /* Get type of packet */
             uint16_t packet_type = 0;
@@ -295,10 +293,10 @@ void *server_thread(void *arg) {
                     break;
                 } else {
                     if (recv_ctrl_packet.command == CONTROL_ADD_COVER) {
-                        set_cover_switch(cover_state_on);
+                        LOTO_COVER_Switch(cover_state_on);
                         sprintf(send_buffer, "COVER ON");
                     } else if (recv_ctrl_packet.command == CONTROL_RMV_COVER) {
-                        set_cover_switch(cover_state_off);
+                        LOTO_COVER_Switch(cover_state_off);
                         sprintf(send_buffer, "COVER OFF");
                     } else if (recv_ctrl_packet.command = CONTROL_SERVER_TEST) {
                         set_server_option(server_state_test);
@@ -345,15 +343,11 @@ void *server_thread(void *arg) {
 
                     continue;
                 } else {
-                    if (recv_heart_packet.cover_state != get_cover_state()) {
-                        set_cover_switch(recv_heart_packet.cover_state);
-                        if (recv_heart_packet.cover_state == COVER_ON) {
-                            sprintf(send_buffer, "COVER_ON");
-                        } else {
-                            sprintf(send_buffer, "COVER_OFF");
-                        }
-                    // } else {
-                    //     sprintf(send_buffer, "LINK_OK");
+                    LOTO_COVER_Switch(recv_heart_packet.cover_state);
+                    if (recv_heart_packet.cover_state == COVER_ON) {
+                        sprintf(send_buffer, "COVER_ON");
+                    } else {
+                        sprintf(send_buffer, "COVER_OFF");
                     }
                 }
             }

@@ -10,11 +10,4 @@ HI_S32 LOTO_VENC_FramerateDown(HI_BOOL enable);
 
 HI_VOID *LOTO_VENC_CLASSIC(void *p);
 
-HI_S32 LOTO_RGN_InitCoverRegion() ;
-HI_S32 LOTO_RGN_UninitCoverRegion();
-HI_S32 LOTO_VENC_AttachCover();
-HI_S32 LOTO_VENC_DetachCover();
-HI_S32 LOTO_VENC_AddCover();
-HI_S32 LOTO_VENC_RemoveCover();
-
 #endif // LOTO_VENC_H

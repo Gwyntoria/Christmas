@@ -33,6 +33,7 @@
 #include "loto_controller.h"
 #include "WaInit.h"
 #include "flv.h"
+#include "loto_cover.h"
 
 #define AUDIO_ENCODER_AAC       0xAC
 #define AUDIO_ENCODER_OPUS      0xAF
@@ -55,7 +56,7 @@ char g_device_num[16];
 PIC_SIZE_E g_resolution;
 PAYLOAD_TYPE_E g_payload = PT_BUTT;
 
-static char BIN_VERSION[8];
+static char BIN_VERSION[16];
 
 // static char gs_server_url_buf[1024] = {0};
 static char gs_push_url_buf[1024] = {0};
@@ -66,9 +67,6 @@ static int gs_audio_encoder = -1;
 
 static int gs_server_option = SERVER_OFFI;
 
-static int gs_cover_switch = 0;
-static int gs_cover_state = COVER_OFF;
-
 int get_server_option() {
     return gs_server_option;
 }
@@ -77,63 +75,8 @@ void set_server_option(int server_option) {
     gs_server_option = server_option;
 }
 
-int get_cover_state() {
-    return gs_cover_state;
-}
-
-void set_cover_switch(int cover_switch) {
-    gs_cover_switch = cover_switch;
-}
-
 HI_S32 LOTO_RTMP_VA_CLASSIC()
 {
-    HI_S32 s32Ret = 0;
-    HI_S32 s32ChnNum = 2;
-    HI_S32 s32ViCnt = 2;
-    HI_BOOL bLowDelay = HI_FALSE;
-
-    /* get picture size */
-    for (int i = 0; i < s32ChnNum; i++)
-    {
-        s32Ret = LOTO_COMM_SYS_GetPicSize(g_enSize[i], &g_stSize[i]);
-        if (HI_SUCCESS != s32Ret)
-        {
-            LOGE("LOTO_COMM_SYS_GetPicSize failed!\n");
-            return s32Ret;
-        }
-    }
-
-    LOTO_COMM_VI_GetSensorInfo(&g_stViConfig);
-    for (int i = 0; i < s32ViCnt; i++)
-    {
-        if (SAMPLE_SNS_TYPE_BUTT == g_stViConfig.astViInfo[i].stSnsInfo.enSnsType)
-        {
-            LOGE("Not set SENSOR%d_TYPE !\n", i);
-            return HI_FAILURE;
-        }
-    }
-
-    for (int i = 0; i < s32ViCnt; i++)
-    {
-        s32Ret = LOTO_VENC_CheckSensor(g_stViConfig.astViInfo[i].stSnsInfo.enSnsType, g_stSize[i]);
-        if (s32Ret != HI_SUCCESS)
-        {
-            s32Ret = LOTO_VENC_ModifyResolution(g_stViConfig.astViInfo[i].stSnsInfo.enSnsType, &g_enSize[i], &g_stSize[0]);
-            if (s32Ret != HI_SUCCESS)
-            {
-                return HI_FAILURE;
-            }
-        }
-    }
-
-    /* configure vi */
-    s32Ret = LOTO_VENC_VI_Init(&g_stViConfig, bLowDelay, HI_FALSE);
-    if (s32Ret != HI_SUCCESS)
-    {
-        LOGE("LOTO_VENC_VI_Init failed! \n");
-        return HI_FAILURE;
-    }
-
     /* video thread */
     pthread_create(&vid, NULL, LOTO_VENC_CLASSIC, NULL);
 
@@ -148,9 +91,7 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
         }
     }
 
-    LOGI("vid = %#x, aid = %#x\n", vid, aid);
-
-    return s32Ret;
+    return HI_SUCCESS;
 }
 
 void *LOTO_VIDEO_AUDIO_RTMP(void *p)
@@ -164,8 +105,6 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
     uint64_t a_time_count = 0;
     uint64_t cur_time = 0;
     uint64_t pre_time = 0;
-
-    // uint64_t count = 0;
 
     struct ringbuf v_ringinfo;
     int v_ring_buf_len = 0;
@@ -184,6 +123,8 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
     if (rtmp_sender_start_publish(prtmp, 0, 0) != 0) {
         LOGE("connect %s fail \n", url);
     }
+
+    int cover_state = COVER_OFF;
 
     while (1) {
         if (!rtmp_sender_isOK(prtmp)) {
@@ -247,7 +188,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             // LOGD("v_time_count = %llu, cur_time = %llu, pre_time = %llu\n", v_time_count, cur_time, pre_time);
             // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
 
-            if (prtmp != NULL) {
+            if (prtmp != NULL && !cover_state) {
                 if (g_payload == PT_H264) {
                     s32Ret = rtmp_sender_write_avc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                 } else if (g_payload == PT_H265) {
@@ -264,13 +205,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             usleep(100);
         }
 
-        if (gs_cover_state == COVER_OFF && gs_cover_switch == COVER_ON) {
-            LOTO_VENC_AddCover();
-            gs_cover_state = gs_cover_switch;
-        } else if (gs_cover_state == COVER_ON && gs_cover_switch == COVER_OFF) {
-            LOTO_VENC_RemoveCover();
-            gs_cover_state = gs_cover_switch;
-        }
+        LOTO_COVER_ChangeCover(&cover_state);
         
     }
 }
@@ -398,8 +333,8 @@ void parse_config_file(const char *config_file_path){
 
 #define VER_MAJOR 1
 #define VER_MINOR 4
-#define VER_BUILD 3
-#define VER_EXTEN 26
+#define VER_BUILD 5
+#define VER_EXTEN 2
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -449,7 +384,7 @@ int main(int argc, char *argv[]) {
         return HI_FAILURE;
     }
 
-    usleep(1000 * 5);
+    usleep(1000 * 10);
 
 #ifndef OSD_DEV_INFO_NOT
     /* Add OSD */
@@ -459,18 +394,8 @@ int main(int argc, char *argv[]) {
         return HI_FAILURE;
     }
 
-    usleep(1000 * 5);
+    usleep(1000 * 10);
 #endif
-
-    s32Ret = LOTO_RGN_InitCoverRegion();
-    if (s32Ret != HI_SUCCESS) {
-        LOGE("LOTO_RGN_InitCoverRegion failed!\n");
-        return HI_FAILURE;
-    }
-
-    s32Ret = LOTO_VENC_AttachCover();
-
-    usleep(1000 * 3);
 
     /* Initialize rtmp_sender */
     RtmpThrArg *rtmp_attr = (RtmpThrArg *)malloc(sizeof(RtmpThrArg));
@@ -481,17 +406,13 @@ int main(int argc, char *argv[]) {
     pthread_t rtmp_pid;
     pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr);
 
-    usleep(1000 * 3);
+    usleep(1000 * 10);
 
     /* socket: server */
     pthread_t socket_server_pid;
     pthread_create(&socket_server_pid, NULL, server_thread, NULL);
-    
+
     pthread_join(rtmp_pid, 0);
-
-    // pthread_join(socket_server_pid, 0);
-
-    LOTO_RGN_UninitCoverRegion();
 
     LOGI("=================== END =======================\n");
     return 0;

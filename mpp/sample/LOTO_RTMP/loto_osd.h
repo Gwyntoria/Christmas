@@ -80,7 +80,7 @@ typedef struct tag_OSD_RGBQUAD {
 
 typedef struct tag_OSD_BITMAPINFO {
     OSD_BITMAPINFOHEADER    bmiHeader;
-    OSD_RGBQUAD                 bmiColors[1];
+    OSD_RGBQUAD             bmiColors[1];
 } OSD_BITMAPINFO;
 
 typedef struct hiOSD_COMPONENT_INFO_S {

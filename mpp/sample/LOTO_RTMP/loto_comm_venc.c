@@ -2046,7 +2046,6 @@ err_out:
 // }
 
 
-
 /******************************************************************************
 * funciton : get stream from each channels and save them
 ******************************************************************************/
@@ -2234,17 +2233,18 @@ HI_VOID* LOTO_COMM_VENC_GetVencStreamProc(HI_VOID* p)
 
 #ifndef __HuaweiLite__
                     // s32Ret = LOTO_COMM_VENC_SaveStream(pFile[i], &stStream);
-                    s32Ret = HisiPutH264DataToBuffer(&stStream);
+                    HisiPutH264DataToBuffer(&stStream);
 #else
                     s32Ret = LOTO_COMM_VENC_SaveStream_PhyAddr(pFile[i], &stStreamBufInfo[i], &stStream);
 #endif
-                    if (HI_SUCCESS != s32Ret)
-                    {
-                        free(stStream.pstPack);
-                        stStream.pstPack = NULL;
-                        LOGE("Save stream failed!\n");
-                        break;
-                    }
+                    // if (HI_SUCCESS != s32Ret)
+                    // {
+                    //     free(stStream.pstPack);
+                    //     stStream.pstPack = NULL;
+                    //     LOGE("Save stream failed!\n");
+                    //     break;
+                    // }
+
                     /*******************************************************
                      step 2.6 : release stream
                      *******************************************************/

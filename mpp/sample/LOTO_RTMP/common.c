@@ -631,7 +631,7 @@ void HexToString(const uint8_t *data, unsigned long len)
 }
 
 uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset) {
-    for (int i = 0; i < numBytes; i++) {
+    for (int i = numBytes - 1; i >= 0; i--) {
         *(stream + *offset) = (uint8_t)(srcValue >> (8 * i));
         (*offset) += 1;
     }

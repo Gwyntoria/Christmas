@@ -26,7 +26,6 @@
 #include "loto_osd.h"
 #include "common.h"
 
-#define BLACK_COVER_HANDLE 11
 
 extern SAMPLE_VI_CONFIG_S g_stViConfig;
 extern SIZE_S g_stSize[2];
@@ -294,7 +293,13 @@ void *LOTO_VENC_CLASSIC(void *arg)
 {
     LOGI("=== LOTO_VENC_CLASSIC ===\n");
 
-    HI_S32 s32Ret;
+    HI_S32 s32Ret = 0;
+    // HI_S32 s32ChnNum = 2;
+    HI_S32 s32ChnNum = 1;
+    HI_S32 s32ViCnt = 2;
+    HI_BOOL bLowDelay = HI_FALSE;
+
+    // HI_S32 s32Ret;
     VI_PIPE workingViPipe = 0;
     VI_CHN ViChn = 0;
     VPSS_GRP VpssGrp = 0;
@@ -307,10 +312,52 @@ void *LOTO_VENC_CLASSIC(void *arg)
     VENC_GOP_ATTR_S stGopAttr;
     SAMPLE_RC_E enRcMode;
     HI_BOOL bRcnRefShareBuf = HI_TRUE;
-    HI_S32 s32ChnNum = 1;
+    // HI_S32 s32ChnNum = 1;
     VENC_CHN VencChn[2] = {0, 1};
     pthread_t venc_pid;
     VPSS_LOW_DELAY_INFO_S stLowDelayInfo;
+
+    /* get picture size */
+    for (int i = 0; i < s32ChnNum; i++)
+    {
+        s32Ret = LOTO_COMM_SYS_GetPicSize(g_enSize[i], &g_stSize[i]);
+        if (HI_SUCCESS != s32Ret)
+        {
+            LOGE("LOTO_COMM_SYS_GetPicSize failed!\n");
+            return s32Ret;
+        }
+    }
+
+    LOTO_COMM_VI_GetSensorInfo(&g_stViConfig);
+    for (int i = 0; i < s32ViCnt; i++)
+    {
+        if (SAMPLE_SNS_TYPE_BUTT == g_stViConfig.astViInfo[i].stSnsInfo.enSnsType)
+        {
+            LOGE("Not set SENSOR%d_TYPE !\n", i);
+            return HI_FAILURE;
+        }
+    }
+
+    for (int i = 0; i < s32ViCnt; i++)
+    {
+        s32Ret = LOTO_VENC_CheckSensor(g_stViConfig.astViInfo[i].stSnsInfo.enSnsType, g_stSize[i]);
+        if (s32Ret != HI_SUCCESS)
+        {
+            s32Ret = LOTO_VENC_ModifyResolution(g_stViConfig.astViInfo[i].stSnsInfo.enSnsType, &g_enSize[i], &g_stSize[0]);
+            if (s32Ret != HI_SUCCESS)
+            {
+                return HI_FAILURE;
+            }
+        }
+    }
+
+    /* configure vi */
+    s32Ret = LOTO_VENC_VI_Init(&g_stViConfig, bLowDelay, HI_FALSE);
+    if (s32Ret != HI_SUCCESS)
+    {
+        LOGE("LOTO_VENC_VI_Init failed! \n");
+        return HI_FAILURE;
+    }
 
     LOGI("Encode PIC_SIZE:    %d\n", g_resolution);
 
@@ -366,25 +413,7 @@ void *LOTO_VENC_CLASSIC(void *arg)
         goto EXIT_VI_VPSS_UNBIND;
     }
 
-    /* Encode h.264 */
-    /* Modify the resolution   g_enSize[0]: 1080p; g_enSize[1]: 720p */
-    // g_resolution = PIC_2592x1944;
-    // switch (g_resolution)
-    // {
-    // case PIC_1080P:
-    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-    //     break;
-    // case PIC_720P:
-    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_720P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-    //     break;
-    // case PIC_2592x1944:
-    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_2592x1944, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-    //     break;
-    // default:
-    //     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, PIC_1080P, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
-    //     break;
-    // }
-
+    /* Start VENC */
     s32Ret = LOTO_COMM_VENC_Start(VencChn[0], g_payload, g_resolution, enRcMode, g_profile, bRcnRefShareBuf, &stGopAttr);
     if (HI_SUCCESS != s32Ret)
     {
@@ -516,164 +545,4 @@ HI_S32 LOTO_VENC_FramerateDown(HI_BOOL enable)
     }
 
     return HI_SUCCESS;
-}
-
-static RGN_HANDLE gs_rgnHandle = 5;
-static MPP_CHN_S gs_stMppChnAttr = {0};
-static RGN_CHN_ATTR_S gs_stRgnChnAttr = {0};
-
-HI_S32 LOTO_RGN_CreateCoverRegion(RGN_HANDLE rgnHandle, MPP_CHN_S *stMppChnAttr, RGN_CHN_ATTR_S *stRgnChnAttr)
-{
-    HI_S32 ret;
-    RGN_ATTR_S stRgnAttr;
-
-    // stRgnAttr.enType = COVER_RGN;
-
-    // stMppChnAttr->enModId = HI_ID_VPSS;
-    // stMppChnAttr->s32DevId = 0;
-    // stMppChnAttr->s32ChnId = 0;
-
-    // stRgnChnAttr->bShow = HI_TRUE;
-    // stRgnChnAttr->enType = COVER_RGN;
-    // stRgnChnAttr->unChnAttr.stCoverChn.enCoverType = AREA_RECT;
-    // stRgnChnAttr->unChnAttr.stCoverChn.stRect.s32X = 0;
-    // stRgnChnAttr->unChnAttr.stCoverChn.stRect.s32Y = 0;
-    // stRgnChnAttr->unChnAttr.stCoverChn.stRect.u32Width = 1920;
-    // stRgnChnAttr->unChnAttr.stCoverChn.stRect.u32Height = 1080;
-    // stRgnChnAttr->unChnAttr.stCoverChn.u32Color = 0xFF4500;
-    // stRgnChnAttr->unChnAttr.stCoverChn.u32Layer = 0;
-    // stRgnChnAttr->unChnAttr.stCoverChn.enCoordinate = RGN_ABS_COOR;
-
-    stRgnAttr.enType = COVEREX_RGN;
-
-    stMppChnAttr->enModId = HI_ID_VPSS;
-    stMppChnAttr->s32DevId = 0;
-    stMppChnAttr->s32ChnId = 0;
-
-    stRgnChnAttr->bShow = HI_TRUE;
-    stRgnChnAttr->enType = COVEREX_RGN;
-    stRgnChnAttr->unChnAttr.stCoverExChn.enCoverType = AREA_RECT;
-    stRgnChnAttr->unChnAttr.stCoverExChn.stRect.s32X = 1080;
-    stRgnChnAttr->unChnAttr.stCoverExChn.stRect.s32Y = 0;
-    stRgnChnAttr->unChnAttr.stCoverExChn.stRect.u32Width = 1080;
-    stRgnChnAttr->unChnAttr.stCoverExChn.stRect.u32Height = 1920;
-    // stRgnChnAttr->unChnAttr.stCoverExChn.u32Color = 0xFF4500;
-    stRgnChnAttr->unChnAttr.stCoverExChn.u32Color = 0x202020;
-    stRgnChnAttr->unChnAttr.stCoverExChn.u32Layer = 0;
-
-    ret = HI_MPI_RGN_Create(rgnHandle, &stRgnAttr);
-    if (ret != HI_SUCCESS)
-    {
-        LOGE("HI_MPI_RGN_Create failed with %#x!\n", ret);
-        return HI_FAILURE;
-    }
-    return HI_SUCCESS;
-}
-
-HI_S32 LOTO_RGN_DestroyCoverRegion(RGN_HANDLE rgnHandle)
-{
-    HI_S32 ret;
-    ret = HI_MPI_RGN_Destroy(rgnHandle);
-    if (ret != HI_SUCCESS)
-    {
-        LOGE("HI_MPI_RGN_Destroy failed with %#x!\n", ret);
-        return HI_FAILURE;
-    }
-    return HI_SUCCESS;
-}
-
-HI_S32 LOTO_RGN_AttachCover(RGN_HANDLE rgnHandle, const MPP_CHN_S *stMppChnAttr, const RGN_CHN_ATTR_S *stRgnChnAttr)
-{
-    HI_S32 ret;
-
-    ret = HI_MPI_RGN_AttachToChn(rgnHandle, stMppChnAttr, stRgnChnAttr);
-    if (ret != HI_SUCCESS)
-    {
-        LOGE("HI_MPI_RGN_AttachToChn failed with %#x!\n", ret);
-        return HI_FAILURE;
-    }
-
-    // LOGI("cover_add!\n");
-    return HI_SUCCESS;
-}
-
-HI_S32 LOTO_RGN_DetachCover(RGN_HANDLE rgnHandle, const MPP_CHN_S *stMppChnAttr)
-{
-    HI_S32 ret;
-
-    ret = HI_MPI_RGN_DetachFromChn(rgnHandle, stMppChnAttr);
-    if (ret != HI_SUCCESS)
-    {
-        LOGE("HI_MPI_RGN_DetachFromChn failed with %#x\n", ret);
-        return HI_FAILURE;
-    }
-
-    // LOGI("cover_remove!\n");
-    return HI_SUCCESS;
-}
-
-HI_S32 LOTO_RGN_InitCoverRegion()
-{
-    return LOTO_RGN_CreateCoverRegion(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
-}
-
-HI_S32 LOTO_RGN_UninitCoverRegion()
-{
-    return LOTO_RGN_DestroyCoverRegion(gs_rgnHandle);
-}
-
-HI_S32 LOTO_VENC_AttachCover()
-{
-    return LOTO_RGN_AttachCover(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
-}
-
-HI_S32 LOTO_VENC_DetachCover()
-{
-    return LOTO_RGN_DetachCover(gs_rgnHandle, &gs_stMppChnAttr);
-}
-
-HI_S32 LOTO_VENC_AddCover() {
-    HI_S32 ret;
-
-    ret = HI_MPI_RGN_GetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
-    if (ret != HI_SUCCESS) {
-        LOGE("HI_MPI_RGN_GetDisplayAttr failed with %#x\n", ret);
-        return ret;
-    }
-
-    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32X = 0;
-    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32Y = 0;
-
-    ret = HI_MPI_RGN_SetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
-    if (ret != HI_SUCCESS) {
-        LOGE("HI_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
-        return ret;
-    }
-
-    LOGI("cover_add!\n");
-
-    return ret;
-}
-
-HI_S32 LOTO_VENC_RemoveCover () {
-    HI_S32 ret;
-
-    ret = HI_MPI_RGN_GetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
-    if (ret != HI_SUCCESS) {
-        LOGE("HI_MPI_RGN_GetDisplayAttr failed with %#x\n", ret);
-        return ret;
-    }
-
-    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32X = 1080;
-    gs_stRgnChnAttr.unChnAttr.stCoverExChn.stRect.s32Y = 0;
-
-    ret = HI_MPI_RGN_SetDisplayAttr(gs_rgnHandle, &gs_stMppChnAttr, &gs_stRgnChnAttr);
-    if (ret != HI_SUCCESS) {
-        LOGE("HI_MPI_RGN_SetDisplayAttr failed with %#x\n", ret);
-        return ret;
-    }
-
-    LOGI("cover_remove!\n");
-
-    return ret;
 }
