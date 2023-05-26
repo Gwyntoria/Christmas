@@ -15,8 +15,11 @@ fi
 
 sleep 1
 
-# echo "Update push.conf"
+# echo "=== Update push.conf ==="
 # tftp -g -r push.conf $1
 
-echo "Update loto_rtmp"
+echo "=== Update loto_rtmp ==="
+# cp loto_rtmp loto_rtmp_back
 tftp -g -r loto_rtmp $1
+
+chmod 777 loto_rtmp

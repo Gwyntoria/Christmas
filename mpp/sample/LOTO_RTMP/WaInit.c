@@ -273,7 +273,7 @@ loto_room_info* loto_room_init(const char* server_url, const char* server_token)
             int i = 0;
 
             get_mac(szMac);
-            GetTimestamp(szT, 0);
+            GetTimestampU64(szT, 0);
 
             MD5_CTX md5;
             MD5Init(&md5);

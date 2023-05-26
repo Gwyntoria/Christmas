@@ -12,4 +12,7 @@ telnetd &
 echo "########## Run RTMP App #################"
 /root/loto_rtmp
 
-/root/scripts/check_process.sh
+sleep 20
+
+reboot
+# /root/scripts/check_process.sh

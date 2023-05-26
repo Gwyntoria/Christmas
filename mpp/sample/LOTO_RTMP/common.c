@@ -39,7 +39,7 @@
 static FILE *log_handle = NULL;
 static pthread_mutex_t _vLogMutex;
 
-char *GetLocalTime(void)
+char *GetTimestampString(void)
 {
     struct tm *ptm;
     struct timeb stTimeb;
@@ -47,9 +47,36 @@ char *GetLocalTime(void)
 
     ftime(&stTimeb);
     ptm = localtime(&stTimeb.time);
-    sprintf(szTime, "%04d-%02d-%02d %02d:%02d:%02d.%03d", ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec, stTimeb.millitm);
+    sprintf(szTime, "%04d-%02d-%02d %02d:%02d:%02d.%03d", 
+                     ptm->tm_year + 1900, 
+                     ptm->tm_mon + 1, 
+                     ptm->tm_mday, 
+                     ptm->tm_hour, 
+                     ptm->tm_min, 
+                     ptm->tm_sec, 
+                     stTimeb.millitm);
     // szTime[23] = 0;
     return szTime;
+}
+
+uint64_t GetTimestampU64(char *pszTS, int isMSec)
+{
+    uint64_t timestamp;
+    char szT[64] = "";
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    if (isMSec)
+        timestamp = (uint64_t)tv.tv_sec * 1000 + (uint64_t)tv.tv_usec / 1000;
+    else
+        timestamp = (uint64_t)tv.tv_sec;
+
+    if (pszTS != NULL)
+    {
+        int2string((int64_t)timestamp, szT);
+        strcpy(pszTS, szT);
+    }
+
+    return timestamp;
 }
 
 int get_mac(char *mac)
@@ -158,26 +185,6 @@ int int2string(long long value, char *output)
         string_reverse(output);
         return 1;
     }
-}
-
-uint64_t GetTimestamp(char *pszTS, int isMSec)
-{
-    uint64_t timestamp;
-    char szT[64] = "";
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    if (isMSec > 0)
-        timestamp = (uint64_t)tv.tv_sec * 1000 + (uint64_t)tv.tv_usec / 1000;
-    else
-        timestamp = (uint64_t)tv.tv_sec;
-
-    if (pszTS != NULL)
-    {
-        int2string((int64_t)timestamp, szT);
-        strcpy(pszTS, szT);
-    }
-
-    return timestamp;
 }
 
 int InitAvctlLogFile()
@@ -578,7 +585,7 @@ int time_sync() {
 #define BP_GRAPH 60
 #define BP_LEN 80
 
-void HexToString(const uint8_t *data, unsigned long len)
+void GetHexDataStream(const uint8_t *data, unsigned long len)
 {
     char line[BP_LEN];
     unsigned long i;

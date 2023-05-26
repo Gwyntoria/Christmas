@@ -1025,7 +1025,7 @@ HI_S32 LOTO_OSD_AddBitMap(RGN_HANDLE handle)
 
     // LOGD("Memorry Size:%d\n", stCanvasInfo.u32Stride * stSize.u32Height);
 
-    // LOGD("LOTO_OSD_UpdateCanvasInfo start time: %s\n", GetLocalTime());
+    // LOGD("LOTO_OSD_UpdateCanvasInfo start time: %s\n", GetTimestampString());
 
     s32Ret = LOTO_OSD_UpdateCanvasInfo(handle, &pstBitmap, HI_FALSE, 0xffffff, &stSize, stCanvasInfo.u32Stride, stRgnAttrSet.unAttr.stOverlay.enPixelFmt);
     if (HI_SUCCESS != s32Ret)
@@ -1266,14 +1266,14 @@ HI_VOID *LOTO_OSD_AddVideoOsd(void *handle)
             seconds = pLocalTime->tm_sec;
             // LOGD("Second = %d\n", seconds);
 
-            // LOGD("LOTO_OSD_AddBitMap start: %s\n", GetLocalTime());
+            // LOGD("LOTO_OSD_AddBitMap start: %s\n", GetTimestampString());
             s32Ret = LOTO_OSD_AddBitMap(timestampHandle);
             if (s32Ret != HI_SUCCESS)
             {
                 LOGE("LOTO_OSD_AddBitMap for Timestamp failed!\n");
                 break;
             }
-            // LOGD("LOTO_OSD_AddBitMap end: %s\n", GetLocalTime());
+            // LOGD("LOTO_OSD_AddBitMap end: %s\n", GetTimestampString());
         }
     } while (0);
 

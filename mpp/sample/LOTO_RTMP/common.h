@@ -32,7 +32,7 @@ extern "C" {
  * 
  * @return char* the formated time string
  */
-char*   GetLocalTime(void);
+char*   GetTimestampString(void);
 
 void WriteLogFile(char *p_fmt, ...);
 
@@ -40,7 +40,7 @@ void WriteLogFile(char *p_fmt, ...);
 #define LOGI(format, ...) \
     do { \
         fprintf(stderr, "[INF]-[%s]-[%d]: " format "", __FILE__, __LINE__, ##__VA_ARGS__ ); \
-        WriteLogFile("[%s]-[INF]-[%s]-[%d]: " format "", GetLocalTime(), __FILE__, __LINE__, ##__VA_ARGS__); \
+        WriteLogFile("[%s]-[INF]-[%s]-[%d]: " format "", GetTimestampString(), __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 #else
 #define LOGI(format, ...) \
@@ -51,7 +51,7 @@ void WriteLogFile(char *p_fmt, ...);
 #define LOGE(format, ...) \
     do { \
         fprintf(stderr, "[ERR]-[%s]-[%d]: " format "", __FILE__, __LINE__, ##__VA_ARGS__ ); \
-        WriteLogFile("[%s]-[ERR]-[%s]-[%d]: " format "", GetLocalTime(), __FILE__, __LINE__, ##__VA_ARGS__); \
+        WriteLogFile("[%s]-[ERR]-[%s]-[%d]: " format "", GetTimestampString(), __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 #else
 #define LOGE(format, ...) \
@@ -62,7 +62,7 @@ void WriteLogFile(char *p_fmt, ...);
 #define LOGW(format, ...) \
     do { \
         fprintf(stderr, "[WAR]-[%s]-[%d]: " format "", __FILE__, __LINE__, ##__VA_ARGS__ ); \
-        WriteLogFile("[%s]-[WAR]-[%s]-[%d]: " format "", GetLocalTime(), __FILE__, __LINE__, ##__VA_ARGS__); \
+        WriteLogFile("[%s]-[WAR]-[%s]-[%d]: " format "", GetTimestampString(), __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 #else
 #define LOGW(format, ...) \
@@ -73,7 +73,7 @@ void WriteLogFile(char *p_fmt, ...);
 #define LOGD(format, ...) \
     do { \
         fprintf(stderr, "[DEB]-[%s]-[%d]: " format "", __FILE__, __LINE__, ##__VA_ARGS__ ); \
-        WriteLogFile("[%s]-[DEB]-[%s]-[%d]: " format "", GetLocalTime(), __FILE__, __LINE__, ##__VA_ARGS__); \
+        WriteLogFile("[%s]-[DEB]-[%s]-[%d]: " format "", GetTimestampString(), __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 #else
 #define LOGD(format, ...) \
@@ -82,7 +82,7 @@ void WriteLogFile(char *p_fmt, ...);
 
 #define LOGF(format, ...) \
     do { \
-        WriteLogFile("[%s]-[DEB]-[%s]-[%d]: " format "", GetLocalTime(), __FILE__, __LINE__, ##__VA_ARGS__); \
+        WriteLogFile("[%s]-[DEB]-[%s]-[%d]: " format "", GetTimestampString(), __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 
 #define WORK_FOLDER     "/root"
@@ -170,7 +170,7 @@ long long string2int(const char *str);
  * @param isMSec [in] [1: ms], [0: s]
  * @return uint64_t time 
  */
-uint64_t GetTimestamp(char* pszTS, int isMSec);
+uint64_t GetTimestampU64(char* pszTS, int isMSec);
 
 int get_hash_code_24(char* psz_combined_string);
 
@@ -195,7 +195,7 @@ int time_sync();
  * @param data The pointer to hexadecimal data stream
  * @param len The length of the byte stream that needs to be output
  */
-void HexToString(const uint8_t *data, unsigned long len);
+void GetHexDataStream(const uint8_t *data, unsigned long len);
 
 
 uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset);
