@@ -334,7 +334,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 5
-#define VER_EXTEN 4
+#define VER_EXTEN 5
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -347,15 +347,15 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
-    LOGI("RTMP App Version: %s\n", BIN_VERSION);
-
     /* sync local time from net_time */
     s32Ret = time_sync();
     if (s32Ret != HI_SUCCESS) {
         LOGE("Time sync failed\n");
         exit(1);
     }
+
+    sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
+    LOGI("RTMP App Version: %s\n", BIN_VERSION);
 
     // /* socket: server */
     // pthread_t socket_server_pid;

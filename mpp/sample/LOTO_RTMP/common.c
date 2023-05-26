@@ -466,8 +466,6 @@ char *decode(char *message, const char *codeckey)
 #define TIMEOUT_SEC 5
 
 int time_sync() {
-    LOGI("=== time_sync ===\n");
-    
     char *ntp_server = "ntp1.aliyun.com";
 
     int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -488,8 +486,6 @@ int time_sync() {
         return -1;
     }
 
-    // LOGI("gethostbyname success!\n");
-
     // Populate the server information
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -500,10 +496,10 @@ int time_sync() {
     // Construct NTP packets
     uint8_t ntp_packet[NTP_PACKET_SIZE];
     memset(ntp_packet, 0, sizeof(ntp_packet));
-    ntp_packet[0] = 0b11100011; // NTP version 4, client mode, no leap indicator
-    ntp_packet[1] = 0; // stratum, or how far away the server is from a reliable time source
-    ntp_packet[2] = 6; // poll interval, or how often the client will request time
-    ntp_packet[3] = 0xEC; // precision, or how accurate the client's clock is
+    ntp_packet[0] = 0b11100011;     // NTP version 4, client mode, no leap indicator
+    ntp_packet[1] = 0;              // stratum, or how far away the server is from a reliable time source
+    ntp_packet[2] = 6;              // poll interval, or how often the client will request time
+    ntp_packet[3] = 0xEC;           // precision, or how accurate the client's clock is
     // the rest of the packet is all zeros
 
     int retries = 0;
@@ -517,8 +513,6 @@ int time_sync() {
             LOGE("sendto failed\n");
             break;
         }
-
-        // LOGI("send ntp_packet success!\n");
 
         fd_set read_fds;
         FD_ZERO(&read_fds);
@@ -569,14 +563,13 @@ int time_sync() {
 
     uint32_t ntp_time = ntohl(*(uint32_t *) (ntp_response + 40));
     time_t unix_time = ntp_time - NTP_UNIX_OFFSET;
-    LOGI("Time from %s: %s", ntp_server, ctime(&unix_time));
 
     if (settimeofday(&(struct timeval){.tv_sec = unix_time}, NULL) == -1) {
         LOGE("settimeofday failed\n");
         return -1;
     }
 
-    // LOGI("set time success!\n");
+    LOGI("Time from %s: %s", ntp_server, ctime(&unix_time));
 
     return 0;
 }
