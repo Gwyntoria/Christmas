@@ -578,7 +578,7 @@ int time_sync() {
 #define BP_GRAPH 60
 #define BP_LEN 80
 
-void GetHexDataStream(const uint8_t *data, unsigned long len)
+void PrintDataStreamHex(const uint8_t *data, unsigned long len)
 {
     char line[BP_LEN];
     unsigned long i;

@@ -101,10 +101,10 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
     HI_S32 s32Ret;
 
     uint32_t start_time = 0;
-    uint64_t v_time_count = 0;
     uint64_t a_time_count = 0;
-    uint64_t cur_time = 0;
+    uint64_t v_time_count = 0;
     uint64_t pre_time = 0;
+    uint64_t cur_time = 0;
 
     struct ringbuf v_ringinfo;
     int v_ring_buf_len = 0;
@@ -146,12 +146,15 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         }
 
         // cur_time = RTMP_GetTime();          // get current time(ms)
-        cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
+        // cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
         if (gs_audio_state == TRUE) {
             /* send audio frame */
             a_ring_buf_len = ringget_audio(&a_ringinfo);
             if (a_ring_buf_len != 0) {
+                cur_time = GetTimestampU64(NULL, 1);
+                // cur_time = a_ringinfo.timestamp / 1000;
+
                 if (pre_time == 0) {
                     pre_time = cur_time;
                 }
@@ -177,8 +180,10 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 
         /* send video frame */
         v_ring_buf_len = ringget(&v_ringinfo);
-        if (v_ring_buf_len != 0)
-        {
+        if (v_ring_buf_len != 0) {
+            cur_time = GetTimestampU64(NULL, 1);
+            // cur_time = v_ringinfo.timestamp / 1000;
+
             if (pre_time == 0) {
                 pre_time = cur_time;
             }
@@ -334,7 +339,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 5
-#define VER_EXTEN 5
+#define VER_EXTEN 10
 
 int main(int argc, char *argv[]) {
     int s32Ret;

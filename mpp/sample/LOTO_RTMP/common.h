@@ -192,10 +192,10 @@ int time_sync();
 /**
  * @brief Output the hexadecimal data stream, along with the corresponding string
  * 
- * @param data The pointer to hexadecimal data stream
- * @param len The length of the byte stream that needs to be output
+ * @param data [in] The pointer to hexadecimal data stream
+ * @param len [in] The length of the byte stream that needs to be output
  */
-void GetHexDataStream(const uint8_t *data, unsigned long len);
+void PrintDataStreamHex(const uint8_t *data, unsigned long len);
 
 
 uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset);

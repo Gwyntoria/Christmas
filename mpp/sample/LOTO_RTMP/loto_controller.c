@@ -263,7 +263,7 @@ void *server_thread(void *arg) {
             }
 
             printf("recv_buffer: \n");
-            GetHexDataStream(recv_buffer, recv_buffer_len);
+            PrintDataStreamHex(recv_buffer, recv_buffer_len);
 
             /* Get type of packet */
             uint16_t packet_type = 0;
