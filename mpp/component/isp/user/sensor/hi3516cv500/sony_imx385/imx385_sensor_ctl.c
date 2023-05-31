@@ -233,118 +233,118 @@ void imx385_exit(VI_PIPE ViPipe)
     return;
 }
 
-int sensor_imx385_write_register_i2c_TO_spi(VI_PIPE ViPipe, int addr, int data)
-{
-    int ispaddr = 0;
+// int sensor_imx385_write_register_i2c_TO_spi(VI_PIPE ViPipe, int addr, int data)
+// {
+//     int ispaddr = 0;
 
-    if ((addr & 0xf00) == 0x200)
-    {
-        ispaddr = 0x3000 + (addr & 0xff);
-    }
-    else if ((addr & 0xf00) == 0x300)
-    {
-        ispaddr = 0x3100 + (addr & 0xff);
-    }
-    else if ((addr & 0xf00) == 0x400)
-    {
-        ispaddr = 0x3200 + (addr & 0xff);
-    }
-    else if ((addr & 0xf00) == 0x500)
-    {
-        ispaddr = 0x3300 + (addr & 0xff);
-    }
-    else
-    {
-        printf("sensor_imx385_write_register_i2c_TO_spi error.....\n");
-    }
-    imx385_write_register(ViPipe, ispaddr, data);
-    return 0;
-}
+//     if ((addr & 0xf00) == 0x200)
+//     {
+//         ispaddr = 0x3000 + (addr & 0xff);
+//     }
+//     else if ((addr & 0xf00) == 0x300)
+//     {
+//         ispaddr = 0x3100 + (addr & 0xff);
+//     }
+//     else if ((addr & 0xf00) == 0x400)
+//     {
+//         ispaddr = 0x3200 + (addr & 0xff);
+//     }
+//     else if ((addr & 0xf00) == 0x500)
+//     {
+//         ispaddr = 0x3300 + (addr & 0xff);
+//     }
+//     else
+//     {
+//         printf("sensor_imx385_write_register_i2c_TO_spi error.....\n");
+//     }
+//     imx385_write_register(ViPipe, ispaddr, data);
+//     return 0;
+// }
 
 /* 1080p_30fps and 1080p25fps */
 void imx385_linear_1080p30_init(VI_PIPE ViPipe)
 {
     /* imx385 1080p30 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x200, 0x01); /* standby */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x205, 0x01); /* ADBIT=1(12-bit), STD12EN=0 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x207, 0x0);  /* MODE: All-pix scan */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x209, 0x02); /* 30 fps */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x218, 0x65); /* VMAX[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x219, 0x04); /* VMAX[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x21a, 0x00); /* VMAX[16] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x21b, 0x30); /* HMAX[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x21c, 0x11); /* HMAX[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x244, 0xE1); /* ODBIT=1, OPORTSEL=0xE :CSI-2 */
+    imx385_write_register(ViPipe, 0x3000, 0x01); /* standby */
+    imx385_write_register(ViPipe, 0x3005, 0x01); /* ADBIT=1(12-bit), STD12EN=0 */
+    imx385_write_register(ViPipe, 0x3007, 0x0);  /* MODE: All-pix scan */
+    imx385_write_register(ViPipe, 0x3009, 0x02); /* 30 fps */
+    imx385_write_register(ViPipe, 0x3018, 0x65); /* VMAX[7:0] */
+    imx385_write_register(ViPipe, 0x3019, 0x04); /* VMAX[15:8] */
+    imx385_write_register(ViPipe, 0x301a, 0x00); /* VMAX[16] */
+    imx385_write_register(ViPipe, 0x301b, 0x30); /* HMAX[7:0] */
+    imx385_write_register(ViPipe, 0x301c, 0x11); /* HMAX[15:8] */
+    imx385_write_register(ViPipe, 0x3044, 0xE1); /* ODBIT=1, OPORTSEL=0xE :CSI-2 */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x212, 0x2c);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x213, 0x01);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x254, 0x66);
+    imx385_write_register(ViPipe, 0x3012, 0x2c);
+    imx385_write_register(ViPipe, 0x3013, 0x01);
+    imx385_write_register(ViPipe, 0x3054, 0x66);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x30b, 0x07);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x310, 0x12);
+    imx385_write_register(ViPipe, 0x310b, 0x07);
+    imx385_write_register(ViPipe, 0x3110, 0x12);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x544, 0x10); /* REPETITION=1  */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x546, 0x03); /* PHYSICAL Lane NUM 3h:4 lanes; 2h:2 lanes */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x553, 0x0E); /* OB_SIZE_V[5:0] */
+    imx385_write_register(ViPipe, 0x3344, 0x10); /* REPETITION=1  */
+    imx385_write_register(ViPipe, 0x3346, 0x03); /* PHYSICAL Lane NUM 3h:4 lanes; 2h:2 lanes */
+    imx385_write_register(ViPipe, 0x3353, 0x0E); /* OB_SIZE_V[5:0] */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x557, 0x49); /* PIC_SIZE_V[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x558, 0x04); /* PIC_SIZE_V[11:8] */
+    imx385_write_register(ViPipe, 0x3357, 0x49); /* PIC_SIZE_V[7:0] */
+    imx385_write_register(ViPipe, 0x3358, 0x04); /* PIC_SIZE_V[11:8] */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x56b, 0x3f); /* THSEXIT: Global Timing Setting30 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x56b, 0x1f); /* TCLKPRE: Global Timing Setting */
+    imx385_write_register(ViPipe, 0x336b, 0x3f); /* THSEXIT: Global Timing Setting30 */
+    imx385_write_register(ViPipe, 0x336b, 0x1f); /* TCLKPRE: Global Timing Setting */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x57d, 0x0c); /* CSI_DT_FMT[7:0]*/ /* CSI_DT_FMT=0x0c0c 12bit CSI_DT_FMT=0x0a0a 10bit */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x57e, 0x0c);                      /* CSI_DT_FMT[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x57f, 0x03);                      /* CSI_LANE_MODE */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x582, 0x67);                      /* TCLK_POST */
+    imx385_write_register(ViPipe, 0x337d, 0x0c); /* CSI_DT_FMT[7:0]*/ /* CSI_DT_FMT=0x0c0c 12bit CSI_DT_FMT=0x0a0a 10bit */
+    imx385_write_register(ViPipe, 0x337e, 0x0c);                      /* CSI_DT_FMT[15:8] */
+    imx385_write_register(ViPipe, 0x337f, 0x03);                      /* CSI_LANE_MODE */
+    imx385_write_register(ViPipe, 0x3382, 0x67);                      /* TCLK_POST */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x538, 0xD4);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x539, 0x40);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53A, 0x10);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53B, 0x00);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53C, 0xD4);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53D, 0x40);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53E, 0x10);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53F, 0x00);
+    imx385_write_register(ViPipe, 0x3338, 0xD4);
+    imx385_write_register(ViPipe, 0x3339, 0x40);
+    imx385_write_register(ViPipe, 0x333A, 0x10);
+    imx385_write_register(ViPipe, 0x333B, 0x00);
+    imx385_write_register(ViPipe, 0x333C, 0xD4);
+    imx385_write_register(ViPipe, 0x333D, 0x40);
+    imx385_write_register(ViPipe, 0x333E, 0x10);
+    imx385_write_register(ViPipe, 0x333F, 0x00);
 
     /* INCK , CSI-2 Serial output (INCK=37.125MHz) */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25C, 0x18); /* INCKSEL1 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25D, 0x00); /* INCKSEL2 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25E, 0x20); /* INCKSEL3 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25F, 0x00); /* INCKSEL4 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x580, 0x20); /* INCK_FREQ[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x581, 0x25); /* INCK_FREQ[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x58d, 0xb4); /* INCK_FREQ2[7:0]b4 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x58e, 0x01); /* INCK_FREQ2[10:8]01 */
+    imx385_write_register(ViPipe, 0x305C, 0x18); /* INCKSEL1 */
+    imx385_write_register(ViPipe, 0x305D, 0x00); /* INCKSEL2 */
+    imx385_write_register(ViPipe, 0x305E, 0x20); /* INCKSEL3 */
+    imx385_write_register(ViPipe, 0x305F, 0x00); /* INCKSEL4 */
+    imx385_write_register(ViPipe, 0x3380, 0x20); /* INCK_FREQ[7:0] */
+    imx385_write_register(ViPipe, 0x3381, 0x25); /* INCK_FREQ[15:8] */
+    imx385_write_register(ViPipe, 0x338d, 0xb4); /* INCK_FREQ2[7:0]b4 */
+    imx385_write_register(ViPipe, 0x338e, 0x01); /* INCK_FREQ2[10:8]01 */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x56b, 0x2f);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x582, 0x5f);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x583, 0x17);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x584, 0x2f);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x585, 0x17);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x586, 0x17);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x587, 0x00);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x588, 0x4f);
+    imx385_write_register(ViPipe, 0x336b, 0x2f);
+    imx385_write_register(ViPipe, 0x3382, 0x5f);
+    imx385_write_register(ViPipe, 0x3383, 0x17);
+    imx385_write_register(ViPipe, 0x3384, 0x2f);
+    imx385_write_register(ViPipe, 0x3385, 0x17);
+    imx385_write_register(ViPipe, 0x3386, 0x17);
+    imx385_write_register(ViPipe, 0x3387, 0x00);
+    imx385_write_register(ViPipe, 0x3388, 0x4f);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x3ed, 0x38);
+    imx385_write_register(ViPipe, 0x31ed, 0x38);
 
     /*gain, black level, exposure, etc.*/
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x20A, 0xF0); /* BLKLEVEL[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x20B, 0x00); /* BLKLEVEL[8] */
+    imx385_write_register(ViPipe, 0x300A, 0xF0); /* BLKLEVEL[7:0] */
+    imx385_write_register(ViPipe, 0x300B, 0x00); /* BLKLEVEL[8] */
 
-/*gain, black level, exposure, etc.*/
+    /*gain, black level, exposure, etc.*/
 #if 0
-    sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x20A, 0xF0); /* BLKLEVEL[7:0]*/
-    sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x20B, 0x00); /* BLKLEVEL[8]*/
-    sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x220, 0x0A); /* SHS1[7:0]*/
-    sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x221, 0x00); /* SHS1[15:8]*/
-    sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x222, 0x00); /* SHS1[16]*/
-    sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x214, 0x34); /* GAIN*/
+    imx385_write_register (ViPipe, 0x300A, 0xF0); /* BLKLEVEL[7:0]*/
+    imx385_write_register (ViPipe, 0x300B, 0x00); /* BLKLEVEL[8]*/
+    imx385_write_register (ViPipe, 0x3020, 0x0A); /* SHS1[7:0]*/
+    imx385_write_register (ViPipe, 0x3021, 0x00); /* SHS1[15:8]*/
+    imx385_write_register (ViPipe, 0x3022, 0x00); /* SHS1[16]*/
+    imx385_write_register (ViPipe, 0x3014, 0x34); /* GAIN*/
 #endif
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x200, 0x00); /* standby */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x202, 0x00); /* master mode start */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x249, 0x0A); /* XVSOUTSEL XHSOUTSEL */
+    imx385_write_register(ViPipe, 0x3000, 0x00); /* standby */
+    imx385_write_register(ViPipe, 0x3002, 0x00); /* master mode start */
+    imx385_write_register(ViPipe, 0x3049, 0x0A); /* XVSOUTSEL XHSOUTSEL */
 
     printf("-------Sony IMX385 Sensor 1080p30 Initial OK!-------\n");
     return;
@@ -354,166 +354,166 @@ void imx385_linear_1080p30_init(VI_PIPE ViPipe)
 void imx385_linear_1080p60_init(VI_PIPE ViPipe)
 {
     /* imx385 1080p60 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x200, 0x01); /* standby */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x205, 0x01); /* ADBIT=1(12-bit), STD12EN=0 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x207, 0x00); /* WINMODE: All-pix scan */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x209, 0x01); /* 60 fps */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x218, 0x65); /* VMAX[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x219, 0x04); /* VMAX[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x21a, 0x00); /* VMAX[16] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x21b, 0x98); /* HMAX[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x21c, 0x08); /* HMAX[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x244, 0x01); /* ODBIT=1, OPORTSEL=0x0 :CSI-2 */
+    imx385_write_register(ViPipe, 0x3000, 0x01); /* standby */
+    imx385_write_register(ViPipe, 0x3005, 0x01); /* ADBIT=1(12-bit), STD12EN=0 */
+    imx385_write_register(ViPipe, 0x3007, 0x00); /* WINMODE: All-pix scan */
+    imx385_write_register(ViPipe, 0x3009, 0x01); /* 60 fps */
+    imx385_write_register(ViPipe, 0x3018, 0x65); /* VMAX[7:0] */
+    imx385_write_register(ViPipe, 0x3019, 0x04); /* VMAX[15:8] */
+    imx385_write_register(ViPipe, 0x301a, 0x00); /* VMAX[16] */
+    imx385_write_register(ViPipe, 0x301b, 0x98); /* HMAX[7:0] */
+    imx385_write_register(ViPipe, 0x301c, 0x08); /* HMAX[15:8] */
+    imx385_write_register(ViPipe, 0x3044, 0x01); /* ODBIT=1, OPORTSEL=0x0 :CSI-2 */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x212, 0x2c);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x213, 0x01);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x254, 0x66);
+    imx385_write_register(ViPipe, 0x3012, 0x2c);
+    imx385_write_register(ViPipe, 0x3013, 0x01);
+    imx385_write_register(ViPipe, 0x3054, 0x66);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x30b, 0x07);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x310, 0x12);
+    imx385_write_register(ViPipe, 0x310b, 0x07);
+    imx385_write_register(ViPipe, 0x3110, 0x12);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x544, 0x01); /* REPETITION = 1  */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x546, 0x03); /* PHYSICAL_LANE_NUM 3h:4 lanes; 2h:2 lanes */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x553, 0x0E); /* OB_SIZE_V[5:0] */
+    imx385_write_register(ViPipe, 0x3344, 0x01); /* REPETITION = 1  */
+    imx385_write_register(ViPipe, 0x3346, 0x03); /* PHYSICAL_LANE_NUM 3h:4 lanes; 2h:2 lanes */
+    imx385_write_register(ViPipe, 0x3353, 0x0E); /* OB_SIZE_V[5:0] */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x557, 0x49); /* PIC_SIZE_V[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x558, 0x04); /* PIC_SIZE_V[11:8] */
+    imx385_write_register(ViPipe, 0x3357, 0x49); /* PIC_SIZE_V[7:0] */
+    imx385_write_register(ViPipe, 0x3358, 0x04); /* PIC_SIZE_V[11:8] */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x56B, 0x3F); /* THSEXIT: Global Timing Setting30 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x56C, 0x1F); /* TCLKPRE: Global Timing Setting */
+    imx385_write_register(ViPipe, 0x336B, 0x3F); /* THSEXIT: Global Timing Setting30 */
+    imx385_write_register(ViPipe, 0x336C, 0x1F); /* TCLKPRE: Global Timing Setting */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x57D, 0x0C); /* CSI_DT_FMT[7:0]*/ /* CSI_DT_FMT=0x0c0c 12bit CSI_DT_FMT=0x0a0a 10bit */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x57E, 0x0C);                      /* CSI_DT_FMT[15:8] */
+    imx385_write_register(ViPipe, 0x337D, 0x0C); /* CSI_DT_FMT[7:0]*/ /* CSI_DT_FMT=0x0c0c 12bit CSI_DT_FMT=0x0a0a 10bit */
+    imx385_write_register(ViPipe, 0x337E, 0x0C);                      /* CSI_DT_FMT[15:8] */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x57F, 0x03); /* 1h: 2 lane; 3h: 4lane */
+    imx385_write_register(ViPipe, 0x337F, 0x03); /* 1h: 2 lane; 3h: 4lane */
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x538, 0xD4);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x539, 0x40);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53A, 0x10);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53B, 0x00);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53C, 0xD4);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53D, 0x40);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53E, 0x10);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x53F, 0x00);
+    imx385_write_register(ViPipe, 0x3338, 0xD4);
+    imx385_write_register(ViPipe, 0x3339, 0x40);
+    imx385_write_register(ViPipe, 0x333A, 0x10);
+    imx385_write_register(ViPipe, 0x333B, 0x00);
+    imx385_write_register(ViPipe, 0x333C, 0xD4);
+    imx385_write_register(ViPipe, 0x333D, 0x40);
+    imx385_write_register(ViPipe, 0x333E, 0x10);
+    imx385_write_register(ViPipe, 0x333F, 0x00);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x582, 0x67);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x583, 0x1f);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x584, 0x3f);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x585, 0x27);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x586, 0x1f);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x587, 0x17);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x588, 0x77);
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x589, 0x27);
+    imx385_write_register(ViPipe, 0x3382, 0x67);
+    imx385_write_register(ViPipe, 0x3383, 0x1f);
+    imx385_write_register(ViPipe, 0x3384, 0x3f);
+    imx385_write_register(ViPipe, 0x3385, 0x27);
+    imx385_write_register(ViPipe, 0x3386, 0x1f);
+    imx385_write_register(ViPipe, 0x3387, 0x17);
+    imx385_write_register(ViPipe, 0x3388, 0x77);
+    imx385_write_register(ViPipe, 0x3389, 0x27);
 
     /* INCK , CSI-2 Serial output (INCK=37.125MHz) */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25C, 0x18); /* INCKSEL1 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25D, 0x00); /* INCKSEL2 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25E, 0x20); /* INCKSEL3 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x25F, 0x00); /* INCKSEL4 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x580, 0x20); /* INCK_FREQ[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x581, 0x25); /* INCK_FREQ[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x58d, 0xb4); /* INCK_FREQ2[7:0]b4 */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x58e, 0x01); /* INCK_FREQ2[10:8]01 */
+    imx385_write_register(ViPipe, 0x305C, 0x18); /* INCKSEL1 */
+    imx385_write_register(ViPipe, 0x305D, 0x00); /* INCKSEL2 */
+    imx385_write_register(ViPipe, 0x305E, 0x20); /* INCKSEL3 */
+    imx385_write_register(ViPipe, 0x305F, 0x00); /* INCKSEL4 */
+    imx385_write_register(ViPipe, 0x3380, 0x20); /* INCK_FREQ[7:0] */
+    imx385_write_register(ViPipe, 0x3381, 0x25); /* INCK_FREQ[15:8] */
+    imx385_write_register(ViPipe, 0x338d, 0xb4); /* INCK_FREQ2[7:0]b4 */
+    imx385_write_register(ViPipe, 0x338e, 0x01); /* INCK_FREQ2[10:8]01 */
 
     /*gain, black level, exposure, etc.*/
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x20A, 0xF0); /* BLKLEVEL[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x20B, 0x00); /* BLKLEVEL[8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x220, 0x0A); /* SHS1[7:0] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x221, 0x00); /* SHS1[15:8] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x222, 0x00); /* SHS1[16] */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x214, 0x34); /* GAIN */
+    imx385_write_register(ViPipe, 0x300A, 0xF0); /* BLKLEVEL[7:0] */
+    imx385_write_register(ViPipe, 0x300B, 0x00); /* BLKLEVEL[8] */
+    imx385_write_register(ViPipe, 0x3020, 0x0A); /* SHS1[7:0] */
+    imx385_write_register(ViPipe, 0x3021, 0x00); /* SHS1[15:8] */
+    imx385_write_register(ViPipe, 0x3022, 0x00); /* SHS1[16] */
+    imx385_write_register(ViPipe, 0x3014, 0x34); /* GAIN */
 
     /* registers must be changed */
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x403, 0xC8);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x407, 0x54);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x413, 0x16);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x415, 0xF6);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x41A, 0x14);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x41B, 0x51);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x429, 0xE7);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x42A, 0xF0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x42B, 0x10);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x431, 0xE7);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x432, 0xF0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x433, 0x10);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x43C, 0xE8);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x43D, 0x70);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x443, 0x08);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x444, 0xE1);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x445, 0x10);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x447, 0xE7);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x448, 0x60);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x449, 0x1E);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x44B, 0x00);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x44C, 0x41);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x450, 0x30);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x451, 0x0A);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x452, 0xFF);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x453, 0xFF);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x454, 0xFF);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x455, 0x02);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x457, 0xF0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x45A, 0xA6);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x45D, 0x14);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x45E, 0x51);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x460, 0x00);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x461, 0x61);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x466, 0x30);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x467, 0x05);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x475, 0xE7);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x481, 0xEA);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x482, 0x70);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x485, 0xFF);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x48A, 0xF0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x48D, 0xB6);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x48E, 0x40);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x490, 0x42);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x491, 0x51);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x492, 0x1E);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x494, 0xC4);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x495, 0x20);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x497, 0x50);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x498, 0x31);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x499, 0x1F);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x49B, 0xC0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x49C, 0x60);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x49E, 0x4C);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x49F, 0x71);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4A0, 0x1F);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4A2, 0xB6);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4A3, 0xC0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4A4, 0x0B);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4A9, 0x24);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4AA, 0x41);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4B0, 0x25);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4B1, 0x51);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4B7, 0x1C);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4B8, 0xC1);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4B9, 0x12);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4BE, 0x1D);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4BF, 0xD1);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C0, 0x12);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C2, 0xA8);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C3, 0xC0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C4, 0x0A);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C5, 0x1E);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C6, 0x21);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4C9, 0xB0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4CA, 0x40);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4CC, 0x26);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4CD, 0xA1);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D0, 0xB6);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D1, 0xC0);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D2, 0x0B);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D4, 0xE2);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D5, 0x40);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D8, 0x4E);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4D9, 0xA1);
-    // sensor_imx385_write_register_i2c_TO_spi (ViPipe, 0x4EC, 0xF0);
+    // imx385_write_register (ViPipe, 0x3203, 0xC8);
+    // imx385_write_register (ViPipe, 0x3207, 0x54);
+    // imx385_write_register (ViPipe, 0x3213, 0x16);
+    // imx385_write_register (ViPipe, 0x3215, 0xF6);
+    // imx385_write_register (ViPipe, 0x321A, 0x14);
+    // imx385_write_register (ViPipe, 0x321B, 0x51);
+    // imx385_write_register (ViPipe, 0x3229, 0xE7);
+    // imx385_write_register (ViPipe, 0x322A, 0xF0);
+    // imx385_write_register (ViPipe, 0x322B, 0x10);
+    // imx385_write_register (ViPipe, 0x3231, 0xE7);
+    // imx385_write_register (ViPipe, 0x3232, 0xF0);
+    // imx385_write_register (ViPipe, 0x3233, 0x10);
+    // imx385_write_register (ViPipe, 0x323C, 0xE8);
+    // imx385_write_register (ViPipe, 0x323D, 0x70);
+    // imx385_write_register (ViPipe, 0x3243, 0x08);
+    // imx385_write_register (ViPipe, 0x3244, 0xE1);
+    // imx385_write_register (ViPipe, 0x3245, 0x10);
+    // imx385_write_register (ViPipe, 0x3247, 0xE7);
+    // imx385_write_register (ViPipe, 0x3248, 0x60);
+    // imx385_write_register (ViPipe, 0x3249, 0x1E);
+    // imx385_write_register (ViPipe, 0x324B, 0x00);
+    // imx385_write_register (ViPipe, 0x324C, 0x41);
+    // imx385_write_register (ViPipe, 0x3250, 0x30);
+    // imx385_write_register (ViPipe, 0x3251, 0x0A);
+    // imx385_write_register (ViPipe, 0x3252, 0xFF);
+    // imx385_write_register (ViPipe, 0x3253, 0xFF);
+    // imx385_write_register (ViPipe, 0x3254, 0xFF);
+    // imx385_write_register (ViPipe, 0x3255, 0x02);
+    // imx385_write_register (ViPipe, 0x3257, 0xF0);
+    // imx385_write_register (ViPipe, 0x325A, 0xA6);
+    // imx385_write_register (ViPipe, 0x325D, 0x14);
+    // imx385_write_register (ViPipe, 0x325E, 0x51);
+    // imx385_write_register (ViPipe, 0x3260, 0x00);
+    // imx385_write_register (ViPipe, 0x3261, 0x61);
+    // imx385_write_register (ViPipe, 0x3266, 0x30);
+    // imx385_write_register (ViPipe, 0x3267, 0x05);
+    // imx385_write_register (ViPipe, 0x3275, 0xE7);
+    // imx385_write_register (ViPipe, 0x3281, 0xEA);
+    // imx385_write_register (ViPipe, 0x3282, 0x70);
+    // imx385_write_register (ViPipe, 0x3285, 0xFF);
+    // imx385_write_register (ViPipe, 0x328A, 0xF0);
+    // imx385_write_register (ViPipe, 0x328D, 0xB6);
+    // imx385_write_register (ViPipe, 0x328E, 0x40);
+    // imx385_write_register (ViPipe, 0x3290, 0x42);
+    // imx385_write_register (ViPipe, 0x3291, 0x51);
+    // imx385_write_register (ViPipe, 0x3292, 0x1E);
+    // imx385_write_register (ViPipe, 0x3294, 0xC4);
+    // imx385_write_register (ViPipe, 0x3295, 0x20);
+    // imx385_write_register (ViPipe, 0x3297, 0x50);
+    // imx385_write_register (ViPipe, 0x3298, 0x31);
+    // imx385_write_register (ViPipe, 0x3299, 0x1F);
+    // imx385_write_register (ViPipe, 0x329B, 0xC0);
+    // imx385_write_register (ViPipe, 0x329C, 0x60);
+    // imx385_write_register (ViPipe, 0x329E, 0x4C);
+    // imx385_write_register (ViPipe, 0x329F, 0x71);
+    // imx385_write_register (ViPipe, 0x32A0, 0x1F);
+    // imx385_write_register (ViPipe, 0x32A2, 0xB6);
+    // imx385_write_register (ViPipe, 0x32A3, 0xC0);
+    // imx385_write_register (ViPipe, 0x32A4, 0x0B);
+    // imx385_write_register (ViPipe, 0x32A9, 0x24);
+    // imx385_write_register (ViPipe, 0x32AA, 0x41);
+    // imx385_write_register (ViPipe, 0x32B0, 0x25);
+    // imx385_write_register (ViPipe, 0x32B1, 0x51);
+    // imx385_write_register (ViPipe, 0x32B7, 0x1C);
+    // imx385_write_register (ViPipe, 0x32B8, 0xC1);
+    // imx385_write_register (ViPipe, 0x32B9, 0x12);
+    // imx385_write_register (ViPipe, 0x32BE, 0x1D);
+    // imx385_write_register (ViPipe, 0x32BF, 0xD1);
+    // imx385_write_register (ViPipe, 0x32C0, 0x12);
+    // imx385_write_register (ViPipe, 0x32C2, 0xA8);
+    // imx385_write_register (ViPipe, 0x32C3, 0xC0);
+    // imx385_write_register (ViPipe, 0x32C4, 0x0A);
+    // imx385_write_register (ViPipe, 0x32C5, 0x1E);
+    // imx385_write_register (ViPipe, 0x32C6, 0x21);
+    // imx385_write_register (ViPipe, 0x32C9, 0xB0);
+    // imx385_write_register (ViPipe, 0x32CA, 0x40);
+    // imx385_write_register (ViPipe, 0x32CC, 0x26);
+    // imx385_write_register (ViPipe, 0x32CD, 0xA1);
+    // imx385_write_register (ViPipe, 0x32D0, 0xB6);
+    // imx385_write_register (ViPipe, 0x32D1, 0xC0);
+    // imx385_write_register (ViPipe, 0x32D2, 0x0B);
+    // imx385_write_register (ViPipe, 0x32D4, 0xE2);
+    // imx385_write_register (ViPipe, 0x32D5, 0x40);
+    // imx385_write_register (ViPipe, 0x32D8, 0x4E);
+    // imx385_write_register (ViPipe, 0x32D9, 0xA1);
+    // imx385_write_register (ViPipe, 0x32EC, 0xF0);
 
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x200, 0x00); /* standby */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x202, 0x00); /* master mode start */
-    sensor_imx385_write_register_i2c_TO_spi(ViPipe, 0x249, 0x0A); /* XVSOUTSEL XHSOUTSEL */
+    imx385_write_register(ViPipe, 0x3000, 0x00); /* standby */
+    imx385_write_register(ViPipe, 0x3002, 0x00); /* master mode start */
+    imx385_write_register(ViPipe, 0x3049, 0x0A); /* XVSOUTSEL XHSOUTSEL */
 
     printf("-------Sony IMX385 Sensor 1080p60 Initial OK!-------\n");
 }
