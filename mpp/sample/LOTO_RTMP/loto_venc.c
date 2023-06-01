@@ -546,3 +546,22 @@ HI_S32 LOTO_VENC_FramerateDown(HI_BOOL enable)
 
     return HI_SUCCESS;
 }
+
+HI_S32 LOTO_VENC_SetVencBitrate(HI_S32 dstBitrate) {
+    HI_S32 ret = 0;
+    VENC_CHN_ATTR_S stVencChnAttr = {0};
+
+    if ((ret = HI_MPI_VENC_GetChnAttr(0, &stVencChnAttr)) != HI_SUCCESS) {
+        LOGE("HI_MPI_VENC_GetChnAttr failed with %#x\n", ret);
+        return HI_FAILURE;
+    }
+
+    stVencChnAttr.stRcAttr.stH264Cbr.u32BitRate = dstBitrate;
+
+    if ((ret = HI_MPI_VENC_SetChnAttr(0, &stVencChnAttr)) != HI_SUCCESS) {
+        LOGE("HI_MPI_VENC_SetChnAttr failed with %#x\n", ret);
+        return HI_FAILURE;
+    }
+
+    return HI_SUCCESS;
+}
