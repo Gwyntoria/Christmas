@@ -124,7 +124,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         LOGE("connect %s fail \n", url);
     }
 
-    int cover_state = COVER_OFF;
+    int low_bitrate_mode = 0;
 
     while (1) {
         if (!rtmp_sender_isOK(prtmp)) {
@@ -146,12 +146,14 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         }
 
         // cur_time = RTMP_GetTime();          // get current time(ms)
-        cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
+        // cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
         if (gs_audio_state == TRUE) {
             /* send audio frame */
             a_ring_buf_len = ringget_audio(&a_ringinfo);
             if (a_ring_buf_len != 0) {
+                cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
+
                 if (pre_time == 0) {
                     pre_time = cur_time;
                 }
@@ -160,7 +162,6 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 
                 // LOGD("a_time_count = %llu, cur_time = %llu, pre_time = %llu\n", a_time_count, cur_time, pre_time);
                 // LOGD("audio_frame_size = %d bytes!\n", a_ringinfo.size);
-
                 if (prtmp != NULL) {
                     if (gs_audio_encoder = AUDIO_ENCODER_AAC) {
                         s32Ret = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
@@ -174,11 +175,11 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             }
         }
 
-
         /* send video frame */
         v_ring_buf_len = ringget(&v_ringinfo);
-        if (v_ring_buf_len != 0)
-        {
+        if (v_ring_buf_len != 0) {
+            cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
+
             if (pre_time == 0) {
                 pre_time = cur_time;
             }
@@ -188,7 +189,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             // LOGD("v_time_count = %llu, cur_time = %llu, pre_time = %llu\n", v_time_count, cur_time, pre_time);
             // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
 
-            if (prtmp != NULL && !cover_state) {
+            if (prtmp != NULL && !low_bitrate_mode) {
                 if (g_payload == PT_H264) {
                     s32Ret = rtmp_sender_write_avc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                 } else if (g_payload == PT_H265) {
@@ -205,7 +206,8 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             usleep(100);
         }
 
-        LOTO_COVER_ChangeCover(&cover_state);
+        LOTO_COVER_ChangeCover();
+        // LOTO_COVER_ChangeCover(&low_bitrate_mode);
         
     }
 }
@@ -333,8 +335,8 @@ void parse_config_file(const char *config_file_path){
 
 #define VER_MAJOR 1
 #define VER_MINOR 4
-#define VER_BUILD 5
-#define VER_EXTEN 5
+#define VER_BUILD 6
+#define VER_EXTEN 6
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -396,6 +398,10 @@ int main(int argc, char *argv[]) {
 
     usleep(1000 * 10);
 #endif
+
+    LOTO_COVER_InitCoverRegion();
+
+    usleep(1000 * 10);
 
     /* Initialize rtmp_sender */
     RtmpThrArg *rtmp_attr = (RtmpThrArg *)malloc(sizeof(RtmpThrArg));
