@@ -29,12 +29,14 @@ extern "C" {
 
 #include "opus.h"
 #include "opus_types.h"
-
-#include "loto_comm.h"
 #include "hi_type.h"
-#include "audio_aac_adp.h"
-#include "loto_opus.h"
+#include "hi_comm_aenc.h"
+#include "mpi_audio.h"
+
 #include "common.h"
+#include "loto_comm.h"
+#include "loto_opus.h"
+#include "audio_aac_adp.h"
 #include "ringfifo.h"
 
 #define AUDIO_ADPCM_TYPE ADPCM_TYPE_DVI4 /* ADPCM_TYPE_IMA, ADPCM_TYPE_DVI4*/
@@ -303,6 +305,34 @@ void *LOTO_AENC_CLASSIC(void *p)
     // LOTO_COMM_SYS_Exit();
 
     return NULL;
+}
+
+HI_S32 LOTO_AUDIO_SetMute(HI_BOOL mute_mode) {
+    HI_S32 ret = 0;
+    AENC_CHN aenc_chn = 0;
+    HI_BOOL enalbe;
+
+    ret = HI_MPI_AENC_GetMute(aenc_chn, &enalbe);
+    if (ret != HI_SUCCESS) {
+        LOGE("HI_MPI_AENC_GetMute failed with %#x\n", ret);
+        return HI_FAILURE;
+    }
+
+    if (mute_mode != enalbe) {
+        ret = HI_MPI_AENC_SetMute(aenc_chn, mute_mode);
+        if (ret != HI_SUCCESS) {
+            LOGE("HI_MPI_AENC_SetMute failed with %#x\n", ret);
+            return HI_FAILURE;
+        }
+    }
+
+    // if (mute_mode == HI_FALSE) {
+    //     LOGD("Unmute!\n");
+    // } else if (mute_mode == HI_TRUE) {
+    //     LOGD("Mute!\n");
+    // }
+
+    return HI_SUCCESS;
 }
 
 #ifdef __cplusplus

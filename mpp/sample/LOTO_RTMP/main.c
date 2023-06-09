@@ -168,6 +168,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
                     } else if (gs_audio_encoder = AUDIO_ENCODER_OPUS) {
                         s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
                     }
+                    // PrintDataStreamHex(a_ringinfo.buffer, a_ringinfo.size);
                     if (s32Ret == -1) {
                         LOGE("Audio: Request reconnection.\n");
                     }
@@ -195,7 +196,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
                 } else if (g_payload == PT_H265) {
                     s32Ret = rtmp_sender_write_hevc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                 }
-
+                // PrintDataStreamHex(a_ringinfo.buffer, a_ringinfo.size);
                 if (-1 == s32Ret) {
                     LOGE("video: Request reconnection.\n");
                 }
@@ -336,7 +337,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 6
-#define VER_EXTEN 6
+#define VER_EXTEN 7
 
 int main(int argc, char *argv[]) {
     int s32Ret;

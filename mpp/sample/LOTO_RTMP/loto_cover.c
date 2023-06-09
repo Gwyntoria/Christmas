@@ -15,6 +15,7 @@
 #include "common.h"
 #include "loto_controller.h"
 #include "loto_venc.h"
+#include "loto_aenc.h"
 
 static RGN_HANDLE gs_rgnHandle = 5;
 
@@ -79,6 +80,11 @@ HI_S32 LOTO_COVER_AddCover() {
         return HI_FAILURE;
     }
 
+    ret = LOTO_AUDIO_SetMute(HI_TRUE);
+    if (ret != HI_SUCCESS) {
+        LOGE("LOTO_AUDIO_SetMute failed\n");
+    }
+
     LOGI("cover_add!\n");
 
     return HI_SUCCESS;
@@ -97,6 +103,11 @@ HI_S32 LOTO_COVER_RemoveCover() {
     if (LOTO_VENC_SetVencBitrate(3072) != HI_SUCCESS) {
         LOGE("LOTO_VENC_SetVencBitrate failed!\n");
         return HI_FAILURE;
+    }
+
+    ret = LOTO_AUDIO_SetMute(HI_FALSE);
+    if (ret != HI_SUCCESS) {
+        LOGE("LOTO_AUDIO_SetMute failed\n");
     }
 
     LOGI("cover_remove!\n");
