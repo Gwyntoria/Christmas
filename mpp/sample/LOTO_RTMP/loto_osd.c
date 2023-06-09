@@ -1293,15 +1293,15 @@ HI_S32 LOTO_OSD_CreateVideoOsdThread(HI_VOID)
     OsdRegionInfo deviceNumRgnInfo = {
         .width = 2 * 8 * 3,
         .height = 2 * 11,
-        .pointX = 16 * 6,
-        .pointY = 16 * 15,
+        .pointX = 16 * 2,
+        .pointY = 16 * 118,
     };
 
     OsdRegionInfo timestampRgnInfo = {
         .width = 2 * 8 * 19,
         .height = 2 * 11,
-        .pointX = 16 * 10,
-        .pointY = 16 * 15,
+        .pointX = 16 * 6,
+        .pointY = 16 * 118,
     };
 
     /* Create DeviceNum Region */
