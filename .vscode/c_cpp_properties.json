@@ -4,14 +4,19 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "mpp/include/**"
+                "mpp/include/**",
+                "include-linux",
+                "include-linux/x86_64-linux-gnu"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "configurationProvider": "ms-vscode.makefile-tools",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "D:/Development/mingw64/bin/gcc.exe"
         }
     ],
     "version": 4
