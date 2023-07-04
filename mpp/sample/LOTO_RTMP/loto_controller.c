@@ -203,7 +203,7 @@ void *HeartbeatThread(void *arg) {
     pthread_exit(NULL);
 }
 
-void *server_thread(void *arg) {
+void *socket_server_thread(void *arg) {
     int server_socket, client_socket;
     socklen_t address_length;
     struct sockaddr_in server_address;

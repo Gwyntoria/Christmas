@@ -187,7 +187,9 @@ int get_mac(char *mac);
  *        and set the local time as the network time
  * 
  */
-int time_sync();
+int GetNetTime();
+
+void *sync_time_thread(void *arg);
 
 /**
  * @brief Output the hexadecimal data stream, along with the corresponding string

@@ -465,7 +465,7 @@ char *decode(char *message, const char *codeckey)
 #define MAX_RETRIES 5
 #define TIMEOUT_SEC 5
 
-int time_sync() {
+int GetNetTime() {
     char *ntp_server = "ntp1.aliyun.com";
 
     int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -527,7 +527,7 @@ int time_sync() {
 
         if (ret == -1) {
             LOGE("select error");
-            exit(1);
+            return -1;
         } else if (ret == 0) {
             LOGE("timeout, retry.....\n");
             retries++;
@@ -572,6 +572,19 @@ int time_sync() {
     LOGI("Time from %s: %s", ntp_server, ctime(&unix_time));
 
     return 0;
+}
+
+void *sync_time_thread(void *arg) {
+    while (1) {
+        sleep(60);
+
+        if (GetNetTime() != 0) {
+            usleep(1000 * 10);
+            continue;
+        }
+    }
+
+    return NULL;
 }
 
 #define BP_OFFSET 9

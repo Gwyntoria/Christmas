@@ -1,7 +1,7 @@
 VER_MAJOR:=1
-VER_MINOR:=4
-VER_BUILD:=6
-VER_EXTEN:=8
+VER_MINOR:=5
+VER_BUILD:=3
+VER_EXTEN:=2	# SDK version. 1: spc010; 2: spc020
 BIN_VERSION:=$(VER_MAJOR).$(VER_MINOR).$(VER_BUILD).$(VER_EXTEN)
 
 include ../Makefile.param

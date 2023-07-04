@@ -100,10 +100,12 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
 
     HI_S32 s32Ret;
 
-    uint32_t start_time = 0;
+    // uint32_t start_time = 0;
     uint64_t a_time_count = 0;
     uint64_t v_time_count = 0;
-    uint64_t pre_time = 0;
+    uint64_t a_time_count_pre = 0;
+    uint64_t v_time_count_pre = 0;
+    uint64_t start_time = 0;
     uint64_t cur_time = 0;
 
     struct ringbuf v_ringinfo;
@@ -154,19 +156,25 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             if (a_ring_buf_len != 0) {
                 cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-                if (pre_time == 0) {
-                    pre_time = cur_time;
+                if (start_time == 0) {
+                    start_time = cur_time;
                 }
 
-                a_time_count = cur_time - pre_time;
+                a_time_count = cur_time - start_time;
 
-                // LOGD("a_time_count = %llu, cur_time = %llu, pre_time = %llu\n", a_time_count, cur_time, pre_time);
+                if (a_time_count < a_time_count_pre) {
+                    a_time_count += 10;
+                }
+                
+                a_time_count_pre = a_time_count;
+
+                // LOGD("a_time_count = %llu, cur_time = %llu, start_time = %llu\n", a_time_count, cur_time, start_time);
                 // LOGD("audio_frame_size = %d bytes!\n", a_ringinfo.size);
                 if (prtmp != NULL) {
                     if (gs_audio_encoder = AUDIO_ENCODER_AAC) {
-                        s32Ret = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
+                        s32Ret = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     } else if (gs_audio_encoder = AUDIO_ENCODER_OPUS) {
-                        s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, start_time);
+                        s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     }
                     if (s32Ret == -1) {
                         LOGE("Audio: Request reconnection.\n");
@@ -180,13 +188,19 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         if (v_ring_buf_len != 0) {
             cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-            if (pre_time == 0) {
-                pre_time = cur_time;
+            if (start_time == 0) {
+                start_time = cur_time;
             }
 
-            v_time_count = cur_time - pre_time;
+            v_time_count = cur_time - start_time;
 
-            // LOGD("v_time_count = %llu, cur_time = %llu, pre_time = %llu\n", v_time_count, cur_time, pre_time);
+            if (v_time_count < v_time_count_pre) {
+                    v_time_count += 10;
+                }
+                
+            v_time_count_pre = v_time_count;
+
+            // LOGD("v_time_count = %llu, cur_time = %llu, start_time = %llu\n", v_time_count, cur_time, start_time);
             // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
 
             if (prtmp != NULL && !low_bitrate_mode) {
@@ -334,9 +348,9 @@ void parse_config_file(const char *config_file_path){
 }
 
 #define VER_MAJOR 1
-#define VER_MINOR 4
-#define VER_BUILD 6
-#define VER_EXTEN 8
+#define VER_MINOR 5
+#define VER_BUILD 3
+#define VER_EXTEN 2     // SDK version. 1: spc010; 2: spc020
 
 int main(int argc, char *argv[]) {
     int s32Ret;
@@ -350,7 +364,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* sync local time from net_time */
-    s32Ret = time_sync();
+    s32Ret = GetNetTime();
     if (s32Ret != HI_SUCCESS) {
         LOGE("Time sync failed\n");
         exit(1);
@@ -361,7 +375,7 @@ int main(int argc, char *argv[]) {
 
     // /* socket: server */
     // pthread_t socket_server_pid;
-    // pthread_create(&socket_server_pid, NULL, server_thread, NULL);
+    // pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL);
 
     /* get global variables from config file */
     parse_config_file(config_file_path);
@@ -416,7 +430,10 @@ int main(int argc, char *argv[]) {
 
     /* socket: server */
     pthread_t socket_server_pid;
-    pthread_create(&socket_server_pid, NULL, server_thread, NULL);
+    pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL);
+
+    pthread_t sync_time_pid;
+    pthread_create(&sync_time_pid, NULL, sync_time_thread, NULL);
 
     pthread_join(rtmp_pid, 0);
 

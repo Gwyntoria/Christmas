@@ -23,3 +23,5 @@ echo "=== Update loto_rtmp ==="
 tftp -g -r loto_rtmp $1
 
 chmod 777 loto_rtmp
+
+echo "=== Finish updating loto_rtmp ==="

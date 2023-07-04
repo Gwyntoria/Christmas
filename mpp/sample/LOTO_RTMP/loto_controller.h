@@ -78,7 +78,7 @@ typedef struct HeartbeatPacket {
 extern "C" {
 #endif
 
-void *server_thread(void *arg);
+void *socket_server_thread(void *arg);
 
 #ifdef __cplusplus
 }
