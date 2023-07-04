@@ -35,7 +35,8 @@ extern "C" {
 #define G726_BPS MEDIA_G726_40K         /* MEDIA_G726_16K, MEDIA_G726_24K ... */
 
 static AAC_TYPE_E     gs_enAacType = AAC_TYPE_AACLC;
-static AAC_BPS_E     gs_enAacBps  = AAC_BPS_128K;
+// static AAC_BPS_E     gs_enAacBps  = AAC_BPS_128K;
+static AAC_BPS_E     gs_enAacBps  = AAC_BPS_64K;
 static AAC_TRANS_TYPE_E gs_enAacTransType = AAC_TRANS_TYPE_ADTS;
 
 typedef struct tagSAMPLE_AENC_S

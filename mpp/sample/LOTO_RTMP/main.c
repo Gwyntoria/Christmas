@@ -336,7 +336,7 @@ void parse_config_file(const char *config_file_path){
 #define VER_MAJOR 1
 #define VER_MINOR 4
 #define VER_BUILD 6
-#define VER_EXTEN 7
+#define VER_EXTEN 8
 
 int main(int argc, char *argv[]) {
     int s32Ret;
