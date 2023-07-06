@@ -64,6 +64,7 @@ OSDRV_PATH:=$(KERNEL_ROOT)/../../..
 # Define cross compiler
 
 export CC:=$(CROSS)gcc
+export CXX:=$(CROSS)g++
 export AR:=$(CROSS)ar
 
 # export SDK_VER = SPC010
