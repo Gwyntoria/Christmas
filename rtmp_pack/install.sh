@@ -44,9 +44,9 @@ tar xzf $KIT_DIR/lib/opus_lib/libopus.tgz -C $KIT_DIR/lib/opus_lib/
 mv $KIT_DIR/lib/opus_lib/lib/*.so* /usr/lib/
 rm $KIT_DIR/lib/opus_lib/ -rf
 
-echo "===== 5. /var ====="
-tar xzf $KIT_DIR/spool.tgz -C /var
-rm $KIT_DIR/spool.tgz
+# echo "===== 5. /var ====="
+# tar xzf $KIT_DIR/spool.tgz -C /var
+# rm $KIT_DIR/spool.tgz
 
 echo "===== 6. /etc/init.d ====="
 mv $KIT_DIR/etc/init.d/* /etc/init.d/
