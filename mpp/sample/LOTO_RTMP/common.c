@@ -465,7 +465,7 @@ char *decode(char *message, const char *codeckey)
 #define MAX_RETRIES 5
 #define TIMEOUT_SEC 5
 
-int GetNetTime() {
+int get_net_time() {
     char *ntp_server = "ntp1.aliyun.com";
 
     int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -574,11 +574,11 @@ int GetNetTime() {
     return 0;
 }
 
-void *sync_time_thread(void *arg) {
+void *sync_time(void *arg) {
     while (1) {
         sleep(60);
 
-        if (GetNetTime() != 0) {
+        if (get_net_time() != 0) {
             usleep(1000 * 10);
             continue;
         }
@@ -681,4 +681,11 @@ uint64_t ExtractFromBigEndian(uint8_t* array, size_t numBytes) {
     }
 
     return result;
+}
+
+void RebootSystem() {
+    LOGI("Rebooting the system...\n");
+    sleep(1); // 等待一段时间确保打印信息输出
+    // 调用系统命令进行重启
+    system("reboot");
 }

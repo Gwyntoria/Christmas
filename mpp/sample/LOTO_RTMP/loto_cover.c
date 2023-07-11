@@ -107,6 +107,10 @@ HI_S32 LOTO_COVER_RemoveCover() {
 static int gs_cover_switch = 0;
 static int gs_cover_state = COVER_OFF;
 
+int LOTO_COVER_GetCoverState() {
+    return gs_cover_state;
+}
+
 void LOTO_COVER_Switch(int state) {
     if (gs_cover_state != state) {
         gs_cover_switch = 1;
