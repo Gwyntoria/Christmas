@@ -34,6 +34,7 @@
 #include "WaInit.h"
 #include "flv.h"
 #include "loto_cover.h"
+#include "http_server.h"
 
 #define AUDIO_ENCODER_AAC       0xAC
 #define AUDIO_ENCODER_OPUS      0xAF
@@ -66,6 +67,9 @@ static int gs_audio_state = -1;
 static int gs_audio_encoder = -1;
 
 static int gs_server_option = SERVER_OFFI;
+
+time_t program_start_time;
+DeviceInfo device_info = {0};
 
 int get_server_option() {
     return gs_server_option;
@@ -256,6 +260,8 @@ void parse_config_file(const char *config_file_path){
         // }
 
         strcpy(server_url, GetIniKeyString("push", "server_url", config_file_path));
+        strcpy(device_info.server_url, server_url);
+
         LOGI("server_url = %s\n", server_url);
 
         loto_room_info *pRoomInfo = loto_room_init(server_url, server_token);
@@ -266,6 +272,7 @@ void parse_config_file(const char *config_file_path){
         memset(gs_push_url_buf, 0, sizeof(gs_push_url_buf));
         strcpy(gs_push_url_buf, pRoomInfo->szPushURL);
     }
+    strcpy(device_info.push_url, gs_push_url_buf);
     LOGI("push_url = %s\n", gs_push_url_buf);
 
     /* resolution */
@@ -283,6 +290,7 @@ void parse_config_file(const char *config_file_path){
 
     /* device num */
     strncpy(g_device_num, GetIniKeyString("device", "device_num", config_file_path), 3);
+    strcpy(device_info.device_num, g_device_num);
     LOGI("device_num = %s\n", g_device_num);
 
     const char *video_encoder = GetIniKeyString("push", "video_encoder", config_file_path);
@@ -324,6 +332,7 @@ void parse_config_file(const char *config_file_path){
 
     /* audio_state */
     char *audio_state = GetIniKeyString("push", "audio_state", config_file_path);
+    strcpy(device_info.audio_state, audio_state);
     if (strncmp("off", audio_state, 3) == 0) {
         gs_audio_state = FALSE;
     } else if (strncmp("on", audio_state, 2) == 0) {
@@ -347,9 +356,14 @@ void parse_config_file(const char *config_file_path){
     }
 }
 
+void fill_device_net_info(DeviceInfo *device_info) {
+    GetLocalIPAddress(device_info->ip_addr);
+    GetLocalMACAddress(device_info->mac_addr);
+}
+
 #define VER_MAJOR 1
-#define VER_MINOR 5
-#define VER_BUILD 3
+#define VER_MINOR 7
+#define VER_BUILD 13
 #define VER_EXTEN 2     // SDK version. 1: spc010; 2: spc020
 
 int main(int argc, char *argv[]) {
@@ -364,13 +378,18 @@ int main(int argc, char *argv[]) {
     }
 
     /* sync local time from net_time */
-    s32Ret = GetNetTime();
+    s32Ret = get_net_time();
     if (s32Ret != HI_SUCCESS) {
         LOGE("Time sync failed\n");
         exit(1);
     }
 
+    /* Gets the program startup time */
+    program_start_time = time(NULL);
+    strcpy(device_info.start_time,  GetTimestampString());
+
     sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
+    strcpy(device_info.version, BIN_VERSION);
     LOGI("RTMP App Version: %s\n", BIN_VERSION);
 
     // /* socket: server */
@@ -379,6 +398,7 @@ int main(int argc, char *argv[]) {
 
     /* get global variables from config file */
     parse_config_file(config_file_path);
+    fill_device_net_info(&device_info);
 
     /* Initialize rtmp_log file */
     FILE *rtmp_log = NULL;
@@ -434,6 +454,8 @@ int main(int argc, char *argv[]) {
 
     pthread_t sync_time_pid;
     pthread_create(&sync_time_pid, NULL, sync_time_thread, NULL);
+
+    http_server();
 
     pthread_join(rtmp_pid, 0);
 
