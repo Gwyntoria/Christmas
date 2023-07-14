@@ -18,26 +18,25 @@
 #include "loto_controller.h"
 #include "loto_cover.h"
 
-#define MAX_PENDING 5
-#define MAX_RESPONSE_SIZE 5120
+#define MAX_PENDING           5
+#define MAX_RESPONSE_SIZE     5120
 #define MAX_HTML_CONTENT_SIZE 4096
 
-#define HTML_FILE_PATH "html/index.html"
+#define HTML_FILE_PATH   "html/index.html"
 #define DEVICE_FILE_PATH "html/device.html"
 
 #define ISspace(x) isspace((int)(x))
 
 #define SERVER_STRING "Server: loto_hisidv300/1.0.0\r\n"
 
-#define RESPONSE_TEMPLATE                                                      \
-    "HTTP/1.1 200 OK\r\nContent-Type: text/%s\r\nContent-Length: %d\r\n\r\n%s"
+#define RESPONSE_TEMPLATE "HTTP/1.1 200 OK\r\nContent-Type: text/%s\r\nContent-Length: %d\r\n\r\n%s"
 
 /**
  * @brief 打印出错误信息并结束程序
  *
  * @param sc 错误信息
  */
-void error_die(const char *sc) {
+void error_die(const char* sc) {
     perror(sc);
     exit(1);
 }
@@ -51,10 +50,10 @@ void error_die(const char *sc) {
  * @param size 读取最大值
  * @return int 读取到的字符个数,不包括'\0'
  */
-int get_request_line(int sock, char *buf, int size) {
-    int i = 0;
+int get_request_line(int sock, char* buf, int size) {
+    int  i = 0;
     char c = '\0';
-    int n;
+    int  n;
 
     // 读取到的字符个数大于size或者读到\n结束循环
     while ((i < size - 1) && (c != '\n')) {
@@ -162,7 +161,7 @@ void not_found(int client) {
  * @param client client_socket_fd
  * @param resource 需要传输的文件指针
  */
-void cat(int client, FILE *resource) {
+void cat(int client, FILE* resource) {
     char buf[1024];
 
     fgets(buf, sizeof(buf), resource);
@@ -192,8 +191,7 @@ void bad_request(int client) {
     send(client, buf, sizeof(buf), 0);
 }
 
-void parse_request_line(char *request_line, int request_line_len, char *method,
-                        char *url, char *version) {
+void parse_request_line(char* request_line, int request_line_len, char* method, char* url, char* version) {
     size_t i = 0, j = 0;
 
     // 获取 method
@@ -210,8 +208,7 @@ void parse_request_line(char *request_line, int request_line_len, char *method,
 
     // 获取 url
     i = 0;
-    while (!ISspace(request_line[j]) && (i < request_line_len) &&
-           (j < request_line_len)) {
+    while (!ISspace(request_line[j]) && (i < request_line_len) && (j < request_line_len)) {
         url[i] = request_line[j];
         i++;
         j++;
@@ -224,8 +221,7 @@ void parse_request_line(char *request_line, int request_line_len, char *method,
 
     // 获取 version
     i = 0;
-    while (!ISspace(request_line[j]) && (i < request_line_len) &&
-           (j < request_line_len)) {
+    while (!ISspace(request_line[j]) && (i < request_line_len) && (j < request_line_len)) {
         version[i] = request_line[j];
         i++;
         j++;
@@ -238,11 +234,11 @@ void parse_request_line(char *request_line, int request_line_len, char *method,
     // // strcpy(version, strtok(NULL, " "));
 }
 
-void parse_path_with_params(const char *url, char *path, char *parameters) {
-    char *params = strchr(url, '?'); // 查找路径中的问号位置
+void parse_path_with_params(const char* url, char* path, char* parameters) {
+    char* params = strchr(url, '?'); // 查找路径中的问号位置
 
     if (params != NULL) {
-        char *path_only = strndup(url, params - url); // 提取不带参数的路径部分
+        char* path_only = strndup(url, params - url); // 提取不带参数的路径部分
         strcpy(path, path_only);
         free(path_only);
         printf("Path: %s\n", path);
@@ -267,7 +263,7 @@ void parse_path_with_params(const char *url, char *path, char *parameters) {
  * @param client client_socket_fd
  * @param content_type 内容类型：html or plain
  */
-void send_header(int client, const char *content_type, int content_length) {
+void send_header(int client, const char* content_type, int content_length) {
     char header[1024];
     sprintf(header,
             "HTTP/1.1 200 OK\r\n"
@@ -280,8 +276,8 @@ void send_header(int client, const char *content_type, int content_length) {
 }
 
 // 函数用于读取HTML文件的内容
-char *read_html_file(const char *file_path, int *content_length) {
-    FILE *file = fopen(file_path, "r");
+char* read_html_file(const char* file_path, int* content_length) {
+    FILE* file = fopen(file_path, "r");
     if (file == NULL) {
         perror("fopen");
         return NULL;
@@ -293,7 +289,7 @@ char *read_html_file(const char *file_path, int *content_length) {
     rewind(file);
 
     // 分配足够的内存来存储文件内容
-    char *content = (char *)malloc(file_size + 1);
+    char* content = (char*)malloc(file_size + 1);
     if (content == NULL) {
         perror("malloc");
         fclose(file);
@@ -318,8 +314,8 @@ char *read_html_file(const char *file_path, int *content_length) {
     return content;
 }
 
-void write_html_file(const char *content, const char *file_path) {
-    FILE *file = fopen(file_path, "w");
+void write_html_file(const char* content, const char* file_path) {
+    FILE* file = fopen(file_path, "w");
     if (file == NULL) {
         file = fopen(file_path, "a");
         if (file == NULL) {
@@ -339,17 +335,16 @@ void write_html_file(const char *content, const char *file_path) {
     fclose(file);
 }
 
-int send_html_response(int client_socket, const char *file_path) {
-    int content_length;
-    char *html_content = read_html_file(file_path, &content_length);
+int send_html_response(int client_socket, const char* file_path) {
+    int   content_length;
+    char* html_content = read_html_file(file_path, &content_length);
     if (html_content == NULL) {
         printf("Failed to read HTML file.\n");
         return -1;
     }
 
     char response[MAX_RESPONSE_SIZE];
-    snprintf(response, sizeof(response), RESPONSE_TEMPLATE, "html",
-             content_length, html_content);
+    snprintf(response, sizeof(response), RESPONSE_TEMPLATE, "html", content_length, html_content);
 
     // printf("content_length: %d\n", content_length);
     // printf("response: %s\n", response);
@@ -364,8 +359,8 @@ int send_html_response(int client_socket, const char *file_path) {
     return 0;
 }
 
-int send_plain_response(int client_socket, const char *content) {
-    int content_length = strlen(content);
+int send_plain_response(int client_socket, const char* content) {
+    int  content_length = strlen(content);
     char response[1024];
 
     sprintf(response, RESPONSE_TEMPLATE, "plain", content_length, content);
@@ -377,10 +372,10 @@ int send_plain_response(int client_socket, const char *content) {
     return 0;
 }
 
-extern time_t program_start_time;
+extern time_t     program_start_time;
 extern DeviceInfo device_info;
 
-void get_device_info(char *device_info_content) {
+void get_device_info(char* device_info_content) {
     device_info.running_time = time(NULL) - program_start_time;
     device_info.stream_state = LOTO_COVER_GetCoverState();
 
@@ -438,10 +433,10 @@ void get_device_info(char *device_info_content) {
     // write_html_file(device_info_html, DEVICE_FILE_PATH);
 }
 
-void *accept_request(void *pclient) {
-    int numchars;
+void* accept_request(void* pclient) {
+    int  numchars;
     char buf[1024];
-    int client = *(int *)pclient;
+    int  client = *(int*)pclient;
 
     char method[256];
     char url[256];
@@ -482,7 +477,7 @@ void *accept_request(void *pclient) {
             send_plain_response(client, "remove cover\r\n");
         }
     } else if (strcmp(path, "/") == 0) {
-        char device_info_content[MAX_HTML_CONTENT_SIZE];
+        char device_info_content[4096];
         get_device_info(device_info_content);
         if (send_plain_response(client, device_info_content) != 0)
             printf("send error\n");
@@ -496,8 +491,8 @@ void *accept_request(void *pclient) {
 }
 
 // socket initial: socket() ---> bind() ---> listen()
-int startup(uint16_t *port) {
-    int httpd = 0;
+int startup(uint16_t* port) {
+    int                httpd = 0;
     struct sockaddr_in name;
 
     httpd = socket(AF_INET, SOCK_STREAM, 0);
@@ -505,11 +500,11 @@ int startup(uint16_t *port) {
         error_die("socket");
 
     memset(&name, 0, sizeof(name));
-    name.sin_family = AF_INET;
+    name.sin_family      = AF_INET;
     name.sin_addr.s_addr = htonl(INADDR_ANY);
-    name.sin_port = htons(*port);
+    name.sin_port        = htons(*port);
 
-    if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0) {
+    if (bind(httpd, (struct sockaddr*)&name, sizeof(name)) < 0) {
         close(httpd);
         error_die("bind");
     }
@@ -518,7 +513,7 @@ int startup(uint16_t *port) {
                        If it is 0, the port needs to be dynamically allocated */
     {
         socklen_t namelen = sizeof(name);
-        if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1)
+        if (getsockname(httpd, (struct sockaddr*)&name, &namelen) == -1)
             error_die("getsockname");
         *port = ntohs(name.sin_port);
     }
@@ -531,19 +526,18 @@ int startup(uint16_t *port) {
 }
 
 int http_server(void) {
-    int server_sock = -1;
-    uint16_t port = 80; // 监听端口号
-    int client_sock = -1;
+    int                server_sock = -1;
+    uint16_t           port        = 80; // 监听端口号
+    int                client_sock = -1;
     struct sockaddr_in client_name;
-    socklen_t client_name_len = sizeof(client_name);
-    pthread_t newthread;
+    socklen_t          client_name_len = sizeof(client_name);
+    pthread_t          newthread;
 
     server_sock = startup(&port); // 服务器端监听套接字设置
     printf("httpd running on port %d\n", port);
 
     while (1) {
-        client_sock = accept(server_sock, (struct sockaddr *)&client_name,
-                             &client_name_len);
+        client_sock = accept(server_sock, (struct sockaddr*)&client_name, &client_name_len);
         if (client_sock == -1) {
             error_die("accept");
         } else {
@@ -551,8 +545,7 @@ int http_server(void) {
         }
 
         /* accept_request(client_sock); */
-        if (pthread_create(&newthread, NULL, accept_request,
-                           (void *)&client_sock) != 0)
+        if (pthread_create(&newthread, NULL, accept_request, (void*)&client_sock) != 0)
             perror("accept_request");
     }
 
