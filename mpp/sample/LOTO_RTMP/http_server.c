@@ -228,33 +228,110 @@ void parse_request_line(char* request_line, int request_line_len, char* method, 
     }
     version[i] = '\0';
     printf("Version: %s\n", version);
-
-    // // strcpy(method, strtok(request_line, " "));
-    // // strcpy(path, strtok(NULL, " "));
-    // // strcpy(version, strtok(NULL, " "));
 }
 
-void parse_path_with_params(const char* url, char* path, char* parameters) {
-    char* params = strchr(url, '?'); // 查找路径中的问号位置
+void parse_path_with_params(const char* url, char* path, char* query_string) {
+    char* delimiter = strchr(url, '?'); // 查找路径中的问号位置
 
-    if (params != NULL) {
-        char* path_only = strndup(url, params - url); // 提取不带参数的路径部分
+    if (delimiter != NULL) {
+        char* path_only = strndup(url, delimiter - url); // 提取不带参数的路径部分
         strcpy(path, path_only);
         free(path_only);
         printf("Path: %s\n", path);
 
-        strcpy(parameters, params + 1);
-        printf("Param: %s\n", parameters);
-
-        // char* param = strtok(params + 1, "&");  // 解析参数
-        // while (param != NULL) {
-        //     printf("Param: %s\n", param);
-        //     param = strtok(NULL, "&");
-        // }
+        strcpy(query_string, delimiter + 1);
+        printf("Query string: %s\n", query_string);
     } else {
         strcpy(path, url);
         printf("Path: %s\n", url);
     }
+}
+
+typedef struct KeyValuePair {
+    char* key;
+    char* value;
+} KeyValuePair;
+
+KeyValuePair* parse_query_string(const char* query_string, int* num_pairs) {
+    const char* delimiter = "&";
+    const char* equals    = "=";
+    int         max_pairs = 0; // Maximum number of key-value pairs, adjust as needed
+
+    // Calculate the number of substrings after splitting
+    int size = strlen(query_string);
+    for (int i = 0; i < size; i++) {
+        //
+        if ((query_string[i] != *delimiter) && (query_string[i + 1] == *delimiter || query_string[i + 1] == '\0'))
+            max_pairs++;
+    }
+    max_pairs++;
+
+    KeyValuePair* pairs             = malloc(max_pairs * sizeof(KeyValuePair));
+    int           pair_count        = 0;
+    char*         query_string_copy = strdup(query_string);
+    char*         query_token       = query_string_copy;
+
+    while (query_token != NULL && pair_count < max_pairs) {
+        char* pair_end = strchr(query_token, *delimiter);
+
+        if (pair_end != NULL) {
+            *pair_end = '\0';
+        }
+
+        char* key_end = strchr(query_token, *equals);
+
+        if (key_end != NULL) {
+            *key_end          = '\0';
+            char* value_start = key_end + 1;
+            char* value_end   = strchr(value_start, '\0');
+
+            if (value_start != value_end) {
+                pairs[pair_count].key   = strdup(query_token);
+                // pairs[pair_count].value = malloc((value_end - value_start + 1) * sizeof(char)); // 包括字符串结束符'\0'
+                // strncpy(pairs[pair_count].value, value_start, value_end - value_start);
+                // pairs[pair_count].value[value_end - value_start] = '\0';
+                pairs[pair_count].value = strdup(value_start);
+                pair_count++;
+            }
+        }
+
+        query_token = (pair_end != NULL) ? (pair_end + 1) : NULL;
+    }
+
+    free(query_string_copy);
+
+    *num_pairs = pair_count;
+    return pairs;
+}
+
+void deal_query_string(const char* query_string, char* content) {
+    int           num_pairs;
+    KeyValuePair* pairs = parse_query_string(query_string, &num_pairs);
+
+    printf("Number of pairs: %d\n", num_pairs);
+
+    for (int i = 0; i < num_pairs; i++) {
+        if (pairs[i].key != NULL && pairs[i].value != NULL) {
+            printf("Key: %s, Value: %s\n", pairs[i].key, pairs[i].value);
+
+            if (strcasecmp(pairs[i].key, "cover") == 0) {
+                if (strcmp(pairs[i].value, "1") == 0) {
+                    LOTO_COVER_Switch(COVER_ON);
+                } else if (strcmp(pairs[i].value, "0") == 0) {
+                    LOTO_COVER_Switch(COVER_OFF);
+                } else {
+                    // printf("value is wrong\n");
+                }
+            } else {
+                // printf("key is wrong\n");
+            }
+        }
+
+        free(pairs[i].key);
+        free(pairs[i].value);
+    }
+
+    free(pairs);
 }
 
 /**
@@ -391,11 +468,10 @@ void get_device_info(char* device_info_content) {
     strcat(device_info_content, temp);
     memset(temp, 0, sizeof(temp));
 
-    if (device_info.stream_state == 0) {
+    if (device_info.stream_state == COVER_OFF) {
         sprintf(temp, "stream_state:    on\r\n");
         strcat(device_info_content, temp);
         memset(temp, 0, sizeof(temp));
-
     } else {
         sprintf(temp, "stream_state:    off\r\n");
         strcat(device_info_content, temp);
@@ -442,7 +518,7 @@ void* accept_request(void* pclient) {
     char url[256];
     char version[256];
     char path[256];
-    char params[256];
+    char query_string[256];
 
     // 获取一行HTTP请求报文
     numchars = get_request_line(client, buf, sizeof(buf));
@@ -457,7 +533,7 @@ void* accept_request(void* pclient) {
 
     // 如果是 get 方法，path 可能带 ？参数
     if (strcasecmp(method, "GET") == 0) {
-        parse_path_with_params(url, path, params);
+        parse_path_with_params(url, path, query_string);
     }
     // 以上将 request_line 解析完毕
 
@@ -465,20 +541,20 @@ void* accept_request(void* pclient) {
         char content[32] = "Hello world!\r\n";
         if (send_plain_response(client, content) != 0)
             printf("send error\n");
-    } else if (strcasecmp(path, "/html") == 0) {
-        if (send_html_response(client, HTML_FILE_PATH) != 0)
-            printf("send error\n");
-    } else if (strcasecmp(path, "/cover") == 0) {
-        if (strcasecmp(params, "on") == 0) {
-            LOTO_COVER_Switch(COVER_ON);
-            send_plain_response(client, "add cover\r\n");
-        } else if (strcasecmp(params, "off") == 0) {
-            LOTO_COVER_Switch(COVER_OFF);
-            send_plain_response(client, "remove cover\r\n");
-        }
+        // } else if (strcasecmp(path, "/html") == 0) {
+        //     if (send_html_response(client, HTML_FILE_PATH) != 0)
+        //         printf("send error\n");
+    } else if (strcasecmp(path, "/set_params") == 0) {
+        char content[1024];
+
+        deal_query_string(query_string, content);
+
+        send_plain_response(client, content);
+
     } else if (strcmp(path, "/") == 0) {
         char device_info_content[4096];
         get_device_info(device_info_content);
+        // printf("\n%s\n", device_info_content);
         if (send_plain_response(client, device_info_content) != 0)
             printf("send error\n");
     } else {
