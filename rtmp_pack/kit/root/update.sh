@@ -4,7 +4,6 @@ usage() {
     echo "Usage: $1 <tftp server address>"
 }
 
-
 if [ $# -eq 0 ]; then
     usage $0
     exit 1

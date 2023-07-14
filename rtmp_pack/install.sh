@@ -14,7 +14,7 @@ mv $KIT_DIR/root/update.sh /root
 if [ -d "/root/res" ]; then
     rm -rf /root/res
     mv $KIT_DIR/root/res/ /root
-else 
+else
     mv $KIT_DIR/root/res/ /root
 fi
 
@@ -22,7 +22,7 @@ if [ -d "/root/scripts" ]; then
     rm -rf /root/scripts
     mv $KIT_DIR/root/scripts/ /root
     chmod 777 /root/scripts/*
-else 
+else
     mv $KIT_DIR/root/scripts/ /root
     chmod 777 /root/scripts/*
 fi
