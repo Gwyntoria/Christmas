@@ -3,12 +3,11 @@
 
 #include "loto_comm.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-HI_S32 LOTO_COVER_InitCoverRegion() ;
+HI_S32 LOTO_COVER_InitCoverRegion();
 HI_S32 LOTO_COVER_UninitCoverRegion();
 
 // HI_S32 LOTO_COVER_AttachCover();

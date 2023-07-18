@@ -102,12 +102,12 @@ void serialize_control_packet(uint8_t *buffer, ControlPacket *packet) {
     buffer[7] = checksum & 0xFF;
 }
 
-void deserilize_packet_header(const uint8_t *buffer, PacketHeader *packet_header, uint32_t* offset) {
+void deserilize_packet_header(const uint8_t *buffer, PacketHeader *packet_header, uint32_t *offset) {
     packet_header->type = GetByteStream(buffer, sizeof(packet_header->type), offset);
     packet_header->length = GetByteStream(buffer, sizeof(packet_header->length), offset);
 }
 
-void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet, uint32_t* offset) {
+void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet, uint32_t *offset) {
     // GetByteStream(buffer, &(packet->header.type), sizeof(packet->header.type), offset);
     // GetByteStream(buffer, &(packet->header.length), sizeof(packet->header.length), offset);
     deserilize_packet_header(buffer, &(packet->header), offset);
@@ -120,7 +120,7 @@ void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet, ui
     // packet->checksum = ((buffer[6] << 8) & 0xff00) | (buffer[7] & 0x00ff);
 }
 
-void deserialize_message_packet(const uint8_t* buffer, MessagePacket *packet, uint32_t* offset) {
+void deserialize_message_packet(const uint8_t *buffer, MessagePacket *packet, uint32_t *offset) {
     deserilize_packet_header(buffer, &(packet->header), offset);
     packet->msg_len = GetByteStream(buffer, sizeof(packet->msg_len), offset);
     packet->msg = (char*)&(buffer[*offset]);
@@ -128,7 +128,7 @@ void deserialize_message_packet(const uint8_t* buffer, MessagePacket *packet, ui
     packet->checksum = GetByteStream(buffer, sizeof(packet->checksum), offset);
 }
 
-void deserialize_heartbeat_packet(const uint8_t* buffer, HeartbeatPacket *packet, uint32_t* offset) {
+void deserialize_heartbeat_packet(const uint8_t *buffer, HeartbeatPacket *packet, uint32_t *offset) {
     deserilize_packet_header(buffer, &(packet->header), offset);
     // packet->timestamp = GetByteStream(buffer, sizeof(packet->timestamp), offset);
     packet->cover_state = GetByteStream(buffer, sizeof(packet->cover_state), offset);
@@ -183,7 +183,7 @@ typedef struct HeartbeatArg {
     int heartbeat_thrd;
 } HeartbeatArg;
 
-void *HeartbeatThread(void *arg) {
+void *heart_beat_thread(void *arg) {
     HeartbeatArg *heartbeatArg = (HeartbeatArg *)arg;
     heartbeatArg->heartbeat_thrd = 1;
 
@@ -244,7 +244,7 @@ void *socket_server_thread(void *arg) {
 
         if (heartbeatArg.heartbeat_thrd == 0) {
             heartbeatArg.client_socket = client_socket;
-            pthread_create(&heartbeat, NULL, HeartbeatThread, &heartbeatArg);
+            pthread_create(&heartbeat, NULL, heart_beat_thread, &heartbeatArg);
         }
 
         while (1) {
@@ -272,7 +272,7 @@ void *socket_server_thread(void *arg) {
             // LOGD("packet_type = %04x\n", packet_type);
 
             if (packet_type == PACK_TYPE_CTRL) {
-                int offset = 0;
+                uint32_t offset = 0;
                 ControlPacket recv_ctrl_packet;
                 memset(&recv_ctrl_packet, 0, sizeof(recv_ctrl_packet));
 
@@ -283,9 +283,10 @@ void *socket_server_thread(void *arg) {
                 uint8_t checksum = CalculateCRC8(recv_buffer, recv_buffer_len - 1);
                 if (checksum != recv_ctrl_packet.checksum) {
                     LOGE("the received packet is wrong! Please resend.\n");
-                    sprintf(send_buffer, "RESEND");
+                    // sprintf(send_buffer, "RESEND");
+                    memcpy(send_buffer, "RESEND", 7);
 
-                    if (send(client_socket, send_buffer, strlen(send_buffer), 0) < 0) {
+                    if (send(client_socket, (void *)send_buffer, strlen((char *)send_buffer), 0) < 0) {
                         LOGE("Client disconnected\n");
                         break;
                     }
@@ -294,10 +295,10 @@ void *socket_server_thread(void *arg) {
                 } else {
                     if (recv_ctrl_packet.command == CONTROL_ADD_COVER) {
                         LOTO_COVER_Switch(cover_state_on);
-                        sprintf(send_buffer, "COVER ON");
+                        memcpy(send_buffer, "COVER ON", 9);
                     } else if (recv_ctrl_packet.command == CONTROL_RMV_COVER) {
                         LOTO_COVER_Switch(cover_state_off);
-                        sprintf(send_buffer, "COVER OFF");
+                        memcpy(send_buffer, "COVER OFF", 10);
                     } else if (recv_ctrl_packet.command = CONTROL_SERVER_TEST) {
                         set_server_option(server_state_test);
                     } else if (recv_ctrl_packet.command = CONTROL_SERVER_OFFI) {
@@ -305,7 +306,7 @@ void *socket_server_thread(void *arg) {
                     }
                 }
             } else if (packet_type == PACK_TYPE_MESG) {
-                int offset = 0;
+                uint32_t offset = 0;
                 MessagePacket recv_mesg_packet;
                 memset(&recv_mesg_packet, 0, sizeof(recv_mesg_packet));
 
@@ -314,12 +315,12 @@ void *socket_server_thread(void *arg) {
                 strncpy(message, recv_mesg_packet.msg, recv_mesg_packet.msg_len);
 
                 // uint8_t checksum = calculate_checksum(recv_buffer, recv_buffer_len - 1);
-                uint8_t checksum = CalculateCRC8(recv_buffer, recv_buffer_len - 1);
+                uint8_t checksum = CalculateCRC8((uint8_t *)recv_buffer, recv_buffer_len - 1);
 
                 // 
 
             } else if (packet_type == PACK_TYPE_HERT) {
-                int offset = 0;
+                uint32_t offset = 0;
                 HeartbeatPacket recv_heart_packet;
                 memset(&recv_heart_packet, 0, sizeof(recv_heart_packet));
 
@@ -334,9 +335,9 @@ void *socket_server_thread(void *arg) {
 
                 if (checksum != recv_heart_packet.checksum) {
                     LOGE("the received packet is wrong! Please resend.\n");
-                    sprintf(send_buffer, "RESEND");
+                    memcpy(send_buffer, "RESEND", 7);
 
-                    if (send(client_socket, send_buffer, strlen(send_buffer), 0) < 0) {
+                    if (send(client_socket, (void *)send_buffer, strlen((char *)send_buffer), 0) < 0) {
                         LOGE("Client disconnected\n");
                         break;
                     }
@@ -345,14 +346,14 @@ void *socket_server_thread(void *arg) {
                 } else {
                     LOTO_COVER_Switch(recv_heart_packet.cover_state);
                     if (recv_heart_packet.cover_state == COVER_ON) {
-                        sprintf(send_buffer, "COVER_ON");
+                        memcpy(send_buffer, "COVER_ON", 9);
                     } else {
-                        sprintf(send_buffer, "COVER_OFF");
+                        memcpy(send_buffer, "COVER_OFF", 10);
                     }
                 }
             }
             
-            if (send(client_socket, send_buffer, strlen(send_buffer), 0) < 0) {
+            if (send(client_socket, (void *)send_buffer, strlen((char *)send_buffer), 0) < 0) {
                 LOGE("Client disconnected\n");
                 break;
             }

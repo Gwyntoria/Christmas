@@ -1,14 +1,24 @@
 VER_MAJOR:=1
-VER_MINOR:=6
-VER_BUILD:=1
+VER_MINOR:=7
+VER_BUILD:=28
 VER_EXTEN:=2	# SDK version. 1: spc010; 2: spc020
 BIN_VERSION:=$(VER_MAJOR).$(VER_MINOR).$(VER_BUILD).$(VER_EXTEN)
 
 include ../Makefile.param
 
-SRCS:=$(wildcard *.c)
-SRCS+=$(wildcard audio_adp/*.c)
-OBJS:=$(SRCS:%.c=%.o)
+# c source files
+C_SRCS:=$(wildcard *.c)
+C_SRCS+=$(wildcard audio_adp/*.c)
+
+# c object files
+C_OBJS:=$(patsubst %.c, %.o, $(C_SRCS))
+
+# cpp source files
+CPP_SRCS:=$(wildcard *.cpp)
+
+# cpp object files
+CPP_OBJS:=$(patsubst %.cpp, %.o, $(CPP_SRCS))
+
 TARGET:=loto_rtmp
 
 INC_FLAGS+=-I./audio_adp
@@ -65,11 +75,19 @@ GDC_LIBA:=$(REL_LIB)/libhifisheyecalibrate.a
 # RTMP_LIBS+=$(GDC_LIBA)
 endif
 
+# CFLAGS+=-std=c++11
+
 .PHONY : clean
 all: $(TARGET)
 
-$(TARGET):$(OBJS)
-	@$(CC) $(CFLAGS) -lpthread -lm -o $@ $^ -Wl,--start-group $(MPI_LIBS) $(SENSOR_LIBS) $(AUDIO_LIBA) $(REL_LIB)/libsecurec.a $(RTMP_LIBS) -Wl,--end-group
+$(TARGET):$(C_OBJS) $(CPP_OBJS)
+	@$(CC) $(CFLAGS) -o $@ $^ -Wl,--start-group $(MPI_LIBS) $(SENSOR_LIBS) $(AUDIO_LIBA) $(REL_LIB)/libsecurec.a $(RTMP_LIBS) -Wl,--end-group
+
+%.o: %.c
+	@$(CC) $(CFLAGS) -c -o $@ $<
+
+# %.o: %.cpp
+# 	@$(CXX) $(CFLAGS) -c -o $@ $<
 
 release:
 	@mkdir -p ./bin
@@ -81,4 +99,17 @@ delete_release:
 
 clean:
 	@rm -f $(TARGET)
-	@rm -f $(OBJS)
+	@rm -f $(C_OBJS)
+	@rm -f $(CPP_OBJS)
+
+echo:
+	@echo $(CFLAGS)
+	@echo
+	@echo $(C_OBJS)
+	@echo
+	@echo $(CPP_OBJS)
+	@echo
+	@echo $(CC)
+	@echo
+	@echo $(CXX)
+	@echo
