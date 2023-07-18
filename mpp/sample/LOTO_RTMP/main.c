@@ -67,6 +67,8 @@ static int gs_audio_encoder = -1;
 
 static int gs_server_option = SERVER_OFFI;
 
+time_t program_start_time;
+
 int get_server_option() {
     return gs_server_option;
 }
@@ -347,9 +349,38 @@ void parse_config_file(const char *config_file_path){
     }
 }
 
+void* monitor_time_difference(void* arg) {
+    time_t current_time;
+
+    while (1) {
+        // Get the current time
+        current_time = time(NULL);
+
+        // Calculate time difference
+        int time_difference = difftime(current_time, program_start_time);
+
+        if (time_difference >= (7 * SECONDS_PER_DAY)) {
+            if (LOTO_COVER_GetCoverState() == COVER_ON) {
+                // Time difference reaches 7 days, and no one is online, execute restart
+                RebootSystem();
+                break;
+            } else {
+                LOGD("There is someone online. Wait for 10s\n");
+                sleep(10);
+                continue;
+            }
+        }
+
+        // Check the time difference every other period of time
+        sleep(12 * 60 * 60); // 12 hours
+    }
+
+    return NULL;
+}
+
 #define VER_MAJOR 1
-#define VER_MINOR 5
-#define VER_BUILD 3
+#define VER_MINOR 6
+#define VER_BUILD 1
 #define VER_EXTEN 2     // SDK version. 1: spc010; 2: spc020
 
 int main(int argc, char *argv[]) {
@@ -364,16 +395,19 @@ int main(int argc, char *argv[]) {
     }
 
     /* sync local time from net_time */
-    s32Ret = GetNetTime();
+    s32Ret = get_net_time();
     if (s32Ret != HI_SUCCESS) {
         LOGE("Time sync failed\n");
         exit(1);
     }
 
+    /* Gets the program startup time */
+    program_start_time = time(NULL);
+
     sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
     LOGI("RTMP App Version: %s\n", BIN_VERSION);
 
-    // /* socket: server */
+    /* socket: server */
     // pthread_t socket_server_pid;
     // pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL);
 
@@ -424,16 +458,27 @@ int main(int argc, char *argv[]) {
 
     /* Push video and audio stream through rtmp. */
     pthread_t rtmp_pid;
-    pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr);
+    if (pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr) != 0) {
+        fprintf(stderr, "Failed to create LOTO_VIDEO_AUDIO_RTMP thread\n");
+    }
 
     usleep(1000 * 10);
 
     /* socket: server */
     pthread_t socket_server_pid;
-    pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL);
+    if (pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL) != 0) {
+        fprintf(stderr, "Failed to create socket_server_thread\n");
+    }
 
     pthread_t sync_time_pid;
-    pthread_create(&sync_time_pid, NULL, sync_time_thread, NULL);
+    if (pthread_create(&sync_time_pid, NULL, sync_time, NULL) != 0) {
+        fprintf(stderr, "Failed to create sync_time thread\n");
+    }
+
+    pthread_t monitor_time_thread;
+    if (pthread_create(&monitor_time_thread, NULL, monitor_time_difference, NULL) != 0) {
+        fprintf(stderr, "Failed to create monitor_time_difference thread\n");
+    }
 
     pthread_join(rtmp_pid, 0);
 

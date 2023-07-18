@@ -17,6 +17,8 @@ HI_S32 LOTO_COVER_UninitCoverRegion();
 HI_S32 LOTO_COVER_AddCover();
 HI_S32 LOTO_COVER_RemoveCover();
 
+int LOTO_COVER_GetCoverState();
+
 void LOTO_COVER_Switch(int state);
 
 HI_S32 LOTO_COVER_ChangeCover();

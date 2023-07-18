@@ -87,6 +87,8 @@ void WriteLogFile(char *p_fmt, ...);
 
 #define WORK_FOLDER     "/root"
 
+#define SECONDS_PER_DAY (24 * 60 * 60)
+
 typedef struct RoomInfo {
     int 	iCode;
 
@@ -187,9 +189,9 @@ int get_mac(char *mac);
  *        and set the local time as the network time
  * 
  */
-int GetNetTime();
+int get_net_time();
 
-void *sync_time_thread(void *arg);
+void *sync_time(void *arg);
 
 /**
  * @brief Output the hexadecimal data stream, along with the corresponding string
@@ -210,6 +212,8 @@ uint8_t* SaveInBigEndian(uint8_t* array, uint64_t value, size_t numBytes);
 
 
 uint64_t ExtractFromBigEndian(uint8_t* array, size_t numBytes);
+
+void RebootSystem();
 
 #ifdef __cplusplus
 }
