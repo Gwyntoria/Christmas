@@ -358,7 +358,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 20
+#define VER_BUILD 27
 #define VER_EXTEN 2 // SDK version. 1: spc010; 2: spc020
 
 int main(int argc, char* argv[]) {
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
     strcpy(device_info.start_time, GetTimestampString());
 
     sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
-    strcpy(device_info.version, BIN_VERSION);
+    strcpy(device_info.app_version, BIN_VERSION);
     LOGI("RTMP App Version: %s\n", BIN_VERSION);
 
     // /* socket: server */

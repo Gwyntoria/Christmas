@@ -157,13 +157,14 @@ typedef struct LotoLogHandle {
 } LogHandle;
 
 typedef struct DeviceInfo {
-    char version[16];
+    char app_version[16];
     char device_num[8];
     int stream_state;
     char audio_state[8];
     char ip_addr[32];
     char mac_addr[32];
     char start_time[32];
+    char current_time[32];
     time_t running_time;
     char push_url[1024];
     char server_url[1024];

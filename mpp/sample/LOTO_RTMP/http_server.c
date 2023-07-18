@@ -18,6 +18,8 @@
 #include "loto_controller.h"
 #include "loto_cover.h"
 
+#define DEBUG_HTTP 0
+
 #define MAX_PENDING           5
 #define MAX_RESPONSE_SIZE     5120
 #define MAX_HTML_CONTENT_SIZE 4096
@@ -29,7 +31,9 @@
 
 #define SERVER_STRING "Server: loto_hisidv300/1.0.0\r\n"
 
-#define RESPONSE_TEMPLATE "HTTP/1.1 200 OK\r\nContent-Type: text/%s\r\nContent-Length: %d\r\n\r\n%s"
+#define RESPONSE_TEMPLATE                                                                                              \
+    "HTTP/1.1 200 OK\r\nContent-Type: text/%s; charset=utf-8\r\nContent-Length: %d\r\nConnection: "                    \
+    "keep-alive\r\n\r\n%s"
 
 /**
  * @brief 打印出错误信息并结束程序
@@ -201,7 +205,6 @@ void parse_request_line(char* request_line, int request_line_len, char* method, 
         j++;
     }
     method[i] = '\0';
-    printf("Method: %s\n", method);
 
     while (ISspace(request_line[j]) && (j < request_line_len))
         j++;
@@ -214,7 +217,6 @@ void parse_request_line(char* request_line, int request_line_len, char* method, 
         j++;
     }
     url[i] = '\0';
-    printf("Url: %s\n", url);
 
     while (ISspace(request_line[j]) && (j < request_line_len))
         j++;
@@ -227,7 +229,12 @@ void parse_request_line(char* request_line, int request_line_len, char* method, 
         j++;
     }
     version[i] = '\0';
+
+#if DEBUG_HTTP
+    printf("Method: %s\n", method);
+    printf("Url: %s\n", url);
     printf("Version: %s\n", version);
+#endif
 }
 
 void parse_path_with_params(const char* url, char* path, char* query_string) {
@@ -237,13 +244,18 @@ void parse_path_with_params(const char* url, char* path, char* query_string) {
         char* path_only = strndup(url, delimiter - url); // 提取不带参数的路径部分
         strcpy(path, path_only);
         free(path_only);
-        printf("Path: %s\n", path);
-
         strcpy(query_string, delimiter + 1);
+
+#if DEBUG_HTTP
+        printf("Path: %s\n", path);
         printf("Query string: %s\n", query_string);
+#endif
     } else {
         strcpy(path, url);
+
+#if DEBUG_HTTP
         printf("Path: %s\n", url);
+#endif
     }
 }
 
@@ -286,9 +298,9 @@ KeyValuePair* parse_query_string(const char* query_string, int* num_pairs) {
             char* value_end   = strchr(value_start, '\0');
 
             if (value_start != value_end) {
-                pairs[pair_count].key   = strdup(query_token);
-                // pairs[pair_count].value = malloc((value_end - value_start + 1) * sizeof(char)); // 包括字符串结束符'\0'
-                // strncpy(pairs[pair_count].value, value_start, value_end - value_start);
+                pairs[pair_count].key = strdup(query_token);
+                // pairs[pair_count].value = malloc((value_end - value_start + 1) * sizeof(char)); //
+                // 包括字符串结束符'\0' strncpy(pairs[pair_count].value, value_start, value_end - value_start);
                 // pairs[pair_count].value[value_end - value_start] = '\0';
                 pairs[pair_count].value = strdup(value_start);
                 pair_count++;
@@ -310,6 +322,8 @@ void deal_query_string(const char* query_string, char* content) {
 
     printf("Number of pairs: %d\n", num_pairs);
 
+    char temp[1024] = {0};
+
     for (int i = 0; i < num_pairs; i++) {
         if (pairs[i].key != NULL && pairs[i].value != NULL) {
             printf("Key: %s, Value: %s\n", pairs[i].key, pairs[i].value);
@@ -317,13 +331,25 @@ void deal_query_string(const char* query_string, char* content) {
             if (strcasecmp(pairs[i].key, "cover") == 0) {
                 if (strcmp(pairs[i].value, "1") == 0) {
                     LOTO_COVER_Switch(COVER_ON);
+                    sprintf(temp, "add cover\n");
+                    strcat(content, temp);
+                    temp[0] = '\0';
                 } else if (strcmp(pairs[i].value, "0") == 0) {
                     LOTO_COVER_Switch(COVER_OFF);
+                    sprintf(temp, "remove cover\n");
+                    strcat(content, temp);
+                    temp[0] = '\0';
                 } else {
-                    // printf("value is wrong\n");
+                    printf("value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
+                    sprintf(temp, "value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
+                    strcat(content, temp);
+                    temp[0] = '\0';
                 }
             } else {
-                // printf("key is wrong\n");
+                printf("key[%s] is wrong\n", pairs[i].key);
+                sprintf(temp, "key[%s] is wrong\n", pairs[i].key);
+                strcat(content, temp);
+                temp[0] = '\0';
             }
         }
 
@@ -438,9 +464,14 @@ int send_html_response(int client_socket, const char* file_path) {
 
 int send_plain_response(int client_socket, const char* content) {
     int  content_length = strlen(content);
-    char response[1024];
+    char response[1024] = {0};
 
     sprintf(response, RESPONSE_TEMPLATE, "plain", content_length, content);
+
+#if DEBUG_HTTP
+    printf("content_length: %d\n", content_length);
+    printf("response:\n%s\n", response);
+#endif
 
     if (send(client_socket, response, strlen(response), 0) < 0) {
         return -1;
@@ -454,74 +485,95 @@ extern DeviceInfo device_info;
 
 void get_device_info(char* device_info_content) {
     device_info.running_time = time(NULL) - program_start_time;
+    strcpy(device_info.current_time, GetTimestampString());
     device_info.stream_state = LOTO_COVER_GetCoverState();
 
-    char running_time[32];
+    char running_time[32] = {0};
     FormatTime(device_info.running_time, running_time);
 
-    char temp[1024];
-    sprintf(temp, "version:         %s\r\n", device_info.version);
-    strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    char temp[1024] = {0};
 
     sprintf(temp, "device_num:      %s\r\n", device_info.device_num);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
+
+    sprintf(temp, "app_version:     %s\r\n", device_info.app_version);
+    strcat(device_info_content, temp);
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     if (device_info.stream_state == COVER_OFF) {
         sprintf(temp, "stream_state:    on\r\n");
         strcat(device_info_content, temp);
-        memset(temp, 0, sizeof(temp));
+        // memset(temp, 0, sizeof(temp));
+        temp[0] = '\0';
+
     } else {
         sprintf(temp, "stream_state:    off\r\n");
         strcat(device_info_content, temp);
-        memset(temp, 0, sizeof(temp));
+        // memset(temp, 0, sizeof(temp));
+        temp[0] = '\0';
     }
 
     sprintf(temp, "audio_state:     %s\r\n", device_info.audio_state);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     sprintf(temp, "ip_addr:         %s\r\n", device_info.ip_addr);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     sprintf(temp, "mac_addr:        %s\r\n", device_info.mac_addr);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     sprintf(temp, "start_time:      %s\r\n", device_info.start_time);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
+
+    sprintf(temp, "current_time:    %s\r\n", device_info.current_time);
+    strcat(device_info_content, temp);
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     sprintf(temp, "running_time:    %s\r\n", running_time);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     sprintf(temp, "push_url:        %s\r\n", device_info.push_url);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     sprintf(temp, "server_url:      %s\r\n", device_info.server_url);
     strcat(device_info_content, temp);
-    memset(temp, 0, sizeof(temp));
+    // memset(temp, 0, sizeof(temp));
+    temp[0] = '\0';
 
     // write_html_file(device_info_html, DEVICE_FILE_PATH);
 }
 
 void* accept_request(void* pclient) {
     int  numchars;
-    char buf[1024];
-    int  client = *(int*)pclient;
+    char buf[1024] = {0};
+    int  client    = *(int*)pclient;
 
-    char method[256];
-    char url[256];
-    char version[256];
-    char path[256];
-    char query_string[256];
+    char method[256]       = {0};
+    char url[256]          = {0};
+    char version[256]      = {0};
+    char path[256]         = {0};
+    char query_string[256] = {0};
 
     // 获取一行HTTP请求报文
     numchars = get_request_line(client, buf, sizeof(buf));
+
+    printf("request_line: %s\n", buf);
 
     parse_request_line(buf, numchars, method, url, version);
 
@@ -545,16 +597,24 @@ void* accept_request(void* pclient) {
         //     if (send_html_response(client, HTML_FILE_PATH) != 0)
         //         printf("send error\n");
     } else if (strcasecmp(path, "/set_params") == 0) {
-        char content[1024];
-
+        char content[1024] = {0};
         deal_query_string(query_string, content);
-
         send_plain_response(client, content);
-
-    } else if (strcmp(path, "/") == 0) {
-        char device_info_content[4096];
+    } else if (strcasecmp(path, "/home") == 0) {
+        char device_info_content[4096] = {0};
         get_device_info(device_info_content);
-        // printf("\n%s\n", device_info_content);
+#if DEBUG_HTTP
+        printf("device_info_content:\n%s\n", device_info_content);
+#endif
+        if (send_plain_response(client, device_info_content) != 0)
+            printf("send error\n");
+    } else if (strcmp(path, "/") == 0) {
+        char device_info_content[4096] = {0};
+        get_device_info(device_info_content);
+
+#if DEBUG_HTTP
+        printf("device_info_content:\n %s\n", device_info_content);
+#endif
         if (send_plain_response(client, device_info_content) != 0)
             printf("send error\n");
     } else {
@@ -623,6 +683,8 @@ int http_server(void) {
         /* accept_request(client_sock); */
         if (pthread_create(&newthread, NULL, accept_request, (void*)&client_sock) != 0)
             perror("accept_request");
+
+        usleep(10);
     }
 
     close(server_sock);
