@@ -387,8 +387,8 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 38
-#define VER_EXTEN 2 // 1: debug; 2: test; 3: release;
+#define VER_BUILD 39
+#define VER_EXTEN 3 // 1: debug; 2: test; 3: release;
 
 int main(int argc, char* argv[]) {
     int  s32Ret;

@@ -372,17 +372,31 @@ int deal_query_string(const char* query_string, char* content) {
             if (strcasecmp(pairs[i].key, "cover") == 0) {
                 if (strcmp(pairs[i].value, "1") == 0) {
                     LOTO_COVER_Switch(COVER_ON);
-                    sprintf(temp, "add cover\n");
+                    sprintf(temp, "Add cover\n");
                     strcat(content, temp);
                     temp[0] = '\0';
                 } else if (strcmp(pairs[i].value, "0") == 0) {
                     LOTO_COVER_Switch(COVER_OFF);
-                    sprintf(temp, "remove cover\n");
+                    sprintf(temp, "Remove cover\n");
                     strcat(content, temp);
                     temp[0] = '\0';
                 } else {
                     LOGD("value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
                     sprintf(temp, "value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
+                    strcat(content, temp);
+                    temp[0] = '\0';
+                }
+            } else if (strcasecmp(pairs[i].key, "server_url") == 0) {
+                if (strcmp(pairs[i].value, "1") == 0) {
+                    // TODO 保存正式服的请求地址
+                    
+                    sprintf(temp, "Set server_offi successfully\n");
+                    strcat(content, temp);
+                    temp[0] = '\0';
+                } else if (strcmp(pairs[i].value, "0") == 0) {
+                    // TODO 保存测试服的请求地址
+
+                    sprintf(temp, "Set server_test successfully\n");
                     strcat(content, temp);
                     temp[0] = '\0';
                 }
@@ -649,7 +663,9 @@ int accept_request(int client) {
         //         LOGE("send error\n");
     } else if (strcasecmp(path, "/set_params") == 0) {
         char content[1024] = {0};
+
         deal_query_string(query_string, content);
+
         if (send_plain_response(client, content) != 0) {
             LOGE("send error\n");
             return -1;
