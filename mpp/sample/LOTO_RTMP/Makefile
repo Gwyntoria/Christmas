@@ -1,8 +1,9 @@
 VER_MAJOR:=1
 VER_MINOR:=7
 VER_BUILD:=28
-VER_EXTEN:=2	# SDK version. 1: spc010; 2: spc020
+VER_EXTEN:=3	# 1: debug; 2: test; 3: release;
 BIN_VERSION:=$(VER_MAJOR).$(VER_MINOR).$(VER_BUILD).$(VER_EXTEN)
+RELEASE_VERSION:=$(VER_MAJOR).$(VER_MINOR)
 
 include ../Makefile.param
 
@@ -91,11 +92,11 @@ $(TARGET):$(C_OBJS) $(CPP_OBJS)
 
 release:
 	@mkdir -p ./bin
-	@cp $(TARGET) ./bin/$(TARGET)-$(BIN_VERSION)
+	@cp $(TARGET) ./bin/$(TARGET)-$(RELEASE_VERSION)
 	@cp $(TARGET) ../../../rtmp_pack/kit/root/$(TARGET)
 
 delete_release:
-	@rm -f ./bin/$(TARGET)-$(BIN_VERSION)
+	@rm -f ./bin/$(TARGET)-$(RELEASE_VERSION)
 
 clean:
 	@rm -f $(TARGET)
