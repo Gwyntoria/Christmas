@@ -364,7 +364,7 @@ void* monitor_time_difference(void* arg) {
         if (time_difference >= (7 * SECONDS_PER_DAY)) {
             if (LOTO_COVER_GetCoverState() == COVER_ON) {
                 // Time difference reaches 7 days, and no one is online, execute restart
-                RebootSystem();
+                reboot_system();
                 break;
             } else {
                 LOGD("There is someone online. Wait for 10s\n");
@@ -381,14 +381,14 @@ void* monitor_time_difference(void* arg) {
 }
 
 void fill_device_net_info(DeviceInfo* device_info) {
-    GetLocalIPAddress(device_info->ip_addr);
-    GetLocalMACAddress(device_info->mac_addr);
+    get_local_ip_address(device_info->ip_addr);
+    get_local_mac_address(device_info->mac_addr);
 }
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 28
-#define VER_EXTEN 2 // SDK version. 1: spc010; 2: spc020
+#define VER_BUILD 38
+#define VER_EXTEN 2 // 1: debug; 2: test; 3: release;
 
 int main(int argc, char* argv[]) {
     int  s32Ret;
@@ -483,17 +483,19 @@ int main(int argc, char* argv[]) {
     if (pthread_create(&sync_time_pid, NULL, sync_time, NULL) != 0) {
         fprintf(stderr, "Failed to create sync_time thread\n");
     }
-
     usleep(100);
 
     pthread_t monitor_time_thread;
     if (pthread_create(&monitor_time_thread, NULL, monitor_time_difference, NULL) != 0) {
         fprintf(stderr, "Failed to create monitor_time_difference thread\n");
     }
-
     usleep(100);
 
-    http_server();
+    // http_server();
+    pthread_t http_server_thread;
+    if (pthread_create(&http_server_thread, NULL, http_server, NULL) != 0) {
+        fprintf(stderr, "Failed to create http_server thread\n");
+    }
 
     pthread_join(rtmp_pid, 0);
 

@@ -5,13 +5,7 @@
 extern "C" {
 #endif
 
-/**
- * @brief 启动 http server；
- *        响应 GET
- *
- * @return int HTTP server 启动状态
- */
-int http_server();
+void* http_server(void* arg);
 
 #ifdef __cplusplus
 }

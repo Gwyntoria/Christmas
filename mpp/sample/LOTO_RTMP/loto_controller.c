@@ -103,16 +103,16 @@ void serialize_control_packet(uint8_t *buffer, ControlPacket *packet) {
 }
 
 void deserilize_packet_header(const uint8_t *buffer, PacketHeader *packet_header, uint32_t *offset) {
-    packet_header->type = GetByteStream(buffer, sizeof(packet_header->type), offset);
-    packet_header->length = GetByteStream(buffer, sizeof(packet_header->length), offset);
+    packet_header->type = get_byte_stream(buffer, sizeof(packet_header->type), offset);
+    packet_header->length = get_byte_stream(buffer, sizeof(packet_header->length), offset);
 }
 
 void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet, uint32_t *offset) {
-    // GetByteStream(buffer, &(packet->header.type), sizeof(packet->header.type), offset);
-    // GetByteStream(buffer, &(packet->header.length), sizeof(packet->header.length), offset);
+    // get_byte_stream(buffer, &(packet->header.type), sizeof(packet->header.type), offset);
+    // get_byte_stream(buffer, &(packet->header.length), sizeof(packet->header.length), offset);
     deserilize_packet_header(buffer, &(packet->header), offset);
-    packet->command = GetByteStream(buffer, sizeof(packet->command), offset);
-    packet->checksum = GetByteStream(buffer, sizeof(packet->checksum), offset);
+    packet->command = get_byte_stream(buffer, sizeof(packet->command), offset);
+    packet->checksum = get_byte_stream(buffer, sizeof(packet->checksum), offset);
 
     // packet->header.type = ((buffer[0] << 8) & 0xff00) | (buffer[1] & 0x00ff);
     // packet->header.length = ((buffer[2] << 8) & 0xff00) | (buffer[3] & 0x00ff);
@@ -122,17 +122,17 @@ void deserialize_control_packet(const uint8_t *buffer, ControlPacket *packet, ui
 
 void deserialize_message_packet(const uint8_t *buffer, MessagePacket *packet, uint32_t *offset) {
     deserilize_packet_header(buffer, &(packet->header), offset);
-    packet->msg_len = GetByteStream(buffer, sizeof(packet->msg_len), offset);
+    packet->msg_len = get_byte_stream(buffer, sizeof(packet->msg_len), offset);
     packet->msg = (char*)&(buffer[*offset]);
     (*offset) += packet->msg_len;
-    packet->checksum = GetByteStream(buffer, sizeof(packet->checksum), offset);
+    packet->checksum = get_byte_stream(buffer, sizeof(packet->checksum), offset);
 }
 
 void deserialize_heartbeat_packet(const uint8_t *buffer, HeartbeatPacket *packet, uint32_t *offset) {
     deserilize_packet_header(buffer, &(packet->header), offset);
-    // packet->timestamp = GetByteStream(buffer, sizeof(packet->timestamp), offset);
-    packet->cover_state = GetByteStream(buffer, sizeof(packet->cover_state), offset);
-    packet->checksum = GetByteStream(buffer, sizeof(packet->checksum), offset);
+    // packet->timestamp = get_byte_stream(buffer, sizeof(packet->timestamp), offset);
+    packet->cover_state = get_byte_stream(buffer, sizeof(packet->cover_state), offset);
+    packet->checksum = get_byte_stream(buffer, sizeof(packet->checksum), offset);
 }
 
 
@@ -188,7 +188,7 @@ void *heart_beat_thread(void *arg) {
     heartbeatArg->heartbeat_thrd = 1;
 
     uint8_t beat[2];
-    SaveInBigEndian(beat, PACK_TYPE_HERT, 2);
+    save_in_big_endian(beat, PACK_TYPE_HERT, 2);
 
     while (1) {
         if (send(heartbeatArg->client_socket, beat, sizeof(beat), 0) < 0) {
@@ -263,11 +263,11 @@ void *socket_server_thread(void *arg) {
             }
 
             printf("recv_buffer: \n");
-            PrintDataStreamHex(recv_buffer, recv_buffer_len);
+            print_data_stream_hex(recv_buffer, recv_buffer_len);
 
             /* Get type of packet */
             uint16_t packet_type = 0;
-            packet_type = (uint16_t)ExtractFromBigEndian(recv_buffer, 2);
+            packet_type = (uint16_t)extract_from_big_endian(recv_buffer, 2);
 
             // LOGD("packet_type = %04x\n", packet_type);
 

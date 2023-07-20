@@ -73,7 +73,7 @@ HI_S32 LOTO_COVER_AddCover() {
         return HI_FAILURE;
     }
 
-    if (LOTO_VENC_SetVencBitrate(16) != HI_SUCCESS) {
+    if (LOTO_VENC_SetVencBitrate(8) != HI_SUCCESS) {
         LOGE("LOTO_VENC_SetVencBitrate failed!\n");
         return HI_FAILURE;
     }

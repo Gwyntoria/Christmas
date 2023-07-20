@@ -531,7 +531,7 @@ void* sync_time(void* arg) {
 #define BP_GRAPH  60
 #define BP_LEN    80
 
-void PrintDataStreamHex(const uint8_t* data, unsigned long len) {
+void print_data_stream_hex(const uint8_t* data, unsigned long len) {
     char              line[BP_LEN];
     unsigned long     i;
     static const char hexdig[] = "0123456789abcdef";
@@ -577,7 +577,7 @@ void PrintDataStreamHex(const uint8_t* data, unsigned long len) {
     printf("%s\n", line);
 }
 
-uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset) {
+uint8_t* put_byte_stream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint32_t* offset) {
     for (int i = numBytes - 1; i >= 0; i--) {
         *(stream + *offset) = (uint8_t)(srcValue >> (8 * i));
         (*offset) += 1;
@@ -586,7 +586,7 @@ uint8_t* PutByteStream(uint8_t* stream, uint64_t srcValue, size_t numBytes, uint
     return stream;
 }
 
-uint64_t GetByteStream(const uint8_t* stream, size_t numBytes, uint32_t* offset) {
+uint64_t get_byte_stream(const uint8_t* stream, size_t numBytes, uint32_t* offset) {
     uint64_t result = 0;
 
     if (stream == NULL || numBytes > 8)
@@ -600,7 +600,7 @@ uint64_t GetByteStream(const uint8_t* stream, size_t numBytes, uint32_t* offset)
     return result;
 }
 
-uint8_t* SaveInBigEndian(uint8_t* array, uint64_t value, size_t numBytes) {
+uint8_t* save_in_big_endian(uint8_t* array, uint64_t value, size_t numBytes) {
     for (int i = 0; i < numBytes; i++) {
         array[numBytes - 1 - i] = (value >> (8 * i)) & 0xFF;
     }
@@ -608,7 +608,7 @@ uint8_t* SaveInBigEndian(uint8_t* array, uint64_t value, size_t numBytes) {
     return array;
 }
 
-uint64_t ExtractFromBigEndian(uint8_t* array, size_t numBytes) {
+uint64_t extract_from_big_endian(uint8_t* array, size_t numBytes) {
     uint64_t result = 0;
 
     for (size_t i = 0; i < numBytes; i++) {
@@ -618,14 +618,14 @@ uint64_t ExtractFromBigEndian(uint8_t* array, size_t numBytes) {
     return result;
 }
 
-void RebootSystem() {
+void reboot_system() {
     LOGI("Rebooting the system...\n");
     sleep(1); // 等待一段时间确保打印信息输出
     // 调用系统命令进行重启
     system("reboot");
 }
 
-int GetLocalIPAddress(char* ipAddress) {
+int get_local_ip_address(char* ipAddress) {
     int          fd;
     struct ifreq ifr;
 
@@ -649,7 +649,7 @@ int GetLocalIPAddress(char* ipAddress) {
     return 0;
 }
 
-int GetLocalMACAddress(char* macAddress) {
+int get_local_mac_address(char* macAddress) {
     int          fd;
     struct ifreq ifr;
 
@@ -677,6 +677,6 @@ int GetLocalMACAddress(char* macAddress) {
     return 0;
 }
 
-void FormatTime(time_t time, char* formattedTime) {
+void format_time(time_t time, char* formattedTime) {
     sprintf(formattedTime, "%02dh-%02dm-%02ds", time / 3600, (time % 3600) / 60, time % 60);
 }

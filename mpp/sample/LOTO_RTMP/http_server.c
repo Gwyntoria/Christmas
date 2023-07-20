@@ -20,7 +20,7 @@
 
 #define DEBUG_HTTP 0
 
-#define MAX_PENDING           5
+#define MAX_PENDING           10
 #define MAX_RESPONSE_SIZE     5120
 #define MAX_HTML_CONTENT_SIZE 4096
 
@@ -32,8 +32,12 @@
 #define SERVER_STRING "Server: loto_hisidv300/1.0.0\r\n"
 
 #define RESPONSE_TEMPLATE                                                                                              \
-    "HTTP/1.1 200 OK\r\nContent-Type: text/%s; charset=utf-8\r\nContent-Length: %d\r\nConnection: "                    \
-    "keep-alive\r\n\r\n%s"
+    "HTTP/1.1 200 OK\r\n"                                                                                              \
+    "Content-Type: text/%s; charset=utf-8\r\n"                                                                         \
+    "Content-Length: %d\r\n"                                                                                           \
+    "Connection: keep-alive\r\n"                                                                                       \
+    "\r\n"                                                                                                             \
+    "%s"
 
 /**
  * @brief 打印出错误信息并结束程序
@@ -96,7 +100,7 @@ int get_request_line(int sock, char* buf, int size) {
  * @param client client_socket_fd
  */
 void unimplemented(int client) {
-    char buf[1024];
+    char buf[1024] = {0};
 
     sprintf(buf, "HTTP/1.1 501 Method Not Implemented\r\n");
     send(client, buf, strlen(buf), 0);
@@ -129,7 +133,7 @@ void unimplemented(int client) {
  * @param client client_socket_fd
  */
 void not_found(int client) {
-    char buf[1024];
+    char buf[1024] = {0};
 
     sprintf(buf, "HTTP/1.1 404 NOT FOUND\r\n");
     send(client, buf, strlen(buf), 0);
@@ -166,7 +170,7 @@ void not_found(int client) {
  * @param resource 需要传输的文件指针
  */
 void cat(int client, FILE* resource) {
-    char buf[1024];
+    char buf[1024] = {0};
 
     fgets(buf, sizeof(buf), resource);
     while (!feof(resource)) {
@@ -177,7 +181,7 @@ void cat(int client, FILE* resource) {
 
 // 告知客户端该请求有错误400
 void bad_request(int client) {
-    char buf[1024];
+    char buf[1024] = {0};
 
     sprintf(buf, "HTTP/1.1 400 BAD REQUEST\r\n");
     send(client, buf, sizeof(buf), 0);
@@ -231,9 +235,9 @@ void parse_request_line(char* request_line, int request_line_len, char* method, 
     version[i] = '\0';
 
 #if DEBUG_HTTP
-    printf("Method: %s\n", method);
-    printf("Url: %s\n", url);
-    printf("Version: %s\n", version);
+    LOGD("Method: %s\n", method);
+    LOGD("Url: %s\n", url);
+    LOGD("Version: %s\n", version);
 #endif
 }
 
@@ -241,20 +245,21 @@ void parse_path_with_params(const char* url, char* path, char* query_string) {
     char* delimiter = strchr(url, '?'); // 查找路径中的问号位置
 
     if (delimiter != NULL) {
-        char* path_only = strndup(url, delimiter - url); // 提取不带参数的路径部分
-        strcpy(path, path_only);
-        free(path_only);
+        // char* path_only = strndup(url, delimiter - url); // 提取不带参数的路径部分
+        // strcpy(path, path_only);
+        // free(path_only);
+        strncpy(path, url, delimiter - url);
         strcpy(query_string, delimiter + 1);
 
 #if DEBUG_HTTP
-        printf("Path: %s\n", path);
-        printf("Query string: %s\n", query_string);
+        LOGD("Path: %s\n", path);
+        LOGD("Query string: %s\n", query_string);
 #endif
     } else {
         strcpy(path, url);
 
 #if DEBUG_HTTP
-        printf("Path: %s\n", url);
+        LOGD("Path: %s\n", url);
 #endif
     }
 }
@@ -264,7 +269,8 @@ typedef struct KeyValuePair {
     char* value;
 } KeyValuePair;
 
-KeyValuePair* parse_query_string(const char* query_string, int* num_pairs) {
+// KeyValuePair* parse_query_string(char* query_string, int* pairs_num) {
+int parse_query_string(char* query_string, int* pairs_num, KeyValuePair* pairs) {
     const char* delimiter = "&";
     const char* equals    = "=";
     int         max_pairs = 0; // Maximum number of key-value pairs, adjust as needed
@@ -276,12 +282,21 @@ KeyValuePair* parse_query_string(const char* query_string, int* num_pairs) {
         if ((query_string[i] != *delimiter) && (query_string[i + 1] == *delimiter || query_string[i + 1] == '\0'))
             max_pairs++;
     }
-    max_pairs++;
 
-    KeyValuePair* pairs             = malloc(max_pairs * sizeof(KeyValuePair));
-    int           pair_count        = 0;
-    char*         query_string_copy = strdup(query_string);
-    char*         query_token       = query_string_copy;
+#if DEBUG_HTTP
+    LOGD("max_pairs: %d\n", max_pairs);
+#endif
+
+    // KeyValuePair* pairs = malloc(sizeof(KeyValuePair) * (max_pairs));
+    // if (pairs == NULL) {
+    //     LOGE("Failed to allocate memory for KeyValuePair\n");
+    //     return NULL;
+    // }
+
+    int   pair_count  = 0;
+    char* query_token = query_string;
+    // char*         query_string_copy = strdup(query_string);
+    // char*         query_token       = query_string_copy;
 
     while (query_token != NULL && pair_count < max_pairs) {
         char* pair_end = strchr(query_token, *delimiter);
@@ -298,11 +313,10 @@ KeyValuePair* parse_query_string(const char* query_string, int* num_pairs) {
             char* value_end   = strchr(value_start, '\0');
 
             if (value_start != value_end) {
-                pairs[pair_count].key = strdup(query_token);
-                // pairs[pair_count].value = malloc((value_end - value_start + 1) * sizeof(char)); //
-                // 包括字符串结束符'\0' strncpy(pairs[pair_count].value, value_start, value_end - value_start);
-                // pairs[pair_count].value[value_end - value_start] = '\0';
-                pairs[pair_count].value = strdup(value_start);
+                // pairs[pair_count].key = strdup(query_token);
+                // pairs[pair_count].value = strdup(value_start);
+                pairs[pair_count].key   = query_token;
+                pairs[pair_count].value = value_start;
                 pair_count++;
             }
         }
@@ -310,23 +324,50 @@ KeyValuePair* parse_query_string(const char* query_string, int* num_pairs) {
         query_token = (pair_end != NULL) ? (pair_end + 1) : NULL;
     }
 
-    free(query_string_copy);
+    // free(query_string_copy);
 
-    *num_pairs = pair_count;
-    return pairs;
+    *pairs_num = pair_count;
+    // return pairs;
+    return 0;
 }
 
-void deal_query_string(const char* query_string, char* content) {
-    int           num_pairs;
-    KeyValuePair* pairs = parse_query_string(query_string, &num_pairs);
+void free_query_string_pairs(KeyValuePair* pairs, int pairs_num) {
+    if (pairs != NULL) {
+        for (int i = 0; i < pairs_num; i++) {
+            if (pairs[i].key != NULL) {
+                free(pairs[i].key);
+                pairs[i].key = NULL;
+            }
+            if (pairs[i].value != NULL) {
+                free(pairs[i].value);
+                pairs[i].value = NULL;
+            }
+        }
+        free(pairs);
+    }
+}
 
-    printf("Number of pairs: %d\n", num_pairs);
+int deal_query_string(const char* query_string, char* content) {
+    int pairs_num;
+
+    // KeyValuePair* pairs = NULL;
+    // pairs = parse_query_string(query_string, &pairs_num);
+
+    KeyValuePair pairs[32] = {0};
+    parse_query_string(query_string, &pairs_num, &pairs);
+
+#if DEBUG_HTTP
+    LOGD("Number of pairs: %d\n", pairs_num);
+#endif
 
     char temp[1024] = {0};
 
-    for (int i = 0; i < num_pairs; i++) {
+    for (int i = 0; i < pairs_num; i++) {
         if (pairs[i].key != NULL && pairs[i].value != NULL) {
-            printf("Key: %s, Value: %s\n", pairs[i].key, pairs[i].value);
+
+#if DEBUG_HTTP
+            LOGD("Key: %s, Value: %s\n", pairs[i].key, pairs[i].value);
+#endif
 
             if (strcasecmp(pairs[i].key, "cover") == 0) {
                 if (strcmp(pairs[i].value, "1") == 0) {
@@ -340,24 +381,27 @@ void deal_query_string(const char* query_string, char* content) {
                     strcat(content, temp);
                     temp[0] = '\0';
                 } else {
-                    printf("value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
+                    LOGD("value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
                     sprintf(temp, "value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
                     strcat(content, temp);
                     temp[0] = '\0';
                 }
             } else {
-                printf("key[%s] is wrong\n", pairs[i].key);
+                LOGD("key[%s] is wrong\n", pairs[i].key);
                 sprintf(temp, "key[%s] is wrong\n", pairs[i].key);
                 strcat(content, temp);
                 temp[0] = '\0';
             }
         }
 
-        free(pairs[i].key);
-        free(pairs[i].value);
+        // free(pairs[i].key);
+        // free(pairs[i].value);
     }
 
-    free(pairs);
+    // free_query_string_pairs(pairs, pairs_num);
+    // free(pairs);
+
+    return 0;
 }
 
 /**
@@ -442,15 +486,15 @@ int send_html_response(int client_socket, const char* file_path) {
     int   content_length;
     char* html_content = read_html_file(file_path, &content_length);
     if (html_content == NULL) {
-        printf("Failed to read HTML file.\n");
+        LOGE("Failed to read HTML file.\n");
         return -1;
     }
 
     char response[MAX_RESPONSE_SIZE];
     snprintf(response, sizeof(response), RESPONSE_TEMPLATE, "html", content_length, html_content);
 
-    // printf("content_length: %d\n", content_length);
-    // printf("response: %s\n", response);
+    // LOGD("content_length: %d\n", content_length);
+    // LOGD("response: %s\n", response);
 
     if (send(client_socket, response, strlen(response), 0) < 0) {
         perror("send");
@@ -469,8 +513,8 @@ int send_plain_response(int client_socket, const char* content) {
     sprintf(response, RESPONSE_TEMPLATE, "plain", content_length, content);
 
 #if DEBUG_HTTP
-    printf("content_length: %d\n", content_length);
-    printf("response:\n%s\n", response);
+    LOGD("content_length: %d\n", content_length);
+    LOGD("response:\n%s\n", response);
 #endif
 
     if (send(client_socket, response, strlen(response), 0) < 0) {
@@ -489,7 +533,7 @@ void get_device_info(char* device_info_content) {
     device_info.stream_state = LOTO_COVER_GetCoverState();
 
     char running_time[32] = {0};
-    FormatTime(device_info.running_time, running_time);
+    format_time(device_info.running_time, running_time);
 
     char temp[1024] = {0};
 
@@ -559,10 +603,12 @@ void get_device_info(char* device_info_content) {
     // write_html_file(device_info_html, DEVICE_FILE_PATH);
 }
 
-void* accept_request(void* pclient) {
+// void* accept_request(void* pclient) {
+int accept_request(int client) {
+    // int client = *(int*)pclient;
+
     int  numchars;
     char buf[1024] = {0};
-    int  client    = *(int*)pclient;
 
     char method[256]       = {0};
     char url[256]          = {0};
@@ -573,57 +619,70 @@ void* accept_request(void* pclient) {
     // 获取一行HTTP请求报文
     numchars = get_request_line(client, buf, sizeof(buf));
 
-    printf("request_line: %s\n", buf);
+    LOGD("request_line: %s\n", buf);
 
     parse_request_line(buf, numchars, method, url, version);
 
     // 暂时只支持get方法
-    if (strcasecmp(method, "GET")) {
-        unimplemented(client);
-        return NULL;
-    }
+    // if (strcasecmp(method, "GET")) {
+    //     unimplemented(client);
+    //     return -1;
+    // }
 
     // 如果是 get 方法，path 可能带 ？参数
     if (strcasecmp(method, "GET") == 0) {
         parse_path_with_params(url, path, query_string);
+    } else {
+        unimplemented(client);
+        return -1;
     }
     // 以上将 request_line 解析完毕
 
     if (strcasecmp(path, "/hello") == 0) {
-        char content[32] = "Hello world!\r\n";
-        if (send_plain_response(client, content) != 0)
-            printf("send error\n");
+        char hello_content[32] = "Hello world!\r\n";
+        if (send_plain_response(client, hello_content) != 0) {
+            LOGE("send error\n");
+            return -1;
+        }
         // } else if (strcasecmp(path, "/html") == 0) {
         //     if (send_html_response(client, HTML_FILE_PATH) != 0)
-        //         printf("send error\n");
+        //         LOGE("send error\n");
     } else if (strcasecmp(path, "/set_params") == 0) {
         char content[1024] = {0};
         deal_query_string(query_string, content);
-        send_plain_response(client, content);
+        if (send_plain_response(client, content) != 0) {
+            LOGE("send error\n");
+            return -1;
+        }
     } else if (strcasecmp(path, "/home") == 0) {
         char device_info_content[4096] = {0};
         get_device_info(device_info_content);
 #if DEBUG_HTTP
-        printf("device_info_content:\n%s\n", device_info_content);
+        LOGD("device_info_content:\n%s\n", device_info_content);
 #endif
-        if (send_plain_response(client, device_info_content) != 0)
-            printf("send error\n");
+        if (send_plain_response(client, device_info_content) != 0) {
+            LOGE("send device_info error\n");
+            return -1;
+        }
     } else if (strcmp(path, "/") == 0) {
         char device_info_content[4096] = {0};
         get_device_info(device_info_content);
 
 #if DEBUG_HTTP
-        printf("device_info_content:\n %s\n", device_info_content);
+        LOGD("device_info_content:\n %s\n", device_info_content);
 #endif
-        if (send_plain_response(client, device_info_content) != 0)
-            printf("send error\n");
+        if (send_plain_response(client, device_info_content) != 0) {
+            LOGE("send device_info error\n");
+            return -1;
+        }
     } else {
         not_found(client);
     }
 
-    close(client);
-    // printf("HTTP client disconnected.\n");
-    return NULL;
+    // close(client);
+    // pthread_detach(pthread_self());
+
+    return 0;
 }
 
 // socket initial: socket() ---> bind() ---> listen()
@@ -658,34 +717,38 @@ int startup(uint16_t* port) {
         close(httpd);
         error_die("listen");
     }
+
     return (httpd);
 }
 
-int http_server() {
+void* http_server(void* arg) {
     LOGI("====== Start HTTP server ======\n");
     int                server_sock = -1;
     uint16_t           port        = 80; // 监听端口号
     int                client_sock = -1;
     struct sockaddr_in client_name;
     socklen_t          client_name_len = sizeof(client_name);
-    pthread_t          newthread;
+    pthread_t          new_thread;
 
     server_sock = startup(&port); // 服务器端监听套接字设置
-    LOGI("httpd running on port %d\n", port);
+    LOGI("http running on port %d\n", port);
 
     while (1) {
         client_sock = accept(server_sock, (struct sockaddr*)&client_name, &client_name_len);
         if (client_sock == -1) {
             error_die("accept");
         } else {
-            // printf("HTTP client connected.\n");
+            // LOGI("HTTP client connected.\n");
         }
 
         /* accept_request(client_sock); */
-        if (pthread_create(&newthread, NULL, accept_request, (void*)&client_sock) != 0)
-            perror("accept_request");
+        // if (pthread_create(&new_thread, NULL, accept_request, (void*)&client_sock) != 0)
+        //     perror("accept_request");
+        // usleep(10);
 
-        usleep(10);
+        accept_request(client_sock);
+        close(client_sock);
+        // LOGI("HTTP client disconnected.\n");
     }
 
     close(server_sock);
