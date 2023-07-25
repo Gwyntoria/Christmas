@@ -184,19 +184,11 @@ void cat(int client, FILE* resource) {
 void bad_request(int client) {
     char buf[1024] = {0};
 
-    sprintf(buf, "HTTP/1.1 400 BAD REQUEST\r\n");
-    send(client, buf, sizeof(buf), 0);
-
-    sprintf(buf, "Content-type: text/html\r\n");
-    send(client, buf, sizeof(buf), 0);
-
-    sprintf(buf, "\r\n");
-    send(client, buf, sizeof(buf), 0);
-
-    sprintf(buf, "<P>Your browser sent a bad request, ");
-    send(client, buf, sizeof(buf), 0);
-
-    sprintf(buf, "such as a POST without a Content-Length.\r\n");
+    strcat(buf, "HTTP/1.1 400 BAD REQUEST\r\n");
+    strcat(buf, "Content-type: text/plain\r\n");
+    strcat(buf, "\r\n");
+    strcat(buf, "Your browser sent a bad request, ");
+    strcat(buf, "such as a POST without a Content-Length.\r\n");
     send(client, buf, sizeof(buf), 0);
 }
 
@@ -349,7 +341,8 @@ void free_query_string_pairs(KeyValuePair* pairs, int pairs_num) {
 }
 
 int deal_query_string(const char* query_string, char* content) {
-    int pairs_num;
+    int ret       = 0;
+    int pairs_num = 0;
 
     // KeyValuePair* pairs = NULL;
     // pairs = parse_query_string(query_string, &pairs_num);
@@ -373,11 +366,15 @@ int deal_query_string(const char* query_string, char* content) {
             if (strcasecmp(pairs[i].key, "cover") == 0) {
                 if (strcmp(pairs[i].value, "1") == 0) {
                     LOTO_COVER_Switch(COVER_ON);
+                    PutConfigKeyValue("push", "video_state", "off", PUSH_CONFIG_FILE_PATH);
+
                     sprintf(temp, "Add cover\n");
                     strcat(content, temp);
                     temp[0] = '\0';
                 } else if (strcmp(pairs[i].value, "0") == 0) {
                     LOTO_COVER_Switch(COVER_OFF);
+                    PutConfigKeyValue("push", "video_state", "on", PUSH_CONFIG_FILE_PATH);
+
                     sprintf(temp, "Remove cover\n");
                     strcat(content, temp);
                     temp[0] = '\0';
@@ -386,9 +383,11 @@ int deal_query_string(const char* query_string, char* content) {
                     sprintf(temp, "value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
                     strcat(content, temp);
                     temp[0] = '\0';
+                    ret--;
                 }
             } else if (strcasecmp(pairs[i].key, "server_url") == 0) {
                 PutConfigKeyValue("push", "server_url", pairs[i].value, PUSH_CONFIG_FILE_PATH);
+
                 sprintf(temp, "Set server_url OK\n");
                 strcat(content, temp);
                 temp[0] = '\0';
@@ -397,17 +396,12 @@ int deal_query_string(const char* query_string, char* content) {
                 sprintf(temp, "key[%s] is wrong\n", pairs[i].key);
                 strcat(content, temp);
                 temp[0] = '\0';
+                ret--;
             }
         }
-
-        // free(pairs[i].key);
-        // free(pairs[i].value);
     }
 
-    // free_query_string_pairs(pairs, pairs_num);
-    // free(pairs);
-
-    return 0;
+    return ret;
 }
 
 /**
@@ -652,12 +646,17 @@ int accept_request(int client) {
     } else if (strcasecmp(path, "/set_params") == 0) {
         char content[1024] = {0};
 
-        deal_query_string(query_string, content);
+        if (deal_query_string(query_string, content) < 0) {
+            bad_request(client);
+            LOGE("query_string error\n");
+            return -1;
+        }
 
         if (send_plain_response(client, content) != 0) {
             LOGE("send error\n");
             return -1;
         }
+
     } else if (strcasecmp(path, "/home") == 0) {
         char device_info_content[4096] = {0};
         get_device_info(device_info_content);

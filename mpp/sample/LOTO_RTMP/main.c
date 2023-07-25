@@ -389,7 +389,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 42
+#define VER_BUILD 43
 
 int main(int argc, char* argv[]) {
     int        s32Ret             = 0;
