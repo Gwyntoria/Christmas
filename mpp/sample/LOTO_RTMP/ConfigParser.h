@@ -19,7 +19,7 @@ extern "C" {
 /**
  * @brief delete a character from a string
  */
-void delete_char(char str[], char target);
+void DeleteChar(char str[], char target);
 
 /**
  * @brief Get the Ini Key String object
@@ -30,7 +30,7 @@ void delete_char(char str[], char target);
  * @return char* If the value to be queried is found, the correct result will be returned; 
  *               Otherwise, NULL will be returned
  */
-char *GetIniKeyString(const char *title, const char *key, const char *filename);
+char *GetConfigKeyValue(const char *title, const char *key, const char *filename);
 
 /**
  * @brief Get the Ini Key String object
@@ -51,7 +51,7 @@ int GetIniKeyInt(char *title ,char *key, char *filename);
  * @param filename 要读取的文件路径
  * @return int 0: success, -1: failure
  */
-int PutIniKeyString(const char *title, const char *key, const char *val, const char *filename);
+int PutConfigKeyValue(const char *title, const char *key, const char *val, const char *filename);
 
 /**
  * @brief 

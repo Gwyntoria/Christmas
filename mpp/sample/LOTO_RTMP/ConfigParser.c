@@ -15,29 +15,36 @@
 #include <stdlib.h>
 #include <string.h>
 
-void delete_char(char str[], char target)
-{
+#define MAX_LINE_LENGTH  1024
+#define MAX_TITLE_LENGTH 32
+
+typedef enum ErrorCodes {
+    SUCCESS = 0,
+    FILE_OPEN_ERROR,
+    FILE_WRITE_ERROR,
+    INVALID_ARGUMENTS,
+    TITLE_NOT_FOUND
+} ErrorCodes;
+
+void DeleteChar(char str[], char target) {
     int i, j;
-    for (i = j = 0; str[i] != '\0'; i++)
-    {
-        if (str[i] != target)
-        {
+    for (i = j = 0; str[i] != '\0'; i++) {
+        if (str[i] != target) {
             str[j++] = str[i];
         }
     }
     str[j] = '\0';
 }
 
-char *GetIniKeyString(const char *title, const char *key, const char *filename)
-{
-    FILE *fp;
-    int title_state = 0;
-    char sTitle[32], *value;
+char* GetConfigKeyValue(const char* title, const char* key, const char* filename) {
+    FILE*       fp;
+    int         title_state = 0;
+    char        sTitle[32], *value;
     static char line[1024];
 
     sprintf(sTitle, "[%s]", title);
     // printf("sTitle = %s\n", sTitle);
-    
+
     if (NULL == (fp = fopen(filename, "r"))) {
         perror("fopen");
         return "NULL";
@@ -61,7 +68,7 @@ char *GetIniKeyString(const char *title, const char *key, const char *filename)
             value = strchr(line, '=');
             if (value != NULL && (strncmp(key, line, value - line) == 0)) {
                 // 0b1010 refers to '\n'
-                if (line[strlen(line) - 1] == 0b1010) { 
+                if (line[strlen(line) - 1] == 0b1010) {
                     line[strlen(line) - 1] = '\0';
                 } else if (line[strlen(line) - 1] > 0b00011111) {
                     line[strlen(line)] = '\0';
@@ -76,66 +83,72 @@ char *GetIniKeyString(const char *title, const char *key, const char *filename)
     exit(1);
 }
 
-int GetIniKeyInt(char *title, char *key, char *filename)
-{
-    return atoi(GetIniKeyString(title, key, filename));
-}
+int GetIniKeyInt(char* title, char* key, char* filename) { return atoi(GetConfigKeyValue(title, key, filename)); }
 
-int PutIniKeyString(const char *title, const char *key, const char *val, const char *filename)
-{
-    FILE *fpr, *fpw;
-    int title_state = 0;
-    char line[1024], sTitle[32], *value;
-
-    sprintf(sTitle, "[%s]", title);
-    if (NULL == (fpr = fopen(filename, "r")))
-        printf("fopen"); // 读取原文件
-    sprintf(line, "%s.tmp", filename);
-    if (NULL == (fpw = fopen(line, "w")))
-        printf("fopen"); // 写入临时文件
-
-    if (fpr == NULL)
-    {
-        fputs(sTitle, fpw); // 写入临时文件
-        sprintf(line, "\n%s=%s\n", key, val);
-        fputs(line, fpw);
+int PutConfigKeyValue(const char* title, const char* key, const char* val, const char* filename) {
+    if (!title || !key || !val || !filename) {
+        return INVALID_ARGUMENTS;
     }
-    else
-    {
-        while (NULL != fgets(line, 1024, fpr))
-        {
-            if (2 != title_state)
-            { // 如果找到要修改的那一行，则不会执行内部的操作
-                value = strchr(line, '=');
-                if ((NULL != value) && (1 == title_state))
-                {
-                    if (0 == strncmp(key, line, value - line))
-                    {             // 长度依文件读取的为准
-                        title_state = 2; // 更改值，方便写入文件
-                        sprintf(value + 1, "%s\n", val);
-                    }
+
+    FILE *fpr, *fpw;
+    int   title_state = 0; // 0 - 未找到，1 - 找到但未修改，2 - 找到并已修改
+    char  line[MAX_LINE_LENGTH], sTitle[MAX_TITLE_LENGTH];
+    snprintf(sTitle, sizeof(sTitle), "[%s]", title);
+
+    fpr = fopen(filename, "r");
+    if (fpr == NULL) {
+        perror("无法打开文件进行读取");
+        return FILE_OPEN_ERROR;
+    }
+
+    char tmp_filename[MAX_LINE_LENGTH];
+    snprintf(tmp_filename, sizeof(tmp_filename), "%s.tmp", filename);
+    fpw = fopen(tmp_filename, "w");
+    if (fpw == NULL) {
+        fclose(fpr);
+        perror("无法打开文件进行写入");
+        return FILE_WRITE_ERROR;
+    }
+
+    while (fgets(line, sizeof(line), fpr) != NULL) {
+        if (title_state != 2) { // 如果不是已修改的状态，进入匹配查询
+            char* value = strchr(line, '=');
+            if (value != NULL && title_state == 1) {
+                if (strncmp(key, line, value - line) == 0) {
+                    title_state = 2;
+                    fprintf(fpw, "%s=%s\n", key, val);
+                    continue;
                 }
-                else
-                {
-                    if (0 == strncmp(sTitle, line, strlen(sTitle)))
-                    {             // 长度依文件读取的为准
-                        title_state = 1; // 找到标题位置
-                    }
+            } else {
+                if (strncmp(sTitle, line, strlen(sTitle)) == 0) {
+                    title_state = 1; // 找到 title
                 }
             }
-            fputs(line, fpw); // 写入临时文件
         }
-        fclose(fpr);
+        
+        // 将读取到的不需要修改的行写入临时文件
+        fputs(line, fpw);
     }
 
+    if (title_state != 2) {
+        // 添加新的 title 和 键值对 到临时文件中
+        fputs(sTitle, fpw);
+        fprintf(fpw, "\n%s=%s\n", key, val);
+    }
+
+    fclose(fpr);
     fclose(fpw);
 
-    sprintf(line, "%s.tmp", filename);
-    return rename(line, filename); // 将临时文件更新到原文件
+    if (rename(tmp_filename, filename) != 0) {
+        perror("重命名临时文件出错");
+        return FILE_WRITE_ERROR;
+    }
+
+    return SUCCESS;
 }
 
 /*
- * 函数名：         PutIniKeyString
+ * 函数名：         PutConfigKeyValue
  * 入口参数：        title
  *                      配置文件中一组数据的标识
  *                  key
@@ -147,9 +160,8 @@ int PutIniKeyString(const char *title, const char *key, const char *val, const c
  * 返回值：         成功返回  0
  *                  否则返回 -1
  */
-int PutIniKeyInt(char *title, char *key, int val, char *filename)
-{
+int PutIniKeyInt(char* title, char* key, int val, char* filename) {
     char sVal[32];
     sprintf(sVal, "%d", val);
-    return PutIniKeyString(title, key, sVal, filename);
+    return PutConfigKeyValue(title, key, sVal, filename);
 }

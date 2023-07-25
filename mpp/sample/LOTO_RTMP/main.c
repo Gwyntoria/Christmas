@@ -226,13 +226,13 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
 void parse_config_file(const char* config_file_path) {
     /* Get default push_url */
-    strcpy(gs_push_url_buf, GetIniKeyString("push", "push_url", config_file_path));
+    strcpy(gs_push_url_buf, GetConfigKeyValue("push", "push_url", config_file_path));
 
     /* If push address should be requested, server address must be set first */
-    if (strncmp("on", GetIniKeyString("push", "requested_url", config_file_path), 2) == 0) {
+    if (strncmp("on", GetConfigKeyValue("push", "requested_url", config_file_path), 2) == 0) {
         /* Get server token */
         char server_token[1024] = {0};
-        strcpy(server_token, GetIniKeyString("push", "server_token", config_file_path));
+        strcpy(server_token, GetConfigKeyValue("push", "server_token", config_file_path));
         // LOGD("server_token = %s\n", server_token);
 
         /* Get server url */
@@ -248,12 +248,12 @@ void parse_config_file(const char* config_file_path) {
         // }
 
         // if (gs_server_option == SERVER_TEST) {
-        //     strcpy(server_url, GetIniKeyString("push", "test_server_url", config_file_path));
+        //     strcpy(server_url, GetConfigKeyValue("push", "test_server_url", config_file_path));
         // } else if (gs_server_option == SERVER_OFFI) {
-        //     strcpy(server_url, GetIniKeyString("push", "offi_server_url", config_file_path));
+        //     strcpy(server_url, GetConfigKeyValue("push", "offi_server_url", config_file_path));
         // }
 
-        strcpy(server_url, GetIniKeyString("push", "server_url", config_file_path));
+        strcpy(server_url, GetConfigKeyValue("push", "server_url", config_file_path));
         strcpy(device_info.server_url, server_url);
 
         LOGI("server_url = %s\n", server_url);
@@ -270,7 +270,7 @@ void parse_config_file(const char* config_file_path) {
     LOGI("push_url = %s\n", gs_push_url_buf);
 
     /* resolution */
-    char* resolution = GetIniKeyString("push", "resolution", config_file_path);
+    char* resolution = GetConfigKeyValue("push", "resolution", config_file_path);
     if (0 == strncmp("1080", resolution, 4)) {
         g_resolution = PIC_1080P;
     } else if (0 == strncmp("1944", resolution, 4)) {
@@ -283,18 +283,18 @@ void parse_config_file(const char* config_file_path) {
     LOGI("resolution = %s\n", resolution);
 
     /* device num */
-    strncpy(g_device_num, GetIniKeyString("device", "device_num", config_file_path), 3);
+    strncpy(g_device_num, GetConfigKeyValue("device", "device_num", config_file_path), 3);
     strcpy(device_info.device_num, g_device_num);
     LOGI("device_num = %s\n", g_device_num);
 
-    const char* video_encoder = GetIniKeyString("push", "video_encoder", config_file_path);
+    const char* video_encoder = GetConfigKeyValue("push", "video_encoder", config_file_path);
     LOGI("video_encoder = %s\n", video_encoder);
 
     if (strncmp("h264", video_encoder, 4) == 0) {
         /* video encoder */
         g_payload = PT_H264;
 
-        char* video_encoder_profile = GetIniKeyString("h264", "profile", config_file_path);
+        char* video_encoder_profile = GetConfigKeyValue("h264", "profile", config_file_path);
 
         /* profile */
         if (strncmp("baseline", video_encoder_profile, 8) == 0) {
@@ -311,7 +311,7 @@ void parse_config_file(const char* config_file_path) {
         /* video encoder */
         g_payload = PT_H265;
 
-        char* video_encoder_profile = GetIniKeyString("h265", "profile", config_file_path);
+        char* video_encoder_profile = GetConfigKeyValue("h265", "profile", config_file_path);
 
         /* profile */
         if (strncmp("main", video_encoder_profile, 4) == 0) {
@@ -325,7 +325,7 @@ void parse_config_file(const char* config_file_path) {
     }
 
     /* audio_state */
-    char* audio_state = GetIniKeyString("push", "audio_state", config_file_path);
+    char* audio_state = GetConfigKeyValue("push", "audio_state", config_file_path);
     strcpy(device_info.audio_state, audio_state);
     if (strncmp("off", audio_state, 3) == 0) {
         gs_audio_state = FALSE;
@@ -333,7 +333,7 @@ void parse_config_file(const char* config_file_path) {
         gs_audio_state = TRUE;
 
         /* audio_encoder */
-        const char* audio_encoder = GetIniKeyString("push", "audio_encoder", config_file_path);
+        const char* audio_encoder = GetConfigKeyValue("push", "audio_encoder", config_file_path);
         LOGI("audio_encoder = %s\n", audio_encoder);
 
         if (strncmp("aac", audio_encoder, 3) == 0) {
@@ -387,8 +387,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 39
-#define VER_EXTEN 3 // 1: debug; 2: test; 3: release;
+#define VER_BUILD 40
 
 int main(int argc, char* argv[]) {
     int  s32Ret;
@@ -412,7 +411,7 @@ int main(int argc, char* argv[]) {
     program_start_time = time(NULL);
     strcpy(device_info.start_time, GetTimestampString());
 
-    sprintf(BIN_VERSION, "%d.%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD, VER_EXTEN);
+    sprintf(BIN_VERSION, "%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD);
     strcpy(device_info.app_version, BIN_VERSION);
     LOGI("RTMP App Version: %s\n", BIN_VERSION);
 

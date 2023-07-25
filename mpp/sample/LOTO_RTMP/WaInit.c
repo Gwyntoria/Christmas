@@ -258,7 +258,7 @@ loto_room_info* loto_room_init(const char* server_url, const char* server_token)
         // char szServerToken[256] = "dadq0(~@E#Q)DSD12E1@_2{[QWE]2125+_a)E_QISDJ8NC8281@njfsGj";
         strcpy(szServerToken, server_token);
 
-        // char* pszServerToken = GetIniKeyString((char*)"server", (char*)"token", (char*)"/home/pi/wawaji/WaController/server.ini");
+        // char* pszServerToken = GetConfigKeyValue((char*)"server", (char*)"token", (char*)"/home/pi/wawaji/WaController/server.ini");
         // if (pszServerToken != NULL)
         // strcpy(szServerToken, pszServerToken);
 
