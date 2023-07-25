@@ -21,8 +21,7 @@ extern "C" {
 #include <sys/time.h>
 
 /* LOG system */
-#define LOG_LEVEL 0x0f
-
+#define LOG_LEVEL     0x0f
 #define LOG_LVL_ERROR 0x01
 #define LOG_LVL_WARN  0x02
 #define LOG_LVL_INFO  0x04

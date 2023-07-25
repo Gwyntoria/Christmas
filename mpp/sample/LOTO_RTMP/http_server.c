@@ -14,6 +14,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "ConfigParser.h"
 #include "common.h"
 #include "loto_controller.h"
 #include "loto_cover.h"
@@ -387,19 +388,10 @@ int deal_query_string(const char* query_string, char* content) {
                     temp[0] = '\0';
                 }
             } else if (strcasecmp(pairs[i].key, "server_url") == 0) {
-                if (strcmp(pairs[i].value, "1") == 0) {
-                    // TODO 保存正式服的请求地址
-                    
-                    sprintf(temp, "Set server_offi successfully\n");
-                    strcat(content, temp);
-                    temp[0] = '\0';
-                } else if (strcmp(pairs[i].value, "0") == 0) {
-                    // TODO 保存测试服的请求地址
-
-                    sprintf(temp, "Set server_test successfully\n");
-                    strcat(content, temp);
-                    temp[0] = '\0';
-                }
+                PutConfigKeyValue("push", "server_url", pairs[i].value, PUSH_CONFIG_FILE_PATH);
+                sprintf(temp, "Set server_url OK\n");
+                strcat(content, temp);
+                temp[0] = '\0';
             } else {
                 LOGD("key[%s] is wrong\n", pairs[i].key);
                 sprintf(temp, "key[%s] is wrong\n", pairs[i].key);
@@ -620,11 +612,11 @@ int accept_request(int client) {
     int  numchars;
     char buf[1024] = {0};
 
-    char method[256]       = {0};
-    char url[256]          = {0};
-    char version[256]      = {0};
-    char path[256]         = {0};
-    char query_string[256] = {0};
+    char method[256]        = {0};
+    char url[256]           = {0};
+    char version[256]       = {0};
+    char path[256]          = {0};
+    char query_string[1024] = {0};
 
     // 获取一行HTTP请求报文
     numchars = get_request_line(client, buf, sizeof(buf));

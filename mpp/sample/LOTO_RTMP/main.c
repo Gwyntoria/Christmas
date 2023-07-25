@@ -389,11 +389,11 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 41
+#define VER_BUILD 42
 
 int main(int argc, char* argv[]) {
-    int  s32Ret;
-    char config_file_path[] = "/root/push.conf";
+    int        s32Ret             = 0;
+    const char config_file_path[] = PUSH_CONFIG_FILE_PATH;
 
     /* Initialize avctl_log file */
     s32Ret = InitAvctlLogFile();

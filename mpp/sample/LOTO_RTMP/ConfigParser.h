@@ -12,6 +12,8 @@
 #ifndef CONFIG_PARSER_H
 #define CONFIG_PARSER_H
 
+#define PUSH_CONFIG_FILE_PATH "/root/push.conf"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

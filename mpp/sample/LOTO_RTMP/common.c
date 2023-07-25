@@ -36,6 +36,7 @@
 #define LOG_RTMP_FILE  "rtmp_log"
 #define MAX_FILE_SIZE  (5 * 1024 * 1024)
 #define MAX_FILE_COUNT 5
+
 static FILE*           log_handle = NULL;
 static pthread_mutex_t _vLogMutex;
 
