@@ -544,7 +544,7 @@ extern DeviceInfo device_info;
 void get_device_info(char* device_info_content) {
     device_info.running_time = time(NULL) - program_start_time;
     strcpy(device_info.current_time, GetTimestampString());
-    device_info.stream_state = LOTO_COVER_GetCoverState();
+    device_info.video_state = LOTO_COVER_GetCoverState();
 
     char running_time[32] = {0};
     format_time(device_info.running_time, running_time);
@@ -553,65 +553,61 @@ void get_device_info(char* device_info_content) {
 
     sprintf(temp, "device_num:      %s\r\n", device_info.device_num);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "app_version:     %s\r\n", device_info.app_version);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
-    if (device_info.stream_state == COVER_OFF) {
-        sprintf(temp, "stream_state:    on\r\n");
+    sprintf(temp, "vedio_encoder:   %s\r\n", device_info.video_encoder);
+    strcat(device_info_content, temp);
+    temp[0] = '\0';
+
+    if (device_info.video_state == COVER_OFF) {
+        sprintf(temp, "video_state:     on\r\n");
         strcat(device_info_content, temp);
-        // memset(temp, 0, sizeof(temp));
         temp[0] = '\0';
 
     } else {
-        sprintf(temp, "stream_state:    off\r\n");
+        sprintf(temp, "video_state:     off\r\n");
         strcat(device_info_content, temp);
-        // memset(temp, 0, sizeof(temp));
         temp[0] = '\0';
     }
 
+    sprintf(temp, "audio_encoder:   %s\r\n", device_info.audio_encoder);
+    strcat(device_info_content, temp);
+    temp[0] = '\0';
+
     sprintf(temp, "audio_state:     %s\r\n", device_info.audio_state);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "ip_addr:         %s\r\n", device_info.ip_addr);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "mac_addr:        %s\r\n", device_info.mac_addr);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "start_time:      %s\r\n", device_info.start_time);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "current_time:    %s\r\n", device_info.current_time);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "running_time:    %s\r\n", running_time);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "push_url:        %s\r\n", device_info.push_url);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     sprintf(temp, "server_url:      %s\r\n", device_info.server_url);
     strcat(device_info_content, temp);
-    // memset(temp, 0, sizeof(temp));
     temp[0] = '\0';
 
     // write_html_file(device_info_html, DEVICE_FILE_PATH);

@@ -288,6 +288,7 @@ void parse_config_file(const char* config_file_path) {
     LOGI("device_num = %s\n", g_device_num);
 
     const char* video_encoder = GetConfigKeyValue("push", "video_encoder", config_file_path);
+    strcpy(device_info.video_encoder, video_encoder);
     LOGI("video_encoder = %s\n", video_encoder);
 
     if (strncmp("h264", video_encoder, 4) == 0) {
@@ -334,6 +335,7 @@ void parse_config_file(const char* config_file_path) {
 
         /* audio_encoder */
         const char* audio_encoder = GetConfigKeyValue("push", "audio_encoder", config_file_path);
+        strcpy(device_info.audio_encoder, audio_encoder);
         LOGI("audio_encoder = %s\n", audio_encoder);
 
         if (strncmp("aac", audio_encoder, 3) == 0) {
@@ -387,7 +389,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 40
+#define VER_BUILD 41
 
 int main(int argc, char* argv[]) {
     int  s32Ret;

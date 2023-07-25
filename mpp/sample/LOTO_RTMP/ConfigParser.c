@@ -38,16 +38,17 @@ void DeleteChar(char str[], char target) {
 
 char* GetConfigKeyValue(const char* title, const char* key, const char* filename) {
     FILE*       fp;
-    int         title_state = 0;
-    char        sTitle[32], *value;
-    static char line[1024];
+    int         title_state              = 0;
+    char        sTitle[MAX_TITLE_LENGTH] = {0};
+    static char line[MAX_LINE_LENGTH]    = {0}; // 函数的返回的字符串的内存不会被自动释放
+    char*       value                    = NULL;
 
     sprintf(sTitle, "[%s]", title);
     // printf("sTitle = %s\n", sTitle);
 
     if (NULL == (fp = fopen(filename, "r"))) {
         perror("fopen");
-        return "NULL";
+        return NULL;
     }
 
     while (NULL != fgets(line, 1024, fp)) {
@@ -125,7 +126,7 @@ int PutConfigKeyValue(const char* title, const char* key, const char* val, const
                 }
             }
         }
-        
+
         // 将读取到的不需要修改的行写入临时文件
         fputs(line, fpw);
     }
