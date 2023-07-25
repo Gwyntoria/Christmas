@@ -12,7 +12,6 @@
 - `VER_MAJOR`: Major version, When significant changes are made, the major version number will increase.
 - `VER_MINOR`: Minor version. Used to identify minor updates or new features, usually added while maintaining backward compatibility.
 - `VER_BUILD`: Build number. Used to identify each build or compilation generation of software or projects. Build numbers are generally used for version control or differentiation during release.
-- `VER_EXTEN`: Extension number. For this application, after v1.4.6.8, it refers to SDK version(1: spc010; 2: spc020), after v1.7, it refers to purpose of binary file(1: debug; 2: test; 3: release)
 
 ## Dependency
 
