@@ -162,6 +162,8 @@ typedef struct DeviceInfo {
     char   server_url[1024];
     char   video_encoder[8];
     char   audio_encoder[8];
+    int    used_ram;
+    int    free_ram
 } DeviceInfo;
 
 /**
@@ -233,7 +235,7 @@ void reboot_system();
 
 void format_time(time_t time, char* formattedTime);
 
-char* my_strchr(const char* str, int ch);
+int get_sys_load(int* used_ram, int* free_ram);
 
 #ifdef __cplusplus
 }

@@ -531,6 +531,7 @@ void get_device_info(char* device_info_content) {
     device_info.running_time = time(NULL) - program_start_time;
     strcpy(device_info.current_time, GetTimestampString());
     device_info.video_state = LOTO_COVER_GetCoverState();
+    get_sys_load(&device_info.used_ram, &device_info.free_ram);
 
     char running_time[32] = {0};
     format_time(device_info.running_time, running_time);
@@ -538,6 +539,18 @@ void get_device_info(char* device_info_content) {
     char temp[1024] = {0};
 
     sprintf(temp, "device_num:      %s\r\n", device_info.device_num);
+    strcat(device_info_content, temp);
+    temp[0] = '\0';
+
+    sprintf(temp, "ip_addr:         %s\r\n", device_info.ip_addr);
+    strcat(device_info_content, temp);
+    temp[0] = '\0';
+
+    sprintf(temp, "mac_addr:        %s\r\n", device_info.mac_addr);
+    strcat(device_info_content, temp);
+    temp[0] = '\0';
+
+    sprintf(temp, "memory:          %dK used, %dK free\r\n", device_info.used_ram, device_info.free_ram);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
@@ -565,14 +578,6 @@ void get_device_info(char* device_info_content) {
     temp[0] = '\0';
 
     sprintf(temp, "audio_state:     %s\r\n", device_info.audio_state);
-    strcat(device_info_content, temp);
-    temp[0] = '\0';
-
-    sprintf(temp, "ip_addr:         %s\r\n", device_info.ip_addr);
-    strcat(device_info_content, temp);
-    temp[0] = '\0';
-
-    sprintf(temp, "mac_addr:        %s\r\n", device_info.mac_addr);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 

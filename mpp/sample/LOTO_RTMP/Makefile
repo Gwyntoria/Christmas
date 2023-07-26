@@ -1,6 +1,6 @@
 VER_MAJOR:=1
 VER_MINOR:=7
-VER_BUILD:=40
+VER_BUILD:=44
 BIN_VERSION:=$(VER_MAJOR).$(VER_MINOR).$(VER_BUILD)
 RELEASE_VERSION:=$(VER_MAJOR).$(VER_MINOR)
 
@@ -91,11 +91,11 @@ $(TARGET):$(C_OBJS) $(CPP_OBJS)
 
 release:
 	@mkdir -p ./bin
-	@cp $(TARGET) ./bin/$(TARGET)-$(RELEASE_VERSION)
+	@cp $(TARGET) ./bin/$(TARGET)-$(BIN_VERSION)
 	@cp $(TARGET) ../../../rtmp_pack/kit/root/$(TARGET)
 
 delete_release:
-	@rm -f ./bin/$(TARGET)-$(RELEASE_VERSION)
+	@rm -f ./bin/$(TARGET)-$(BIN_VERSION)
 
 clean:
 	@rm -f $(TARGET)

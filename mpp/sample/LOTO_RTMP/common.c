@@ -25,6 +25,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/sysinfo.h>
 #include <sys/time.h>
 #include <sys/timeb.h>
 #include <sys/types.h>
@@ -680,4 +681,18 @@ int get_local_mac_address(char* macAddress) {
 
 void format_time(time_t time, char* formattedTime) {
     sprintf(formattedTime, "%02dh-%02dm-%02ds", time / 3600, (time % 3600) / 60, time % 60);
+}
+
+int get_sys_load(int* used_ram, int* free_ram) {
+    struct sysinfo info = {0};
+
+    if (sysinfo(&info) == -1) {
+        perror("sysinfo");
+        return -1;
+    }
+
+    *used_ram = (info.totalram - info.freeram) / 1024;
+    *free_ram = info.freeram / 1024;
+
+    return 0;
 }
