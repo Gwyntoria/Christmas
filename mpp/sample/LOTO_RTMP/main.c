@@ -97,12 +97,12 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
     HI_S32 s32Ret;
 
-    // uint32_t start_time = 0;
     uint64_t a_time_count     = 0;
-    uint64_t v_time_count     = 0;
     uint64_t a_time_count_pre = 0;
+    uint64_t a_start_time     = 0;
+    uint64_t v_time_count     = 0;
     uint64_t v_time_count_pre = 0;
-    uint64_t start_time       = 0;
+    uint64_t v_start_time     = 0;
     uint64_t cur_time         = 0;
 
     struct ringbuf v_ringinfo;
@@ -110,9 +110,6 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
     struct ringbuf a_ringinfo;
     int            a_ring_buf_len = 0;
-
-    // const char *url = (const char *)p;
-    // void *prtmp = rtmp_sender_alloc(url);
 
     RtmpThrArg* rtmp_attr = (RtmpThrArg*)p;
     char*       url       = (char*)rtmp_attr->url;
@@ -144,20 +141,17 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
             }
         }
 
-        // cur_time = RTMP_GetTime();          // get current time(ms)
-        // cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
-
         if (gs_audio_state == TRUE) {
             /* send audio frame */
             a_ring_buf_len = ringget_audio(&a_ringinfo);
             if (a_ring_buf_len != 0) {
                 cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-                if (start_time == 0) {
-                    start_time = cur_time;
+                if (a_time_count == 0) {
+                    a_time_count = cur_time;
                 }
 
-                a_time_count = cur_time - start_time;
+                a_time_count = cur_time - a_time_count;
 
                 if (a_time_count < a_time_count_pre) {
                     a_time_count += 10;
@@ -167,6 +161,7 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
                 // LOGD("a_time_count = %llu, cur_time = %llu, start_time = %llu\n", a_time_count, cur_time,
                 // start_time); LOGD("audio_frame_size = %d bytes!\n", a_ringinfo.size);
+
                 if (prtmp != NULL) {
                     if (gs_audio_encoder = AUDIO_ENCODER_AAC) {
                         s32Ret
@@ -187,11 +182,11 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
         if (v_ring_buf_len != 0) {
             cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-            if (start_time == 0) {
-                start_time = cur_time;
+            if (v_start_time == 0) {
+                v_start_time = cur_time;
             }
 
-            v_time_count = cur_time - start_time;
+            v_time_count = cur_time - v_start_time;
 
             if (v_time_count < v_time_count_pre) {
                 v_time_count += 10;
@@ -199,7 +194,7 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
             v_time_count_pre = v_time_count;
 
-            // LOGD("v_time_count = %llu, cur_time = %llu, start_time = %llu\n", v_time_count, cur_time, start_time);
+            // LOGD("v_time_count = %llu, cur_time = %llu, start_time = %llu\n", v_time_count, cur_time, v_start_time);
             // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
 
             if (prtmp != NULL && !low_bitrate_mode) {
@@ -389,7 +384,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 44
+#define VER_BUILD 45
 
 int main(int argc, char* argv[]) {
     int        s32Ret             = 0;
