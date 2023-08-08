@@ -116,6 +116,11 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
     void*       prtmp     = rtmp_attr->rtmp_xiecc;
     free(rtmp_attr);
 
+    uint64_t t1             = 0;
+    uint64_t t2             = 0;
+    uint32_t v_count        = 0;
+    uint32_t stat_count[32] = {0};
+
     if (rtmp_sender_start_publish(prtmp, 0, 0) != 0) {
         LOGE("connect %s fail \n", url);
     }
@@ -199,13 +204,41 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
             if (prtmp != NULL && !low_bitrate_mode) {
                 if (g_payload == PT_H264) {
+                    t1     = get_us_timestamp();
                     s32Ret = rtmp_sender_write_avc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+                    t2     = get_us_timestamp();
+
                 } else if (g_payload == PT_H265) {
                     s32Ret = rtmp_sender_write_hevc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                 }
 
                 if (-1 == s32Ret) {
                     LOGE("video: Request reconnection.\n");
+                }
+
+                int offset = (int)((t2 - t1) / 1000);
+
+                if (offset == 0) {
+                    stat_count[0]++;
+                } else if (offset == 1) {
+                    stat_count[1]++;
+                } else if (offset >= 5 * 10) {
+                    stat_count[12]++;
+                } else {
+                    stat_count[offset / 5 + 2]++;
+                }
+                v_count++;
+                if (v_count == 3000) {
+                    v_count = 0;
+                    LOGD("rtmp_write_video: v_timeCount = %llu\n", v_time_count);
+                    char s_print[512] = "";
+                    sprintf(s_print, "%d", stat_count[0]);
+                    stat_count[0] = 0;
+                    for (int i = 1; i < 13; i++) {
+                        sprintf(s_print, "%s, %d", s_print, stat_count[i]);
+                        stat_count[i] = 0;
+                    }
+                    LOGD("rtmp_write_video: statistics write time = %s\n", s_print);
                 }
             }
         }
@@ -383,8 +416,8 @@ void fill_device_net_info(DeviceInfo* device_info) {
 }
 
 #define VER_MAJOR 1
-#define VER_MINOR 7
-#define VER_BUILD 45
+#define VER_MINOR 8
+#define VER_BUILD 1
 
 int main(int argc, char* argv[]) {
     int        s32Ret             = 0;

@@ -215,8 +215,8 @@ void imx385_init(VI_PIPE ViPipe)
     printf("\n      u8ImgMode %d\n", u8ImgMode);
 
     /* Sensor Type */
-    imx385_linear_1080p30_init(ViPipe);
-    // imx385_linear_1080p60_init (ViPipe);
+    // imx385_linear_1080p30_init(ViPipe);
+    imx385_linear_1080p60_init (ViPipe);
 
     for (i = 0; i < g_astimx385[ViPipe]->astRegsInfo[0].u32RegNum; i++)
     {

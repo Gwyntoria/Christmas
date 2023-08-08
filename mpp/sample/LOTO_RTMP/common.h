@@ -194,6 +194,8 @@ long long string2int(const char* str);
  */
 uint64_t GetTimestampU64(char* pszTS, int isMSec);
 
+uint64_t get_us_timestamp();
+
 int get_hash_code_24(char* psz_combined_string);
 
 char* encode(char* message, const char* codeckey);

@@ -72,6 +72,16 @@ uint64_t GetTimestampU64(char* pszTS, int isMSec) {
     return timestamp;
 }
 
+uint64_t get_us_timestamp() {
+    uint64_t       timestamp;
+    char           szT[64] = "";
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    timestamp = (uint64_t)tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec;
+
+    return timestamp;
+}
+
 int get_mac(char* mac) {
     int          sockfd;
     struct ifreq tmp;
@@ -511,7 +521,7 @@ int get_net_time() {
         return -1;
     }
 
-    LOGI("Time from %s: %s", ntp_server, ctime(&unix_time));
+    // LOGI("Time from %s: %s", ntp_server, ctime(&unix_time));
 
     return 0;
 }
