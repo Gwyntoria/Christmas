@@ -383,9 +383,9 @@ void fill_device_net_info(DeviceInfo* device_info) {
     get_local_mac_address(device_info->mac_addr);
 }
 
-#define VER_MAJOR 1
-#define VER_MINOR 7
-#define VER_BUILD 46
+#define VER_MAJOR 2
+#define VER_MINOR 1
+#define VER_BUILD 0
 
 int main(int argc, char* argv[]) {
     int        s32Ret             = 0;
