@@ -361,6 +361,7 @@ void* monitor_time_difference(void* arg) {
         if (time_difference >= (7 * SECONDS_PER_DAY)) {
             if (LOTO_COVER_GetCoverState() == COVER_ON) {
                 // Time difference reaches 7 days, and no one is online, execute restart
+                LOGI("The running time has exceeded 7 days, reboot now\n");
                 reboot_system();
                 break;
             } else {
@@ -384,7 +385,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 1
 #define VER_MINOR 7
-#define VER_BUILD 45
+#define VER_BUILD 46
 
 int main(int argc, char* argv[]) {
     int        s32Ret             = 0;
