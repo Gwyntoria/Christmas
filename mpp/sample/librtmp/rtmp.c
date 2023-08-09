@@ -976,16 +976,28 @@ int RTMP_Connect0(RTMP *r, struct sockaddr *service)
 
     /* set timeout */
     {
+        struct timeval timeout;
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
+
         SET_RCVTIMEO(tv, r->Link.timeout);
         if (setsockopt(r->m_sb.sb_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)))
         {
             RTMP_Log(RTMP_LOGERROR, "%s, Setting RECV socket timeout to %ds failed!",
                      __FUNCTION__, r->Link.timeout);
         }
-        if (setsockopt(r->m_sb.sb_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)))
+        // if (setsockopt(r->m_sb.sb_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)))
+        // {
+        //     RTMP_Log(RTMP_LOGERROR, "%s, Setting SEND socket timeout to %ds failed!",
+        //              __FUNCTION__, r->Link.timeout);
+        // }
+        if(setsockopt(r->m_sb.sb_socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) == -1)
         {
-            RTMP_Log(RTMP_LOGERROR, "%s, Setting SEND socket timeout to %ds failed!",
-                     __FUNCTION__, r->Link.timeout);
+            RTMP_Log(RTMP_LOGERROR, "%s, Setting socket timeout to %ds failed!", __FUNCTION__, timeout.tv_sec);
+        }
+        else
+        {
+            RTMP_Log(RTMP_LOGDEBUG, "%s, Setting socket timeout to %ds success!", __FUNCTION__, timeout.tv_sec);
         }
     }
 #if defined(__MACH__)
@@ -1630,6 +1642,104 @@ ReadN(RTMP *r, char *buffer, int n)
     return nOriginalSize - n;
 }
 
+static void AV_clear(RTMP_METHOD *vals, int num);
+
+static void 
+RTMP_CloseNoSendAnyData(RTMP *r)
+{
+    int i;
+
+    if (RTMP_IsConnected(r))
+    {
+        if (r->m_stream_id > 0)
+        {
+            if (r->m_clientID.av_val)
+            {
+                HTTP_Post(r, RTMPT_CLOSE, "", 1);
+                free(r->m_clientID.av_val);
+                r->m_clientID.av_val = NULL;
+                r->m_clientID.av_len = 0;
+            }
+            RTMPSockBuf_Close(&r->m_sb);
+        }
+
+        r->m_stream_id       = -1;
+        r->m_sb.sb_socket    = -1;
+        r->m_nBWCheckCounter = 0;
+        r->m_nBytesIn        = 0;
+        r->m_nBytesInSent    = 0;
+
+        if (r->m_read.flags & RTMP_READ_HEADER)
+        {
+            free(r->m_read.buf);
+            r->m_read.buf = NULL;
+        }
+        r->m_read.dataType                = 0;
+        r->m_read.flags                   = 0;
+        r->m_read.status                  = 0;
+        r->m_read.nResumeTS               = 0;
+        r->m_read.nIgnoredFrameCounter    = 0;
+        r->m_read.nIgnoredFlvFrameCounter = 0;
+
+        r->m_write.m_nBytesRead = 0;
+        RTMPPacket_Free(&r->m_write);
+
+        for (i = 0; i < RTMP_CHANNELS; i++)
+        {
+            if (r->m_vecChannelsIn[i])
+            {
+                RTMPPacket_Free(r->m_vecChannelsIn[i]);
+                free(r->m_vecChannelsIn[i]);
+                r->m_vecChannelsIn[i] = NULL;
+            }
+            if (r->m_vecChannelsOut[i])
+            {
+                free(r->m_vecChannelsOut[i]);
+                r->m_vecChannelsOut[i] = NULL;
+            }
+        }
+        AV_clear(r->m_methodCalls, r->m_numCalls);
+        r->m_methodCalls = NULL;
+        r->m_numCalls    = 0;
+        r->m_numInvokes  = 0;
+
+        r->m_bPlaying   = FALSE;
+        r->m_sb.sb_size = 0;
+
+        r->m_msgCounter = 0;
+        r->m_resplen    = 0;
+        r->m_unackd     = 0;
+
+        free(r->Link.playpath0.av_val);
+        r->Link.playpath0.av_val = NULL;
+
+        if (r->Link.lFlags & RTMP_LF_FTCU)
+        {
+            free(r->Link.tcUrl.av_val);
+            r->Link.tcUrl.av_val = NULL;
+            r->Link.lFlags ^= RTMP_LF_FTCU;
+        }
+
+#ifdef CRYPTO
+        if (r->Link.dh)
+        {
+            MDH_free(r->Link.dh);
+            r->Link.dh = NULL;
+        }
+        if (r->Link.rc4keyIn)
+        {
+            RC4_free(r->Link.rc4keyIn);
+            r->Link.rc4keyIn = NULL;
+        }
+        if (r->Link.rc4keyOut)
+        {
+            RC4_free(r->Link.rc4keyOut);
+            r->Link.rc4keyOut = NULL;
+        }
+#endif
+    }
+}
+
 static int
 WriteN(RTMP *r, const char *buffer, int n)
 {
@@ -1680,7 +1790,17 @@ WriteN(RTMP *r, const char *buffer, int n)
                 r->m_sb.sb_error = sockerr;
             }
 
-            RTMP_Close(r);
+            if(ECONNABORTED == sockerr || ECONNRESET == sockerr)
+            {
+                //连接被对方断开
+                RTMP_CloseNoSendAnyData(r);
+            }
+            else
+            {
+                RTMP_Close(r);
+            }
+
+            // RTMP_Close(r);
             n = 1;
             break;
         }
@@ -3095,6 +3215,31 @@ static const AVal av_NetStream_Publish_Start = AVC("NetStream.Publish.Start");
 static const AVal av_NetConnection_Connect_Rejected =
     AVC("NetConnection.Connect.Rejected");
 
+static int ChangeChunkSize(RTMP* r, int outChunkSize) {
+    RTMPPacket packet;
+    char       pbuf[RTMP_MAX_HEADER_SIZE + 4];
+
+    packet.m_nBytesRead = 0;
+    packet.m_body       = pbuf + RTMP_MAX_HEADER_SIZE;
+
+    packet.m_packetType      = RTMP_PACKET_TYPE_CHUNK_SIZE;
+    packet.m_nChannel        = 0x04;
+    packet.m_headerType      = RTMP_PACKET_SIZE_LARGE;
+    packet.m_nTimeStamp      = 0;
+    packet.m_nInfoField2     = 0;
+    packet.m_hasAbsTimestamp = 0;
+    packet.m_nBodySize       = 4;
+    r->m_outChunkSize        = outChunkSize;
+
+    r->m_outChunkSize = htonl(r->m_outChunkSize);
+
+    memcpy(packet.m_body, &r->m_outChunkSize, 4);
+
+    r->m_outChunkSize = ntohl(r->m_outChunkSize);
+
+    return RTMP_SendPacket(r, &packet, TRUE);
+}
+
 /* Returns 0 for OK/Failed/error, 1 for 'Stop or Complete' */
 static int
 HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
@@ -3159,6 +3304,7 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
             }
             if (r->Link.protocol & RTMP_FEATURE_WRITE)
             {
+                ChangeChunkSize(r, 1360); // 若不改拉流时的输出块大小在这里调用ChangeChunkSize
                 SendReleaseStream(r);
                 SendFCPublish(r);
             }

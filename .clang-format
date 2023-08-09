@@ -42,7 +42,8 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: All # None
-BreakBeforeBraces: Allman #Attach
+# BreakBeforeBraces: Allman
+BreakBeforeBraces: Attach
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
@@ -103,7 +104,8 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
-PointerAlignment: Right #Left
+# PointerAlignment: Right
+PointerAlignment: Left
 ReflowComments: true
 SortIncludes: true
 SortUsingDeclarations: true
