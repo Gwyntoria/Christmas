@@ -32,10 +32,10 @@
 
 // #define OPUS_CODEC_FILE "/dev/opus"
 
-#define LOTO_OPUS_ASSERT(x)                                                                                            \
-    {                                                                                                                  \
-        if (1 != (x))                                                                                                  \
-            return -1;                                                                                                 \
+#define LOTO_OPUS_ASSERT(x)                                                                                                                                    \
+    {                                                                                                                                                          \
+        if (1 != (x))                                                                                                                                          \
+            return -1;                                                                                                                                         \
     }
 
 #define OPUS_LIB_NAME  "libopus.so"
@@ -59,8 +59,7 @@
 #define OPUS_AI_CHN 0
 
 /* opus encode lib */
-typedef opus_int32 (*opusEncode_Callback)(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data,
-                                          opus_int32 max_data_bytes);
+typedef opus_int32 (*opusEncode_Callback)(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes);
 typedef OpusEncoder* (*opusEncoderCreate_Callback)(opus_int32 Fs, int channels, int application, int* ret);
 typedef int (*opusEncoderCtl_Callback)(OpusEncoder* st, int request, ...);
 typedef void (*opusEncoderDestory_Callback)(OpusEncoder* st);
@@ -140,8 +139,7 @@ static int init_opus_lib(void) {
             return -1;
         }
 
-        ret = opus_dl_dlsym((void**)&(g_stOpusEncFunc.opusEncoderCreate), g_stOpusEncFunc.libHandle,
-                            "opus_encoder_create");
+        ret = opus_dl_dlsym((void**)&(g_stOpusEncFunc.opusEncoderCreate), g_stOpusEncFunc.libHandle, "opus_encoder_create");
         if (0 != ret) {
             LOGE("Find symbol opus_encoder_create fail!\n");
             return -1;
@@ -153,8 +151,7 @@ static int init_opus_lib(void) {
             return -1;
         }
 
-        ret = opus_dl_dlsym((void**)&(g_stOpusEncFunc.opusEncoderDestory), g_stOpusEncFunc.libHandle,
-                            "opus_encoder_destroy");
+        ret = opus_dl_dlsym((void**)&(g_stOpusEncFunc.opusEncoderDestory), g_stOpusEncFunc.libHandle, "opus_encoder_destroy");
         if (0 != ret) {
             LOGE("Find symbol opus_encoder_destroy fail!\n");
             return -1;
@@ -176,9 +173,8 @@ void deinit_opus_lib() {
     LOGE("=== deinit_opus_lib OK! ===\n");
 }
 
-HI_S32 LOTO_OPUS_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt, AIO_ATTR_S* pstAioAttr,
-                         AUDIO_SAMPLE_RATE_E enOutSampleRate, HI_BOOL bResampleEn, HI_VOID* pstAiVqeAttr,
-                         HI_U32 u32AiVqeType) {
+HI_S32 LOTO_OPUS_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt, AIO_ATTR_S* pstAioAttr, AUDIO_SAMPLE_RATE_E enOutSampleRate, HI_BOOL bResampleEn,
+                         HI_VOID* pstAiVqeAttr, HI_U32 u32AiVqeType) {
     HI_S32 i;
     HI_S32 ret;
 
@@ -196,7 +192,7 @@ HI_S32 LOTO_OPUS_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt, AIO_ATTR_S* pstA
         return ret;
     }
 
-    for (i = 0; i<s32AiChnCnt> > pstAioAttr->enSoundmode; i++) {
+    for (i = 0; i < (s32AiChnCnt >> pstAioAttr->enSoundmode); i++) {
         /* Enables an AI channel */
         ret = HI_MPI_AI_EnableChn(AiDevId, i);
         if (ret) {
@@ -407,8 +403,7 @@ HI_S32 LOTO_OPUS_InitEncoder(OpusEncoder** opusEncoder) {
     stOpusAttr.vbr          = VBR_FALSE;
     stOpusAttr.forceChannel = OPUS_STEREO;
 
-    *opusEncoder
-        = g_stOpusEncFunc.opusEncoderCreate(stOpusAttr.samplingRate, stOpusAttr.channels, stOpusAttr.application, &ret);
+    *opusEncoder = g_stOpusEncFunc.opusEncoderCreate(stOpusAttr.samplingRate, stOpusAttr.channels, stOpusAttr.application, &ret);
     if (ret != OPUS_OK || *opusEncoder == NULL) {
         LOGE("Allocates and initializes an encoder state failed with %#x\n", ret);
         return -1;

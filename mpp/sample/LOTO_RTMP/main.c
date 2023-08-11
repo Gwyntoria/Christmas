@@ -35,6 +35,7 @@
 #include "loto_osd.h"
 #include "loto_venc.h"
 #include "ringfifo.h"
+#include "srs_librtmp.h"
 
 #define AUDIO_ENCODER_AAC  0xAC
 #define AUDIO_ENCODER_OPUS 0xAF
@@ -95,8 +96,7 @@ HI_S32 LOTO_RTMP_VA_CLASSIC() {
 void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
     LOGI("=== LOTO_VIDEO_AUDIO_RTMP ===\n");
 
-    HI_S32 s32Ret;
-
+    HI_S32   s32Ret           = 0;
     uint64_t a_time_count     = 0;
     uint64_t a_time_count_pre = 0;
     uint64_t a_start_time     = 0;
@@ -113,7 +113,7 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
     RtmpThrArg* rtmp_attr = (RtmpThrArg*)p;
     char*       url       = (char*)rtmp_attr->url;
-    void*       prtmp     = rtmp_attr->rtmp_xiecc;
+    void*       rtmp      = rtmp_attr->rtmp_xiecc;
     free(rtmp_attr);
 
     uint64_t t1             = 0;
@@ -121,28 +121,28 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
     uint32_t v_count        = 0;
     uint32_t stat_count[32] = {0};
 
-    if (rtmp_sender_start_publish(prtmp, 0, 0) != 0) {
+    if (rtmp_sender_start_publish(rtmp, 0, 0) != 0) {
         LOGE("connect %s fail \n", url);
     }
 
     int low_bitrate_mode = 0;
 
     while (1) {
-        if (!rtmp_sender_isOK(prtmp)) {
+        if (!rtmp_sender_isOK(rtmp)) {
             LOGI("Rebuild rtmp_sender\n");
 
-            if (prtmp != NULL) {
-                rtmp_sender_stop_publish(prtmp);
-                rtmp_sender_free(prtmp);
-                prtmp = NULL;
+            if (rtmp != NULL) {
+                rtmp_sender_stop_publish(rtmp);
+                rtmp_sender_free(rtmp);
+                rtmp = NULL;
             }
             usleep(1000 * 100);
-            prtmp = rtmp_sender_alloc(url);
-            if (rtmp_sender_start_publish(prtmp, 0, 0) != 0) {
+            rtmp = rtmp_sender_alloc(url);
+            if (rtmp_sender_start_publish(rtmp, 0, 0) != 0) {
                 LOGE("connect %s fail \n", url);
-                rtmp_sender_stop_publish(prtmp);
-                rtmp_sender_free(prtmp);
-                prtmp = NULL;
+                rtmp_sender_stop_publish(rtmp);
+                rtmp_sender_free(rtmp);
+                rtmp = NULL;
             }
         }
 
@@ -167,13 +167,11 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
                 // LOGD("a_time_count = %llu, cur_time = %llu, start_time = %llu\n", a_time_count, cur_time,
                 // start_time); LOGD("audio_frame_size = %d bytes!\n", a_ringinfo.size);
 
-                if (prtmp != NULL) {
+                if (rtmp != NULL) {
                     if (gs_audio_encoder = AUDIO_ENCODER_AAC) {
-                        s32Ret
-                            = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
+                        s32Ret = rtmp_sender_write_aac_frame(rtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     } else if (gs_audio_encoder = AUDIO_ENCODER_OPUS) {
-                        s32Ret
-                            = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
+                        s32Ret = rtmp_sender_write_opus_frame(rtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     }
                     if (s32Ret == -1) {
                         LOGE("Audio: Request reconnection.\n");
@@ -202,14 +200,14 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
             // LOGD("v_time_count = %llu, cur_time = %llu, start_time = %llu\n", v_time_count, cur_time, v_start_time);
             // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
 
-            if (prtmp != NULL && !low_bitrate_mode) {
+            if (rtmp != NULL && !low_bitrate_mode) {
                 if (g_payload == PT_H264) {
                     t1     = get_us_timestamp();
-                    s32Ret = rtmp_sender_write_avc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+                    s32Ret = rtmp_sender_write_avc_frame(rtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                     t2     = get_us_timestamp();
 
                 } else if (g_payload == PT_H265) {
-                    s32Ret = rtmp_sender_write_hevc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+                    s32Ret = rtmp_sender_write_hevc_frame(rtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                 }
 
                 if (-1 == s32Ret) {
@@ -249,6 +247,125 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
 
         LOTO_COVER_ChangeCover();
         // LOTO_COVER_ChangeCover(&low_bitrate_mode);
+    }
+}
+
+void* srs_rtmp_push_h264_callback(void* arg) {
+    while (1) {
+
+        srs_rtmp_t rtmp = srs_rtmp_create(gs_push_url_buf);
+
+        do {
+            if (srs_rtmp_handshake(rtmp) != 0) {
+                LOGE("simple handshake failed.\n");
+                break;
+            }
+            LOGI("simple handshake success.\n");
+
+            if (srs_rtmp_connect_app(rtmp) != 0) {
+                LOGE("connect vhost/app failed.\n");
+                break;
+            }
+            LOGI("connect vhost/app success.\n");
+
+            if (srs_rtmp_publish_stream(rtmp) != 0) {
+                LOGE("publish stream failed.\n");
+                break;
+            }
+            LOGI("publish stream success.\n");
+
+            uint64_t v_time_count     = 0;
+            uint64_t v_time_count_pre = 0;
+            uint64_t v_start_time     = 0;
+            uint64_t cur_time         = 0;
+
+            struct ringbuf v_ringinfo;
+            int            v_ring_buf_len = 0;
+
+            uint64_t t1             = 0;
+            uint64_t t2             = 0;
+            uint32_t v_count        = 0;
+            uint32_t stat_count[32] = {0};
+
+            while (1) {
+                /* send video frame */
+                v_ring_buf_len = ringget(&v_ringinfo);
+                if (v_ring_buf_len != 0) {
+                    cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
+
+                    if (v_start_time == 0) {
+                        v_start_time = cur_time;
+                    }
+
+                    v_time_count = cur_time - v_start_time;
+
+                    if (v_time_count < v_time_count_pre) {
+                        v_time_count += 10;
+                    }
+
+                    v_time_count_pre = v_time_count;
+
+                    // LOGD("v_time_count = %llu, cur_time = %llu, start_time = %llu\n", v_time_count, cur_time, v_start_time);
+                    // LOGD("vedio_frame_size = %d bytes!\n", v_ringinfo.size);
+
+                    if (rtmp != NULL) {
+                        t1 = get_us_timestamp();
+                        // int s32Ret = rtmp_sender_write_avc_frame(rtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+                        int s32Ret = srs_h264_write_raw_frames(rtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, v_time_count);
+                        t2         = get_us_timestamp();
+
+                        if (s32Ret != 0) {
+                            if (srs_h264_is_dvbsp_error(s32Ret)) {
+                                // LOGE("ignore drop video error, code=%d\n", s32Ret);
+                            } else if (srs_h264_is_duplicated_sps_error(s32Ret)) {
+                                // LOGE("ignore duplicated sps, code=%d\n", s32Ret);
+                            } else if (srs_h264_is_duplicated_pps_error(s32Ret)) {
+                                // LOGE("ignore duplicated pps, code=%d\n", s32Ret);
+                            } else {
+                                LOGE("send h264 raw data failed. ret=%d\n", s32Ret);
+                                break;
+                            }
+                        }
+
+                        int offset = (int)((t2 - t1) / 1000);
+
+                        if (offset == 0) {
+                            stat_count[0]++;
+                        } else if (offset == 1) {
+                            stat_count[1]++;
+                        } else if (offset >= 5 * 10) {
+                            stat_count[12]++;
+                        } else {
+                            stat_count[offset / 5 + 2]++;
+                        }
+
+                        v_count++;
+                        if (v_count == 3000) {
+                            v_count = 0;
+                            LOGD("rtmp_write_video: v_time_count = %llu\n", v_time_count);
+                            char s_print[512] = "";
+                            sprintf(s_print, "%d", stat_count[0]);
+                            stat_count[0] = 0;
+                            for (int i = 1; i < 13; i++) {
+                                sprintf(s_print, "%s, %d", s_print, stat_count[i]);
+                                stat_count[i] = 0;
+                            }
+                            LOGD("rtmp_write_video: statistics write time = %s\n", s_print);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                if (v_ring_buf_len == 0) {
+                    usleep(100);
+                }
+            }
+        } while (0);
+
+        srs_rtmp_destroy(rtmp);
+        LOGI("destroy rtmp connection success.\n");
+        usleep(1000 * 10);
     }
 }
 
@@ -417,7 +534,7 @@ void fill_device_net_info(DeviceInfo* device_info) {
 
 #define VER_MAJOR 2
 #define VER_MINOR 1
-#define VER_BUILD 1
+#define VER_BUILD 4
 
 int main(int argc, char* argv[]) {
     int        s32Ret             = 0;
@@ -490,14 +607,17 @@ int main(int argc, char* argv[]) {
     usleep(1000 * 10);
 
     /* Initialize rtmp_sender */
-    RtmpThrArg* rtmp_attr = (RtmpThrArg*)malloc(sizeof(RtmpThrArg));
-    rtmp_attr->url        = gs_push_url_buf;
-    rtmp_attr->rtmp_xiecc = rtmp_sender_alloc((const char*)rtmp_attr->url);
+    // RtmpThrArg* rtmp_attr = (RtmpThrArg*)malloc(sizeof(RtmpThrArg));
+    // rtmp_attr->url        = gs_push_url_buf;
+    // rtmp_attr->rtmp_xiecc = rtmp_sender_alloc((const char*)rtmp_attr->url);
 
     /* Push video and audio stream through rtmp. */
     pthread_t rtmp_pid;
-    if (pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void*)rtmp_attr) != 0) {
-        fprintf(stderr, "Failed to create LOTO_VIDEO_AUDIO_RTMP thread\n");
+    // if (pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void*)rtmp_attr) != 0) {
+    //     fprintf(stderr, "Failed to create LOTO_VIDEO_AUDIO_RTMP thread\n");
+    // }
+    if (pthread_create(&rtmp_pid, NULL, srs_rtmp_push_h264_callback, NULL) != 0) {
+        fprintf(stderr, "Failed to create srs_rtmp_push_h264_callback thread\n");
     }
     usleep(1000 * 10);
 
