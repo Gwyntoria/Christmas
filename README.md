@@ -1,4 +1,4 @@
-# hisi_mpp
+# MPP
 
 ## Introduction
 
@@ -15,9 +15,9 @@
 
 ## Dependency
 
-1. openssl-1.0.1p
-2. zlib-1.2.8
-3. rtmpdump
-4. http
-5. cJOSN
+1. [openssl-1.0.1p](https://www.openssl.org/source/)
+2. [zlib-1.2.8](https://www.zlib.net/fossils/)
+3. [librtmp](https://github.com/Anzel77/librtmp)
+4. [Tinyhttpd](https://github.com/EZLippi/Tinyhttpd)
+5. [cJOSN](https://github.com/DaveGamble/cJSON)
 6. [libopus](https://www.opus-codec.org/)
