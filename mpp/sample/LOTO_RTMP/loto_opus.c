@@ -196,7 +196,7 @@ HI_S32 LOTO_OPUS_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt, AIO_ATTR_S* pstA
         return ret;
     }
 
-    for (i = 0; i<s32AiChnCnt> > pstAioAttr->enSoundmode; i++) {
+    for (i = 0; i < (s32AiChnCnt >> pstAioAttr->enSoundmode); i++) {
         /* Enables an AI channel */
         ret = HI_MPI_AI_EnableChn(AiDevId, i);
         if (ret) {
