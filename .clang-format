@@ -14,7 +14,7 @@ PointerAlignment: Right
 
 # 对齐方式
 AlignAfterOpenBracket: Align
-# AlignArrayOfStructures: Right
+AlignArrayOfStructures: Right
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignConsecutiveMacros: true
@@ -64,7 +64,7 @@ SortIncludes: true
 # 缩进
 ContinuationIndentWidth: 4
 BreakBeforeBinaryOperators: None
-IndentCaseLabels: true
+IndentCaseLabels: false
 IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
