@@ -64,7 +64,7 @@ SortIncludes: true
 # 缩进
 ContinuationIndentWidth: 4
 BreakBeforeBinaryOperators: None
-IndentCaseLabels: false
+IndentCaseLabels: true
 IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
