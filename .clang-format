@@ -1,9 +1,9 @@
 ---
-# clang-format version 15.0.0
+# clang-format version 15.0.0 (from npm)
 
 Language: Cpp
 
-# 缩进样式
+# 首要样式
 IndentWidth: 4
 UseTab: Never
 TabWidth: 4
@@ -39,7 +39,7 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: No
 
-# 括号
+# 括号风格
 BreakBeforeBraces: Linux
 
 # 对#include进行排序的规则
@@ -82,6 +82,4 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpacesInContainerLiterals: true
 
-
 # 其他
-
