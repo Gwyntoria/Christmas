@@ -12,6 +12,6 @@ typedef struct tagLOTO_AENC_S {
 } LOTO_AENC_S;
 
 void *LOTO_AENC_CLASSIC(void *p);
-
+HI_S32 LOTO_AUDIO_DestoryTrdAenc(AENC_CHN AeChn);
 
 #endif // LOTO_AENC_H

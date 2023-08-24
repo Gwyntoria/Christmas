@@ -2028,6 +2028,7 @@ err_out:
 
    return NULL;
 }
+
 // HI_S32 LOTO_COMM_VENC_QpmapSendFrame(VPSS_GRP VpssGrp,VPSS_CHN VpssChn,VENC_CHN VeChn[],HI_S32 s32Cnt,SIZE_S stSize)
 // {
 //     HI_S32 i;
@@ -2500,7 +2501,6 @@ HI_S32 LOTO_COMM_VENC_StopGetStream(void)
 //     }
 //     return HI_SUCCESS;
 // }
-
 
 HI_VOID LOTO_COMM_VENC_ReadOneFrame( FILE* fp, HI_U8* pY, HI_U8* pU, HI_U8* pV,
                                        HI_U32 width, HI_U32 height, HI_U32 stride, HI_U32 stride2)

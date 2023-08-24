@@ -40,8 +40,8 @@
 #define AUDIO_ENCODER_OPUS 0xAF
 
 typedef struct RtmpThrArg {
-    char* url;
-    void* rtmp_xiecc;
+    char *url;
+    void *rtmp_xiecc;
 } RtmpThrArg;
 
 pthread_t vid = 0, aid = 0;
@@ -66,15 +66,32 @@ int        g_profile        = -1;
 static int gs_audio_state   = -1;
 static int gs_audio_encoder = -1;
 
-static int gs_server_option = SERVER_OFFI;
+// static int gs_server_option = SERVER_OFFI;
 
 time_t     program_start_time;
 DeviceInfo device_info = {0};
 
-int  get_server_option() { return gs_server_option; }
-void set_server_option(int server_option) { gs_server_option = server_option; }
+// int  get_server_option() { return gs_server_option; }
+// void set_server_option(int server_option) { gs_server_option = server_option; }
 
-HI_S32 LOTO_RTMP_VA_CLASSIC() {
+void LotoRtmpHandleSignal(HI_S32 signo)
+{
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
+
+    if (SIGINT == signo || SIGTERM == signo) {
+        LOTO_AUDIO_DestoryTrdAenc(0);
+        LOTO_COMM_VENC_StopGetStream();
+        LOTO_COMM_All_ISP_Stop();
+        // LOTO_COMM_SYS_Exit();
+        printf("\033[0;31mProgram termination abnormally!\033[0;39m\n");
+    }
+
+    exit(-1);
+}
+
+HI_S32 LOTO_RTMP_VA_CLASSIC()
+{
     /* video thread */
     pthread_create(&vid, NULL, LOTO_VENC_CLASSIC, NULL);
 
@@ -92,14 +109,14 @@ HI_S32 LOTO_RTMP_VA_CLASSIC() {
     return HI_SUCCESS;
 }
 
-void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
+void *LOTO_VIDEO_AUDIO_RTMP(void *p)
+{
     LOGI("=== LOTO_VIDEO_AUDIO_RTMP ===\n");
 
-    HI_S32 s32Ret;
-
+    HI_S32   s32Ret           = 0;
     uint64_t a_time_count     = 0;
     uint64_t a_time_count_pre = 0;
-    uint64_t a_start_time     = 0;
+    // uint64_t a_start_time     = 0;
     uint64_t v_time_count     = 0;
     uint64_t v_time_count_pre = 0;
     uint64_t v_start_time     = 0;
@@ -111,9 +128,9 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
     struct ringbuf a_ringinfo;
     int            a_ring_buf_len = 0;
 
-    RtmpThrArg* rtmp_attr = (RtmpThrArg*)p;
-    char*       url       = (char*)rtmp_attr->url;
-    void*       prtmp     = rtmp_attr->rtmp_xiecc;
+    RtmpThrArg *rtmp_attr = (RtmpThrArg *)p;
+    char       *url       = (char *)rtmp_attr->url;
+    void       *prtmp     = rtmp_attr->rtmp_xiecc;
     free(rtmp_attr);
 
     if (rtmp_sender_start_publish(prtmp, 0, 0) != 0) {
@@ -163,12 +180,10 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
                 // start_time); LOGD("audio_frame_size = %d bytes!\n", a_ringinfo.size);
 
                 if (prtmp != NULL) {
-                    if (gs_audio_encoder = AUDIO_ENCODER_AAC) {
-                        s32Ret
-                            = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
-                    } else if (gs_audio_encoder = AUDIO_ENCODER_OPUS) {
-                        s32Ret
-                            = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
+                    if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
+                        s32Ret = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
+                    } else if (gs_audio_encoder == AUDIO_ENCODER_OPUS) {
+                        s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     }
                     if (s32Ret == -1) {
                         LOGE("Audio: Request reconnection.\n");
@@ -219,7 +234,8 @@ void* LOTO_VIDEO_AUDIO_RTMP(void* p) {
     }
 }
 
-void parse_config_file(const char* config_file_path) {
+void parse_config_file(const char *config_file_path)
+{
     /* Get default push_url */
     strcpy(gs_push_url_buf, GetConfigKeyValue("push", "push_url", config_file_path));
 
@@ -253,7 +269,7 @@ void parse_config_file(const char* config_file_path) {
 
         LOGI("server_url = %s\n", server_url);
 
-        loto_room_info* pRoomInfo = loto_room_init(server_url, server_token);
+        loto_room_info *pRoomInfo = loto_room_init(server_url, server_token);
         if (!pRoomInfo) {
             LOGE("room_info is empty\n");
             exit(2);
@@ -265,7 +281,7 @@ void parse_config_file(const char* config_file_path) {
     LOGI("push_url = %s\n", gs_push_url_buf);
 
     /* resolution */
-    char* resolution = GetConfigKeyValue("push", "resolution", config_file_path);
+    char *resolution = GetConfigKeyValue("push", "resolution", config_file_path);
     if (0 == strncmp("1080", resolution, 4)) {
         g_resolution = PIC_1080P;
     } else if (0 == strncmp("1944", resolution, 4)) {
@@ -282,7 +298,7 @@ void parse_config_file(const char* config_file_path) {
     strcpy(device_info.device_num, g_device_num);
     LOGI("device_num = %s\n", g_device_num);
 
-    const char* video_encoder = GetConfigKeyValue("push", "video_encoder", config_file_path);
+    const char *video_encoder = GetConfigKeyValue("push", "video_encoder", config_file_path);
     strcpy(device_info.video_encoder, video_encoder);
     LOGI("video_encoder = %s\n", video_encoder);
 
@@ -290,7 +306,7 @@ void parse_config_file(const char* config_file_path) {
         /* video encoder */
         g_payload = PT_H264;
 
-        char* video_encoder_profile = GetConfigKeyValue("h264", "profile", config_file_path);
+        char *video_encoder_profile = GetConfigKeyValue("h264", "profile", config_file_path);
 
         /* profile */
         if (strncmp("baseline", video_encoder_profile, 8) == 0) {
@@ -307,7 +323,7 @@ void parse_config_file(const char* config_file_path) {
         /* video encoder */
         g_payload = PT_H265;
 
-        char* video_encoder_profile = GetConfigKeyValue("h265", "profile", config_file_path);
+        char *video_encoder_profile = GetConfigKeyValue("h265", "profile", config_file_path);
 
         /* profile */
         if (strncmp("main", video_encoder_profile, 4) == 0) {
@@ -321,7 +337,7 @@ void parse_config_file(const char* config_file_path) {
     }
 
     /* audio_state */
-    char* audio_state = GetConfigKeyValue("push", "audio_state", config_file_path);
+    char *audio_state = GetConfigKeyValue("push", "audio_state", config_file_path);
     strcpy(device_info.audio_state, audio_state);
     if (strncmp("off", audio_state, 3) == 0) {
         gs_audio_state = FALSE;
@@ -329,7 +345,7 @@ void parse_config_file(const char* config_file_path) {
         gs_audio_state = TRUE;
 
         /* audio_encoder */
-        const char* audio_encoder = GetConfigKeyValue("push", "audio_encoder", config_file_path);
+        const char *audio_encoder = GetConfigKeyValue("push", "audio_encoder", config_file_path);
         strcpy(device_info.audio_encoder, audio_encoder);
         LOGI("audio_encoder = %s\n", audio_encoder);
 
@@ -347,7 +363,8 @@ void parse_config_file(const char* config_file_path) {
     }
 }
 
-void* monitor_time_difference(void* arg) {
+void *monitor_time_difference(void *arg)
+{
     LOGI("======== monitor_time_difference =========\n");
     time_t current_time;
 
@@ -378,18 +395,23 @@ void* monitor_time_difference(void* arg) {
     return NULL;
 }
 
-void fill_device_net_info(DeviceInfo* device_info) {
+void fill_device_net_info(DeviceInfo *device_info)
+{
     get_local_ip_address(device_info->ip_addr);
     get_local_mac_address(device_info->mac_addr);
 }
 
-#define VER_MAJOR 2
-#define VER_MINOR 1
-#define VER_BUILD 0
+#define VER_MAJOR 1
+#define VER_MINOR 8
+#define VER_BUILD 3
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     int        s32Ret             = 0;
     const char config_file_path[] = PUSH_CONFIG_FILE_PATH;
+
+    signal(SIGINT, LotoRtmpHandleSignal);
+    signal(SIGTERM, LotoRtmpHandleSignal);
 
     /* Initialize avctl_log file */
     s32Ret = InitAvctlLogFile();
@@ -422,7 +444,7 @@ int main(int argc, char* argv[]) {
     fill_device_net_info(&device_info);
 
     /* Initialize rtmp_log file */
-    FILE* rtmp_log = NULL;
+    FILE *rtmp_log = NULL;
     s32Ret         = InitRtmpLogFile(&rtmp_log);
     if (s32Ret != 0) {
         LOGE("Create rtmp_log file failed! \n");
@@ -458,13 +480,13 @@ int main(int argc, char* argv[]) {
     usleep(1000 * 10);
 
     /* Initialize rtmp_sender */
-    RtmpThrArg* rtmp_attr = (RtmpThrArg*)malloc(sizeof(RtmpThrArg));
+    RtmpThrArg *rtmp_attr = (RtmpThrArg *)malloc(sizeof(RtmpThrArg));
     rtmp_attr->url        = gs_push_url_buf;
-    rtmp_attr->rtmp_xiecc = rtmp_sender_alloc((const char*)rtmp_attr->url);
+    rtmp_attr->rtmp_xiecc = rtmp_sender_alloc((const char *)rtmp_attr->url);
 
     /* Push video and audio stream through rtmp. */
     pthread_t rtmp_pid;
-    if (pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void*)rtmp_attr) != 0) {
+    if (pthread_create(&rtmp_pid, NULL, LOTO_VIDEO_AUDIO_RTMP, (void *)rtmp_attr) != 0) {
         fprintf(stderr, "Failed to create LOTO_VIDEO_AUDIO_RTMP thread\n");
     }
     usleep(1000 * 10);

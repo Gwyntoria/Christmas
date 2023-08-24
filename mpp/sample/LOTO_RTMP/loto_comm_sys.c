@@ -456,6 +456,7 @@ HI_VOID LOTO_COMM_SYS_Exit(void)
     HI_MPI_VB_Exit();
     return;
 }
+
 HI_S32 LOTO_COMM_VI_Bind_VO(VI_PIPE ViPipe, VI_CHN ViChn, VO_LAYER VoLayer, VO_CHN VoChn)
 {
     MPP_CHN_S stSrcChn;

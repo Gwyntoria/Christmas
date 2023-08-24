@@ -1,9 +1,9 @@
 ---
-# clang-format version 15.0.0 (from npm)
+# clang-format version 15.0.0
 
 Language: Cpp
 
-# 首要样式
+# 缩进样式
 IndentWidth: 4
 UseTab: Never
 TabWidth: 4
@@ -18,7 +18,7 @@ AlignArrayOfStructures: Right
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignConsecutiveMacros: true
-AlignEscapedNewlines: Right
+AlignEscapedNewlines: Left
 AlignOperands: true
 AlignTrailingComments: true
 AlignEscapedNewlinesLeft: true
@@ -39,11 +39,11 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: No
 
-# 括号风格
-BreakBeforeBraces: Linux
+# 括号
+BreakBeforeBraces: Linux # Attach, Linux, Allman
 
 # 对#include进行排序的规则
-IncludeBlocks: Preserve 
+IncludeBlocks: Preserve
 IncludeCategories:
   - Regex: '^<.*\.h>'
     Priority: 2
@@ -53,11 +53,11 @@ IncludeCategories:
     Priority: 1
   - Regex: '^".*\.hpp"'
     Priority: 1
-  - Regex: '.*'
+  - Regex: ".*"
     Priority: 3
-  - Regex: '^<bits/.*>'
+  - Regex: "^<bits/.*>"
     Priority: 4
-  - Regex: '^<.*>'
+  - Regex: "^<.*>"
     Priority: 5
 SortIncludes: true
 
@@ -67,19 +67,18 @@ BreakBeforeBinaryOperators: None
 IndentCaseLabels: true
 IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
-IndentPPDirectives: BeforeHash
+IndentPPDirectives: None # None, AfterHash, BeforeHash
 
 # 空格
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: true
 SpaceBeforeParens: ControlStatements
-SpacesBeforeTrailingComments: 4
+SpacesBeforeTrailingComments: 1
 # SpacesInParens: Never
 SpacesInAngles: Never
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpacesInContainerLiterals: true
-
 # 其他

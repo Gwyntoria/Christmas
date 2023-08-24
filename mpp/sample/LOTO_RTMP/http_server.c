@@ -32,12 +32,12 @@
 
 #define SERVER_STRING "Server: loto_hisidv300/1.0.0\r\n"
 
-#define RESPONSE_TEMPLATE                                                                                              \
-    "HTTP/1.1 200 OK\r\n"                                                                                              \
-    "Content-Type: text/%s; charset=utf-8\r\n"                                                                         \
-    "Content-Length: %d\r\n"                                                                                           \
-    "Connection: keep-alive\r\n"                                                                                       \
-    "\r\n"                                                                                                             \
+#define RESPONSE_TEMPLATE                      \
+    "HTTP/1.1 200 OK\r\n"                      \
+    "Content-Type: text/%s; charset=utf-8\r\n" \
+    "Content-Length: %d\r\n"                   \
+    "Connection: keep-alive\r\n"               \
+    "\r\n"                                     \
     "%s"
 
 /**
@@ -45,7 +45,8 @@
  *
  * @param sc 错误信息
  */
-void error_die(const char* sc) {
+void error_die(const char *sc)
+{
     perror(sc);
     exit(1);
 }
@@ -59,7 +60,8 @@ void error_die(const char* sc) {
  * @param size 读取最大值
  * @return int 读取到的字符个数,不包括'\0'
  */
-int get_request_line(int sock, char* buf, int size) {
+int get_request_line(int sock, char *buf, int size)
+{
     int  i = 0;
     char c = '\0';
     int  n;
@@ -100,7 +102,8 @@ int get_request_line(int sock, char* buf, int size) {
  *
  * @param client client_socket_fd
  */
-void unimplemented(int client) {
+void unimplemented(int client)
+{
     char buf[1024] = {0};
 
     sprintf(buf, "HTTP/1.1 501 Method Not Implemented\r\n");
@@ -133,7 +136,8 @@ void unimplemented(int client) {
  *
  * @param client client_socket_fd
  */
-void not_found(int client) {
+void not_found(int client)
+{
     char buf[1024] = {0};
 
     sprintf(buf, "HTTP/1.1 404 NOT FOUND\r\n");
@@ -170,7 +174,8 @@ void not_found(int client) {
  * @param client client_socket_fd
  * @param resource 需要传输的文件指针
  */
-void cat(int client, FILE* resource) {
+void cat(int client, FILE *resource)
+{
     char buf[1024] = {0};
 
     fgets(buf, sizeof(buf), resource);
@@ -181,7 +186,8 @@ void cat(int client, FILE* resource) {
 }
 
 // 告知客户端该请求有错误400
-void bad_request(int client) {
+void bad_request(int client)
+{
     char buf[1024] = {0};
 
     strcat(buf, "HTTP/1.1 400 BAD REQUEST\r\n");
@@ -192,7 +198,8 @@ void bad_request(int client) {
     send(client, buf, sizeof(buf), 0);
 }
 
-void parse_request_line(char* request_line, int request_line_len, char* method, char* url, char* version) {
+void parse_request_line(char *request_line, int request_line_len, char *method, char *url, char *version)
+{
     size_t i = 0, j = 0;
 
     // 获取 method
@@ -234,8 +241,9 @@ void parse_request_line(char* request_line, int request_line_len, char* method, 
 #endif
 }
 
-void parse_path_with_params(const char* url, char* path, char* query_string) {
-    char* delimiter = strchr(url, '?'); // 查找路径中的问号位置
+void parse_path_with_params(const char *url, char *path, char *query_string)
+{
+    char *delimiter = strchr(url, '?'); // 查找路径中的问号位置
 
     if (delimiter != NULL) {
         // char* path_only = strndup(url, delimiter - url); // 提取不带参数的路径部分
@@ -258,14 +266,15 @@ void parse_path_with_params(const char* url, char* path, char* query_string) {
 }
 
 typedef struct KeyValuePair {
-    char* key;
-    char* value;
+    char *key;
+    char *value;
 } KeyValuePair;
 
 // KeyValuePair* parse_query_string(char* query_string, int* pairs_num) {
-int parse_query_string(char* query_string, int* pairs_num, KeyValuePair* pairs) {
-    const char* delimiter = "&";
-    const char* equals    = "=";
+int parse_query_string(char *query_string, int *pairs_num, KeyValuePair *pairs)
+{
+    const char *delimiter = "&";
+    const char *equals    = "=";
     int         max_pairs = 0; // Maximum number of key-value pairs, adjust as needed
 
     // Calculate the number of substrings after splitting
@@ -287,23 +296,23 @@ int parse_query_string(char* query_string, int* pairs_num, KeyValuePair* pairs) 
     // }
 
     int   pair_count  = 0;
-    char* query_token = query_string;
+    char *query_token = query_string;
     // char*         query_string_copy = strdup(query_string);
     // char*         query_token       = query_string_copy;
 
     while (query_token != NULL && pair_count < max_pairs) {
-        char* pair_end = strchr(query_token, *delimiter);
+        char *pair_end = strchr(query_token, *delimiter);
 
         if (pair_end != NULL) {
             *pair_end = '\0';
         }
 
-        char* key_end = strchr(query_token, *equals);
+        char *key_end = strchr(query_token, *equals);
 
         if (key_end != NULL) {
             *key_end          = '\0';
-            char* value_start = key_end + 1;
-            char* value_end   = strchr(value_start, '\0');
+            char *value_start = key_end + 1;
+            char *value_end   = strchr(value_start, '\0');
 
             if (value_start != value_end) {
                 // pairs[pair_count].key = strdup(query_token);
@@ -324,7 +333,8 @@ int parse_query_string(char* query_string, int* pairs_num, KeyValuePair* pairs) 
     return 0;
 }
 
-void free_query_string_pairs(KeyValuePair* pairs, int pairs_num) {
+void free_query_string_pairs(KeyValuePair *pairs, int pairs_num)
+{
     if (pairs != NULL) {
         for (int i = 0; i < pairs_num; i++) {
             if (pairs[i].key != NULL) {
@@ -340,7 +350,8 @@ void free_query_string_pairs(KeyValuePair* pairs, int pairs_num) {
     }
 }
 
-int deal_query_string(const char* query_string, char* content) {
+int deal_query_string(const char *query_string, char *content)
+{
     int ret       = 0;
     int pairs_num = 0;
 
@@ -410,7 +421,8 @@ int deal_query_string(const char* query_string, char* content) {
  * @param client client_socket_fd
  * @param content_type 内容类型：html or plain
  */
-void send_header(int client, const char* content_type, int content_length) {
+void send_header(int client, const char *content_type, int content_length)
+{
     char header[1024];
     sprintf(header,
             "HTTP/1.1 200 OK\r\n"
@@ -423,8 +435,9 @@ void send_header(int client, const char* content_type, int content_length) {
 }
 
 // 函数用于读取HTML文件的内容
-char* read_html_file(const char* file_path, int* content_length) {
-    FILE* file = fopen(file_path, "r");
+char *read_html_file(const char *file_path, int *content_length)
+{
+    FILE *file = fopen(file_path, "r");
     if (file == NULL) {
         perror("fopen");
         return NULL;
@@ -436,7 +449,7 @@ char* read_html_file(const char* file_path, int* content_length) {
     rewind(file);
 
     // 分配足够的内存来存储文件内容
-    char* content = (char*)malloc(file_size + 1);
+    char *content = (char *)malloc(file_size + 1);
     if (content == NULL) {
         perror("malloc");
         fclose(file);
@@ -461,8 +474,9 @@ char* read_html_file(const char* file_path, int* content_length) {
     return content;
 }
 
-void write_html_file(const char* content, const char* file_path) {
-    FILE* file = fopen(file_path, "w");
+void write_html_file(const char *content, const char *file_path)
+{
+    FILE *file = fopen(file_path, "w");
     if (file == NULL) {
         file = fopen(file_path, "a");
         if (file == NULL) {
@@ -482,9 +496,10 @@ void write_html_file(const char* content, const char* file_path) {
     fclose(file);
 }
 
-int send_html_response(int client_socket, const char* file_path) {
+int send_html_response(int client_socket, const char *file_path)
+{
     int   content_length;
-    char* html_content = read_html_file(file_path, &content_length);
+    char *html_content = read_html_file(file_path, &content_length);
     if (html_content == NULL) {
         LOGE("Failed to read HTML file.\n");
         return -1;
@@ -506,7 +521,8 @@ int send_html_response(int client_socket, const char* file_path) {
     return 0;
 }
 
-int send_plain_response(int client_socket, const char* content) {
+int send_plain_response(int client_socket, const char *content)
+{
     int  content_length = strlen(content);
     char response[1024] = {0};
 
@@ -527,11 +543,14 @@ int send_plain_response(int client_socket, const char* content) {
 extern time_t     program_start_time;
 extern DeviceInfo device_info;
 
-void get_device_info(char* device_info_content) {
+void get_device_info(char *device_info_content)
+{
     device_info.running_time = time(NULL) - program_start_time;
     strcpy(device_info.current_time, GetTimestampString());
     device_info.video_state = LOTO_COVER_GetCoverState();
-    get_sys_load(&device_info.used_ram, &device_info.free_ram);
+    get_sys_mem_payload(&device_info.used_ram, &device_info.free_ram);
+
+    float mem_usage_percentage = 100 * device_info.used_ram / (device_info.used_ram + device_info.free_ram);
 
     char running_time[32] = {0};
     format_time(device_info.running_time, running_time);
@@ -550,7 +569,7 @@ void get_device_info(char* device_info_content) {
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "memory:          %dK used, %dK free\r\n", device_info.used_ram, device_info.free_ram);
+    sprintf(temp, "memory:          %dK used, %dK free, %.2f%% used\r\n", device_info.used_ram, device_info.free_ram, mem_usage_percentage);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
@@ -605,7 +624,8 @@ void get_device_info(char* device_info_content) {
 }
 
 // void* accept_request(void* pclient) {
-int accept_request(int client) {
+int accept_request(int client)
+{
     // int client = *(int*)pclient;
 
     int  numchars;
@@ -662,22 +682,11 @@ int accept_request(int client) {
             return -1;
         }
 
-    } else if (strcasecmp(path, "/home") == 0) {
+    } else if ((strcmp(path, "/") == 0) || (strcasecmp(path, "/home") == 0)) {
         char device_info_content[4096] = {0};
         get_device_info(device_info_content);
 #if DEBUG_HTTP
         LOGD("device_info_content:\n%s\n", device_info_content);
-#endif
-        if (send_plain_response(client, device_info_content) != 0) {
-            LOGE("send device_info error\n");
-            return -1;
-        }
-    } else if (strcmp(path, "/") == 0) {
-        char device_info_content[4096] = {0};
-        get_device_info(device_info_content);
-
-#if DEBUG_HTTP
-        LOGD("device_info_content:\n %s\n", device_info_content);
 #endif
         if (send_plain_response(client, device_info_content) != 0) {
             LOGE("send device_info error\n");
@@ -694,7 +703,8 @@ int accept_request(int client) {
 }
 
 // socket initial: socket() ---> bind() ---> listen()
-int startup(uint16_t* port) {
+int startup(uint16_t *port)
+{
     int                httpd = 0;
     struct sockaddr_in name;
 
@@ -707,7 +717,7 @@ int startup(uint16_t* port) {
     name.sin_addr.s_addr = htonl(INADDR_ANY);
     name.sin_port        = htons(*port);
 
-    if (bind(httpd, (struct sockaddr*)&name, sizeof(name)) < 0) {
+    if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0) {
         close(httpd);
         error_die("bind");
     }
@@ -716,7 +726,7 @@ int startup(uint16_t* port) {
                        If it is 0, the port needs to be dynamically allocated */
     {
         socklen_t namelen = sizeof(name);
-        if (getsockname(httpd, (struct sockaddr*)&name, &namelen) == -1)
+        if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1)
             error_die("getsockname");
         *port = ntohs(name.sin_port);
     }
@@ -729,7 +739,8 @@ int startup(uint16_t* port) {
     return (httpd);
 }
 
-void* http_server(void* arg) {
+void *http_server(void *arg)
+{
     LOGI("====== Start HTTP server ======\n");
     int                server_sock = -1;
     uint16_t           port        = 80; // 监听端口号
@@ -742,7 +753,7 @@ void* http_server(void* arg) {
     LOGI("http running on port %d\n", port);
 
     while (1) {
-        client_sock = accept(server_sock, (struct sockaddr*)&client_name, &client_name_len);
+        client_sock = accept(server_sock, (struct sockaddr *)&client_name, &client_name_len);
         if (client_sock == -1) {
             error_die("accept");
         } else {
