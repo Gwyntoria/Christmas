@@ -164,6 +164,7 @@ typedef struct DeviceInfo {
     char   audio_encoder[8];
     int    used_ram;
     int    free_ram;
+    float  used_ram_perct;
 } DeviceInfo;
 
 /**

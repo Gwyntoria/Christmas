@@ -350,7 +350,7 @@ void free_query_string_pairs(KeyValuePair *pairs, int pairs_num)
     }
 }
 
-int deal_query_string(const char *query_string, char *content)
+int deal_query_string(char *query_string, char *content)
 {
     int ret       = 0;
     int pairs_num = 0;
@@ -359,7 +359,7 @@ int deal_query_string(const char *query_string, char *content)
     // pairs = parse_query_string(query_string, &pairs_num);
 
     KeyValuePair pairs[32] = {0};
-    parse_query_string(query_string, &pairs_num, &pairs);
+    parse_query_string(query_string, &pairs_num, pairs);
 
 #if DEBUG_HTTP
     LOGD("Number of pairs: %d\n", pairs_num);
@@ -550,7 +550,7 @@ void get_device_info(char *device_info_content)
     device_info.video_state = LOTO_COVER_GetCoverState();
     get_sys_mem_payload(&device_info.used_ram, &device_info.free_ram);
 
-    float mem_usage_percentage = 100 * device_info.used_ram / (device_info.used_ram + device_info.free_ram);
+    device_info.used_ram_perct = 100 * device_info.used_ram / (device_info.used_ram + device_info.free_ram);
 
     char running_time[32] = {0};
     format_time(device_info.running_time, running_time);
@@ -569,7 +569,7 @@ void get_device_info(char *device_info_content)
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "memory:          %dK used, %dK free, %.2f%% used\r\n", device_info.used_ram, device_info.free_ram, mem_usage_percentage);
+    sprintf(temp, "memory:          %dK used, %dK free, %.2f%% used\r\n", device_info.used_ram, device_info.free_ram, device_info.used_ram_perct);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
@@ -747,7 +747,7 @@ void *http_server(void *arg)
     int                client_sock = -1;
     struct sockaddr_in client_name;
     socklen_t          client_name_len = sizeof(client_name);
-    pthread_t          new_thread;
+    // pthread_t          new_thread;
 
     server_sock = startup(&port); // 服务器端监听套接字设置
     LOGI("http running on port %d\n", port);
