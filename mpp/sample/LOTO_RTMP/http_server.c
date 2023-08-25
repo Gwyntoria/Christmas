@@ -682,6 +682,17 @@ int accept_request(int client)
             return -1;
         }
 
+    } else if (strcasecmp(path, "/reboot") == 0) {
+        char content[1024] = {0};
+        sprintf(content, "Restarting\r\n");
+
+        if (send_plain_response(client, content) != 0) {
+            LOGE("send device_info error\n");
+            return -1;
+        }
+
+        reboot_system();
+
     } else if ((strcmp(path, "/") == 0) || (strcasecmp(path, "/home") == 0)) {
         char device_info_content[4096] = {0};
         get_device_info(device_info_content);

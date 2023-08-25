@@ -82,7 +82,7 @@ void LotoRtmpHandleSignal(HI_S32 signo)
     if (SIGINT == signo || SIGTERM == signo) {
         LOTO_AUDIO_DestoryTrdAenc(0);
         LOTO_COMM_VENC_StopGetStream();
-        LOTO_COMM_All_ISP_Stop();
+        // LOTO_COMM_All_ISP_Stop();
         // LOTO_COMM_SYS_Exit();
         printf("\033[0;31mProgram termination abnormally!\033[0;39m\n");
     }
@@ -403,7 +403,7 @@ void fill_device_net_info(DeviceInfo *device_info)
 
 #define VER_MAJOR 1
 #define VER_MINOR 8
-#define VER_BUILD 4
+#define VER_BUILD 5
 
 int main(int argc, char *argv[])
 {
