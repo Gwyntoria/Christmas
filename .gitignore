@@ -60,8 +60,8 @@ rtmp_pack/kit/root/loto_rtmp
 rtmp_pack.tgz
 
 # essential lib
-!mpp/lib/*/*a
-!mpp/lib/*/*so*
+!mpp/lib/*/*.a
+!mpp/lib/*/*.so*
 !mpp/sample/librtmp/librtmp.a
 !mpp/sample/openssl-1.0.1p/arm/lib/libssl.a
 !mpp/sample/openssl-1.0.1p/arm/lib/libcrypto.a
