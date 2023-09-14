@@ -29,8 +29,8 @@ int             g_waitState = 0;
 pthread_mutex_t g_lock;
 pthread_cond_t  g_cond;
 
-YangAudioEncoderBuffer *p_audioBuffer = NULL;
-YangVideoEncoderBuffer *p_videoBuffer = NULL;
+YangAudioEncoderBuffer *g_audioBuffer = NULL;
+YangVideoEncoderBuffer *g_videoBuffer = NULL;
 long long               basesatmp     = 0;
 
 // YangPushPublish* p_cap = NULL;
@@ -45,7 +45,8 @@ char push_url[256];
  * ctrl + c controller
  */
 static int32_t b_exit = 0;
-static void    ctrl_c_handler(int s)
+
+static void ctrl_c_handler(int s)
 {
     printf("\ncaught signal %d, exit.\n", s);
     b_exit = 1;
@@ -67,7 +68,7 @@ SIZE_S             _stSize[2];
 PIC_SIZE_E         _enSize[2] = {PIC_2592x1944, PIC_1080P};
 pthread_t          vid = 0, aid = 0;
 
-HI_S32 LOTO_RTMP_VA_CLASSIC()
+HI_S32 GetVideoAudioFrame()
 {
     HI_S32 s32Ret;
     HI_S32 s32ChnNum = 1;
@@ -116,7 +117,7 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
     // pthread_create(&aid, NULL, LOTO_AENC_AAC_CLASSIC, NULL);
     pthread_create(&aid, NULL, LOTO_OPUS_AudioEncode, NULL);
 
-    printf("LOTO_RTMP_VA_CLASSIC: vid=%d, aid = %d\n", vid, aid);
+    printf("GetVideoAudioFrame: vid=%d, aid = %d\n", vid, aid);
 
     return s32Ret;
 }
@@ -132,22 +133,22 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
 int32_t parse_url(char *url)
 {
     char *delimiter = strstr(url, "://");
-    char  url_protocal[8];
+    char  protocol[8];
 
     if (delimiter == NULL) {
         printf("error url\n");
         return -1;
     } else {
-        strncpy(url_protocal, url, delimiter - url);
-        url_protocal[delimiter - url] = 0;
-        printf("url_protocal: %s\n", url_protocal);
+        strncpy(protocol, url, delimiter - url);
+        protocol[delimiter - url] = 0;
+        printf("protocol: %s\n", protocol);
     }
 
-    if (strcmp(url_protocal, "webrtc") == 0) {
+    if (strcmp(protocol, "webrtc") == 0) {
         return 2;
-    } else if ((strcmp(url_protocal, "http") == 0) || (strcmp(url_protocal, "https") == 0)) {
+    } else if ((strcmp(protocol, "http") == 0) || (strcmp(protocol, "https") == 0)) {
         return 1;
-    } else if ((strcmp(url_protocal, "ws") == 0) || (strcmp(url_protocal, "wss") == 0)) {
+    } else if ((strcmp(protocol, "ws") == 0) || (strcmp(protocol, "wss") == 0)) {
         return 0;
     }
 }
@@ -157,26 +158,26 @@ static int publish(char *url)
     int err = Yang_Ok;
     memset(&urlData, 0, sizeof(urlData));
 
-    int url_pro = parse_url(url);
-    if (url_pro == 0) {
+    int protocolType = parse_url(url);
+    if (protocolType == 0) {
         if (yang_ws_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
             return 1;
-    } else if (url_pro == 1) {
+    } else if (protocolType == 1) {
         // if (yang_http_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
         if (yang_ws_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
             return 1;
-    } else if (url_pro == 2) {
+    } else if (protocolType == 2) {
         if (yang_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
             return 1;
     }
 
-    g_context->avinfo.sys.transType          = urlData.netType;
-    g_context->avinfo.audio.audioEncoderType = Yang_AED_OPUS;
-    g_context->avinfo.audio.sample           = 48000;
-
     yang_trace("netType==%d\n", urlData.netType);
     yang_trace("server=%s, port=%d\n", urlData.server, urlData.port);
     yang_trace("app=%s, stream=%s\n", urlData.app, urlData.stream);
+
+    g_context->avinfo.sys.transType          = urlData.netType;
+    g_context->avinfo.audio.audioEncoderType = Yang_AED_OPUS;
+    g_context->avinfo.audio.sample           = 48000;
 
     if (g_rtcPub == NULL) {
         g_rtcPub = new YangRtcPublish(g_context);
@@ -191,10 +192,10 @@ static int publish(char *url)
     // p_cap->initVideoEncoding();
     // p_cap->setRtcNetBuffer(g_rtcPub);
 
-    yang_reindex(p_videoBuffer);
-    yang_reindex(p_audioBuffer);
-    g_rtcPub->setInAudioList(p_audioBuffer);
-    g_rtcPub->setInVideoList(p_videoBuffer);
+    yang_reindex(g_audioBuffer);
+    yang_reindex(g_videoBuffer);
+    g_rtcPub->setInAudioList(g_audioBuffer);
+    g_rtcPub->setInVideoList(g_videoBuffer);
 
     // if (hasAudio)
     //     p_cap->startAudioEncoding();
@@ -306,22 +307,26 @@ int main(int argc, char *argv[])
     sigHupHandler.sa_flags = 0;
     sigaction(SIGHUP, &sigHupHandler, 0);
 
+    // init net config
     init_context();
     usleep(1000 * 10);
 
-    if (p_videoBuffer == NULL)
-        p_videoBuffer = new YangVideoEncoderBuffer(g_context->avinfo.video.videoCacheNum);
+    // allocate mem
+    if (g_videoBuffer == NULL)
+        g_videoBuffer = new YangVideoEncoderBuffer(g_context->avinfo.video.videoCacheNum);
 
-    if (p_audioBuffer == NULL) {
+    if (g_audioBuffer == NULL) {
         if (g_context->avinfo.audio.enableMono)
-            p_audioBuffer = new YangAudioEncoderBuffer(g_context->avinfo.audio.audioCacheNum);
+            g_audioBuffer = new YangAudioEncoderBuffer(g_context->avinfo.audio.audioCacheNum);
         else
-            p_audioBuffer = new YangAudioEncoderBuffer(g_context->avinfo.audio.audioCacheNum);
+            g_audioBuffer = new YangAudioEncoderBuffer(g_context->avinfo.audio.audioCacheNum);
     }
 
-    LOTO_RTMP_VA_CLASSIC();
+    // get stream from device
+    GetVideoAudioFrame();
     usleep(1000 * 10);
 
+    // push stream
     publish(push_url);
 
     while (!b_exit) {
