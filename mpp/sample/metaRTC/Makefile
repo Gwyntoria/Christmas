@@ -7,7 +7,9 @@ INC_FLAGS +=-I./include
 INC_FLAGS +=-I$(INC_DIR)/opus
 # INC_FLAGS +=-I../../include
 
-WEBRTC_LIBS:=./meta_lib/libmetartc6.a ./meta_lib/libmetartccore6.a
+METARTC_SRC_DIR:=../../../external/metaRTC-6.0-b0
+
+WEBRTC_LIBS:=./libs/metaRTC/libmetartc6.a ./libs/metaRTC/libmetartccore6.a
 
 WEBRTC_LIBS+=./thirdparty/lib/himix200/libssl.a \
 	./thirdparty/lib/himix200/libcrypto.a \
@@ -36,15 +38,22 @@ $(TARGET):$(OBJS)
 	@$(CXX) $(CFLAGS) -pthread -lm -o $@ $^ -Wl,--start-group $(MPI_LIBS) $(SENSOR_LIBS) $(AUDIO_LIBA) $(REL_LIB)/libsecurec.a $(WEBRTC_LIBS) -Wl,--end-group
 
 %.cpp.o:%.cpp
-	$(CXX) $(CFLAGS) -c -o $@ $<
+	@$(CXX) $(CFLAGS) -c -o $@ $<
 
 %.o:%.c
-	$(CXX) $(CFLAGS) -c -o $@ $<
+	@$(CXX) $(CFLAGS) -c -o $@ $<
+
+build_lib:
+	@cd $(METARTC_SRC_DIR) && ./cmake_lib_hisi3516dv300.sh
+	cp -af $(METARTC_SRC_DIR)/libmetartc6/build/libmetartc6.a libs/metaRTC
+	cp -af $(METARTC_SRC_DIR)/libmetartccore6/build/libmetartccore6.a libs/metaRTC
+
+rebuild: build_lib clean all
 
 .PHONY : clean echo
 clean:
-	@rm -f $(TARGET)
-	@rm -f $(OBJS)
+	rm -f $(TARGET)
+	rm -f $(OBJS)
 
 echo:
 	@echo $(CFLAGS)
