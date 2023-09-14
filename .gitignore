@@ -55,6 +55,7 @@ dkms.conf
 # bin file
 mpp/sample/LOTO_RTMP/loto_rtmp
 rtmp_pack/kit/root/loto_rtmp
+mpp/sample/metaRTC/loto_metartc
 
 # Compressed file
 rtmp_pack.tgz
@@ -68,3 +69,5 @@ rtmp_pack.tgz
 !mpp/sample/zlib-1.2.8/arm/lib/libz.a
 !/rtmp_pack/kit/lib/rtmp_lib/*
 !**/metaRTC/**/*.a
+
+**/build/

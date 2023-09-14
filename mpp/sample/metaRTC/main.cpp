@@ -7,21 +7,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <yangutil/yangavinfotype.h>
 
 // #include "yangpush/YangPushCommon.h"
 // #include "yangpush/YangPushPublish.h"
+// #include <yangpush/YangRtcPublish.h>
 #include "YangRtcPublish.h"
 #include <yangutil/buffer/YangAudioEncoderBuffer.h>
 #include <yangutil/buffer/YangVideoEncoderBuffer.h>
 #include <yangutil/sys/YangLog.h>
 #include <yangutil/sys/YangMath.h>
 #include <yangutil/sys/YangUrl.h>
+#include <yangutil/yangavinfotype.h>
 
 #include "common.h"
-#include "Loto_aenc.h"
-#include "Loto_opus.h"
-#include "Loto_venc.h"
+#include "loto_aenc.h"
+#include "loto_opus.h"
+#include "loto_venc.h"
 #include "sample_comm.h"
 
 int             g_waitState = 0;
@@ -54,7 +55,8 @@ static void    ctrl_c_handler(int s)
 }
 
 static int32_t b_reload = 0;
-static void    reload_handler(int s)
+
+static void reload_handler(int s)
 {
     printf("\ncaught signal %d, reload.\n", s);
     b_reload = 1;
@@ -129,32 +131,38 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
  */
 int32_t parse_url(char *url)
 {
-    char *delimiter       = strchr(url, ':');
-    char  url_protocal[8] = {0};
+    char *delimiter = strstr(url, "://");
+    char  url_protocal[8];
 
     if (delimiter == NULL) {
         printf("error url\n");
         return -1;
     } else {
         strncpy(url_protocal, url, delimiter - url);
-        printf("use %s\n", url_protocal);
+        url_protocal[delimiter - url] = 0;
+        printf("url_protocal: %s\n", url_protocal);
     }
 
     if (strcmp(url_protocal, "webrtc") == 0) {
         return 2;
-    } else {
+    } else if ((strcmp(url_protocal, "http") == 0) || (strcmp(url_protocal, "https") == 0)) {
         return 1;
+    } else if ((strcmp(url_protocal, "ws") == 0) || (strcmp(url_protocal, "wss") == 0)) {
+        return 0;
     }
 }
 
 static int publish(char *url)
 {
-
     int err = Yang_Ok;
     memset(&urlData, 0, sizeof(urlData));
 
     int url_pro = parse_url(url);
-    if (url_pro == 1) {
+    if (url_pro == 0) {
+        if (yang_ws_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
+            return 1;
+    } else if (url_pro == 1) {
+        // if (yang_http_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
         if (yang_ws_url_parse(g_context->avinfo.sys.familyType, url, &urlData))
             return 1;
     } else if (url_pro == 2) {
@@ -299,6 +307,7 @@ int main(int argc, char *argv[])
     sigaction(SIGHUP, &sigHupHandler, 0);
 
     init_context();
+    usleep(1000 * 10);
 
     if (p_videoBuffer == NULL)
         p_videoBuffer = new YangVideoEncoderBuffer(g_context->avinfo.video.videoCacheNum);
@@ -311,6 +320,7 @@ int main(int argc, char *argv[])
     }
 
     LOTO_RTMP_VA_CLASSIC();
+    usleep(1000 * 10);
 
     publish(push_url);
 

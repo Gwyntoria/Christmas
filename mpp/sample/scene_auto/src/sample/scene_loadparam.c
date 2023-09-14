@@ -1160,7 +1160,7 @@ HI_S32 SCENE_LoadStaticLDCI(const HI_CHAR *pszIniModule, HI_SCENE_STATIC_LDCI_S 
             return HI_FAILURE;
         }
         pstStaticLdci->u8ManualHeNegMean = (HI_U8)s32Value;
-    }
+    }
 #endif
     return HI_SUCCESS;
 }

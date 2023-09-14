@@ -7,14 +7,14 @@ INC_FLAGS +=-I./include
 INC_FLAGS +=-I$(INC_DIR)/opus
 # INC_FLAGS +=-I../../include
 
-RTMP_LIBS=./thirdparty/lib/himix200/libssl.a \
+WEBRTC_LIBS:=./meta_lib/libmetartc6.a ./meta_lib/libmetartccore6.a
+
+WEBRTC_LIBS+=./thirdparty/lib/himix200/libssl.a \
 	./thirdparty/lib/himix200/libcrypto.a \
 	./thirdparty/lib/himix200/libyuv.a \
 	./thirdparty/lib/himix200/libopus.a \
 	./thirdparty/lib/himix200/libusrsctp.a \
-	./thirdparty/lib/himix200/libsrtp2.a \
-	./meta_lib/libmetartc6.a \
-	./meta_lib/libmetartccore6.a \
+	./thirdparty/lib/himix200/libsrtp2.a
 
 # SRCS := $(wildcard *.cpp)
 SRCS := $(wildcard *.c)
@@ -33,7 +33,7 @@ CFLAGS += -L$(REL_LIB) -lsecurec -Wl,-rpath=/usr/lib
 all:$(TARGET)
 
 $(TARGET):$(OBJS)
-	@$(CXX) $(CFLAGS) -pthread -lm -o $@ $^ -Wl,--start-group $(MPI_LIBS) $(SENSOR_LIBS) $(AUDIO_LIBA) $(REL_LIB)/libsecurec.a $(RTMP_LIBS) -Wl,--end-group
+	@$(CXX) $(CFLAGS) -pthread -lm -o $@ $^ -Wl,--start-group $(MPI_LIBS) $(SENSOR_LIBS) $(AUDIO_LIBA) $(REL_LIB)/libsecurec.a $(WEBRTC_LIBS) -Wl,--end-group
 
 %.cpp.o:%.cpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
