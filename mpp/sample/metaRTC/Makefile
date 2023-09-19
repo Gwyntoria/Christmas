@@ -1,13 +1,12 @@
 include ../Makefile.param
 
+METARTC_SRC_DIR:=../../../external/metaRTC-6.0-b0
+
 # INC_FLAGS :=-I./hisivenc/include
 INC_FLAGS +=-I./hisivenc
 INC_FLAGS +=-I./hisivenc/adp
-INC_FLAGS +=-I./include
 INC_FLAGS +=-I$(INC_DIR)/opus
-# INC_FLAGS +=-I../../include
-
-METARTC_SRC_DIR:=../../../external/metaRTC-6.0-b0
+INC_FLAGS +=-I$(METARTC_SRC_DIR)/include
 
 WEBRTC_LIBS:=./libs/metaRTC/libmetartc6.a ./libs/metaRTC/libmetartccore6.a
 

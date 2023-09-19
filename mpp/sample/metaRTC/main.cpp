@@ -29,25 +29,29 @@ int             g_waitState = 0;
 pthread_mutex_t g_lock;
 pthread_cond_t  g_cond;
 
-YangAudioEncoderBuffer *g_audioBuffer = NULL;
-YangVideoEncoderBuffer *g_videoBuffer = NULL;
+YangAudioEncoderBuffer* g_audioBuffer = NULL;
+YangVideoEncoderBuffer* g_videoBuffer = NULL;
 long long               basesatmp     = 0;
 
 // YangPushPublish* p_cap = NULL;
-YangContext    *g_context = NULL;
-YangRtcPublish *g_rtcPub  = NULL;
+YangContext*    g_context = NULL;
+YangRtcPublish* g_rtcPub  = NULL;
 YangUrlData     urlData;
 bool            hasAudio = false;
 
-char push_url[256];
+char g_push_url[256];
+
+SAMPLE_VI_CONFIG_S _stViConfig;
+SIZE_S             _stSize[2];
+PIC_SIZE_E         _enSize[2] = {PIC_2592x1944, PIC_1080P};
+pthread_t          vid = 0, aid = 0;
 
 /*
  * ctrl + c controller
  */
 static int32_t b_exit = 0;
 
-static void ctrl_c_handler(int s)
-{
+static void ctrl_c_handler(int s) {
     printf("\ncaught signal %d, exit.\n", s);
     b_exit = 1;
     pthread_mutex_lock(&g_lock);
@@ -57,19 +61,12 @@ static void ctrl_c_handler(int s)
 
 static int32_t b_reload = 0;
 
-static void reload_handler(int s)
-{
+static void reload_handler(int s) {
     printf("\ncaught signal %d, reload.\n", s);
     b_reload = 1;
 }
 
-SAMPLE_VI_CONFIG_S _stViConfig;
-SIZE_S             _stSize[2];
-PIC_SIZE_E         _enSize[2] = {PIC_2592x1944, PIC_1080P};
-pthread_t          vid = 0, aid = 0;
-
-HI_S32 GetVideoAudioFrame()
-{
+HI_S32 GetVideoAudioFrame() {
     HI_S32 s32Ret;
     HI_S32 s32ChnNum = 1;
 
@@ -130,9 +127,8 @@ HI_S32 GetVideoAudioFrame()
  * @retval 1 http://host:port/path, ws://host:port/path, wss://host:port/path
  * @retval 2 webrtc://host[:port]/app/stream
  */
-int32_t parse_url(char *url)
-{
-    char *delimiter = strstr(url, "://");
+int32_t parse_url(char* url) {
+    char* delimiter = strstr(url, "://");
     char  protocol[8];
 
     if (delimiter == NULL) {
@@ -153,8 +149,7 @@ int32_t parse_url(char *url)
     }
 }
 
-static int publish(char *url)
-{
+static int publish(char* url) {
     int err = Yang_Ok;
     memset(&urlData, 0, sizeof(urlData));
 
@@ -201,7 +196,8 @@ static int publish(char *url)
     //     p_cap->startAudioEncoding();
     // p_cap->startVideoEncoding();
 
-    if ((err = g_rtcPub->init(urlData.netType, urlData.server, urlData.port, urlData.app, urlData.stream)) != Yang_Ok) {
+    err = g_rtcPub->init(urlData.netType, urlData.server, urlData.port, urlData.app, urlData.stream);
+    if (err != Yang_Ok) {
         return yang_error_wrap(err, " connect server failure!");
     }
 
@@ -214,10 +210,9 @@ static int publish(char *url)
     return err;
 }
 
-static void init_context()
-{
+static void init_context() {
     g_context = new YangContext();
-    g_context->init((char *)"yang_config.ini");
+    g_context->init((char*)"yang_config.ini");
     g_context->avinfo.video.videoEncoderFormat = YangI420;
     g_context->avinfo.enc.createMeta           = 0;
 
@@ -237,7 +232,7 @@ static void init_context()
 #if Yang_Enable_Vr
     // using vr bg file name
     memset(g_context->avinfo.bgFilename, 0, sizeof(m_ini->bgFilename));
-    QSettings settingsread((char *)"yang_config.ini", QSettings::IniFormat);
+    QSettings settingsread((char*)"yang_config.ini", QSettings::IniFormat);
     strcpy(g_context->avinfo.bgFilename, settingsread.value("sys/bgFilename", QVariant("d:\\bg.jpeg")).toString().toStdString().c_str());
 #endif
 
@@ -279,16 +274,15 @@ static void init_context()
     g_context->avinfo.audio.enableAudioFec = yangfalse;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     if (argc != 2) {
-        printf("Usage: loto_metartc 'push_url'\n");
+        printf("Usage: loto_metartc 'g_push_url'\n");
         exit(1);
     } else {
-        memcpy(push_url, argv[1], strlen(argv[1]));
+        memcpy(g_push_url, argv[1], strlen(argv[1]));
     }
 
-    printf("push_url = %s\n", push_url);
+    printf("g_push_url = %s\n", g_push_url);
 
     struct sigaction sigIntHandler;
     struct sigaction sigHupHandler;
@@ -327,7 +321,7 @@ int main(int argc, char *argv[])
     usleep(1000 * 10);
 
     // push stream
-    publish(push_url);
+    publish(g_push_url);
 
     while (!b_exit) {
         g_waitState = 1;

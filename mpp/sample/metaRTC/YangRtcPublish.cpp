@@ -11,22 +11,19 @@
 #include <yangutil/sys/YangEndian.h>
 #include <yangutil/sys/YangLog.h>
 
-void g_pushstream_sendData(void *context, YangFrame *msgFrame)
-{
-    YangRtcPublish *push = (YangRtcPublish *)context;
+void g_pushstream_sendData(void* context, YangFrame* msgFrame) {
+    YangRtcPublish* push = (YangRtcPublish*)context;
     push->publishMsg(msgFrame);
 }
 
-void g_pushstream_receiveMsg(void *user, YangFrame *msgFrame)
-{
+void g_pushstream_receiveMsg(void* user, YangFrame* msgFrame) {
     if (user == NULL)
         return;
-    YangRtcPublish *rtcHandle = (YangRtcPublish *)user;
+    YangRtcPublish* rtcHandle = (YangRtcPublish*)user;
     rtcHandle->receiveMsg(msgFrame);
 }
 
-YangRtcPublish::YangRtcPublish(YangContext *pcontext)
-{
+YangRtcPublish::YangRtcPublish(YangContext* pcontext) {
     m_context = pcontext;
 
     m_in_videoBuffer   = NULL;
@@ -46,8 +43,7 @@ YangRtcPublish::YangRtcPublish(YangContext *pcontext)
     m_context->channeldataSend.sendData = g_pushstream_sendData;
 }
 
-YangRtcPublish::~YangRtcPublish()
-{
+YangRtcPublish::~YangRtcPublish() {
     if (m_isConvert) {
         stop();
         while (m_isStart) {
@@ -60,18 +56,15 @@ YangRtcPublish::~YangRtcPublish()
     m_vmd            = NULL;
 }
 
-int32_t YangRtcPublish::connectServer(int32_t puid)
-{
+int32_t YangRtcPublish::connectServer(int32_t puid) {
     return m_pushs.back()->connectSfuServer();
 }
 
-int32_t YangRtcPublish::reconnectMediaServer()
-{
+int32_t YangRtcPublish::reconnectMediaServer() {
     return m_pushs.back()->connectSfuServer();
 }
 
-int32_t YangRtcPublish::publishMsg(YangFrame *msgFrame)
-{
+int32_t YangRtcPublish::publishMsg(YangFrame* msgFrame) {
     if (m_pushs.size() > 0) {
         msgFrame->uid = m_pushs.front()->streamConfig->uid;
         return m_pushs.front()->on_message(msgFrame);
@@ -79,18 +72,20 @@ int32_t YangRtcPublish::publishMsg(YangFrame *msgFrame)
     return 1;
 }
 
-int32_t YangRtcPublish::receiveMsg(YangFrame *msgFrame)
-{
+int32_t YangRtcPublish::receiveMsg(YangFrame* msgFrame) {
     if (m_context->channeldataRecv.receiveData)
         m_context->channeldataRecv.receiveData(m_context->channeldataRecv.context, msgFrame);
     return Yang_Ok;
 }
 
-int32_t YangRtcPublish::init(int32_t nettype, char *server, int32_t pport, char *app, char *stream)
-{
+extern char g_push_url[256];
+
+int32_t YangRtcPublish::init(int32_t nettype, char* server, int32_t pport, char* app, char* stream) {
     int32_t          ret = 0;
     YangStreamConfig streamconfig;
+
     memset(&streamconfig, 0, sizeof(YangStreamConfig));
+    strcpy(streamconfig.url, g_push_url);
     strcpy(streamconfig.app, app);
     streamconfig.streamOptType = Yang_Stream_Publish;
 
@@ -107,8 +102,8 @@ int32_t YangRtcPublish::init(int32_t nettype, char *server, int32_t pport, char 
 
     memcpy(&streamconfig.rtcCallback, &m_context->rtcCallback, sizeof(YangRtcCallback));
 
-    YangPeerConnection2 *sh = new YangPeerConnection2(&m_context->avinfo, &streamconfig);
-    sh->init(); // create rtc connection
+    YangPeerConnection2* sh = new YangPeerConnection2(&m_context->avinfo, &streamconfig); // create rtc connection
+    sh->init();                                                                           // Initialization has been finished by YangPeerConnection2 constructor
     m_pushs.push_back(sh);
 
     if (sh->isConnected()) {
@@ -125,16 +120,14 @@ int32_t YangRtcPublish::init(int32_t nettype, char *server, int32_t pport, char 
     return Yang_Ok;
 }
 
-int32_t YangRtcPublish::connectMediaServer()
-{
+int32_t YangRtcPublish::connectMediaServer() {
     if (m_pushs.size() > 0)
         return Yang_Ok;
 
     return Yang_Ok;
 }
 
-int32_t YangRtcPublish::disConnectMediaServer()
-{
+int32_t YangRtcPublish::disConnectMediaServer() {
     if (m_pushs.size() > 0) {
         yang_delete(m_pushs.back());
         m_pushs.clear();
@@ -142,33 +135,27 @@ int32_t YangRtcPublish::disConnectMediaServer()
     return Yang_Ok;
 }
 
-void YangRtcPublish::stop()
-{
+void YangRtcPublish::stop() {
     m_isConvert = 0;
 }
 
-void YangRtcPublish::run()
-{
+void YangRtcPublish::run() {
     m_isStart = 1;
     startLoop();
     m_isStart = 0;
 }
 
-void YangRtcPublish::setInAudioList(YangAudioEncoderBuffer *pbuf)
-{
+void YangRtcPublish::setInAudioList(YangAudioEncoderBuffer* pbuf) {
     m_in_audioBuffer = pbuf;
 }
-void YangRtcPublish::setInVideoList(YangVideoEncoderBuffer *pbuf)
-{
+void YangRtcPublish::setInVideoList(YangVideoEncoderBuffer* pbuf) {
     m_in_videoBuffer = pbuf;
 }
-void YangRtcPublish::setInVideoMetaData(YangVideoMeta *pvmd)
-{
+void YangRtcPublish::setInVideoMetaData(YangVideoMeta* pvmd) {
     m_vmd = pvmd;
 }
 
-void YangRtcPublish::startLoop()
-{
+void YangRtcPublish::startLoop() {
     isPublished = 0;
     m_isConvert = 1;
 
@@ -187,13 +174,13 @@ void YangRtcPublish::startLoop()
     int32_t ret        = Yang_Ok;
     isPublished        = 1;
     notifyState        = 1;
-    YangVideoMeta *vmd = NULL;
+    YangVideoMeta* vmd = NULL;
     if (m_context->avinfo.enc.createMeta == 0) {
-        vmd = (YangVideoMeta *)calloc(sizeof(YangVideoMeta), 1);
+        vmd = (YangVideoMeta*)calloc(sizeof(YangVideoMeta), 1);
     }
 
     YangH264NaluData     nalu;
-    YangPeerConnection2 *stream = NULL;
+    YangPeerConnection2* stream = NULL;
     while (m_isConvert == 1) {
 
         if ((m_in_videoBuffer && m_in_videoBuffer->size() == 0) && (m_in_audioBuffer && m_in_audioBuffer->size() == 0)) {
