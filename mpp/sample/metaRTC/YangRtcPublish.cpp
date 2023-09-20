@@ -225,7 +225,7 @@ void YangRtcPublish::startLoop() {
 
             videoFrame.payload = m_in_videoBuffer->getEVideoRef(&videoFrame);
 
-            // yang_trace("\n payload len = %d\n", videoFrame.nb);
+            yang_trace("\n payload len = %d\n", videoFrame.nb);
 
             if (videoFrame.frametype == YANG_Frametype_I) {
                 if (m_vmd) {
@@ -237,13 +237,13 @@ void YangRtcPublish::startLoop() {
                         if (videoType == Yang_VED_264) {
                             yang_createH264Meta(vmd, &videoFrame);
 
-                            // yang_trace("\n vmd.spslen = %d, vmd.ppslen = %d \n", vmd->mp4Meta.spsLen, vmd->mp4Meta.ppsLen);
-                            // char payload[256] = "";
-                            // for (int k = 0; k < 40; k ++)
-                            // {
-                            //     sprintf(payload, "%s 0x%x", payload, videoFrame.payload[k]);
-                            // }
-                            // yang_trace("\n vmd init payload = %s\n", payload);
+                            yang_trace("\n vmd.spslen = %d, vmd.ppslen = %d \n", vmd->mp4Meta.spsLen, vmd->mp4Meta.ppsLen);
+                            char payload[256] = "";
+                            for (int k = 0; k < 40; k ++)
+                            {
+                                sprintf(payload, "%s 0x%x", payload, videoFrame.payload[k]);
+                            }
+                            yang_trace("\n vmd init payload = %s\n", payload);
 
                             yang_getConfig_Flv_H264(&vmd->mp4Meta, vmd->livingMeta.buffer, &vmd->livingMeta.bufLen);
                         } else if (videoType == Yang_VED_265) {
@@ -260,12 +260,12 @@ void YangRtcPublish::startLoop() {
 
                 if (!m_context->avinfo.enc.createMeta) {
 
-                    // char payload[256] = "";
-                    // for (int k = 0; k < 40; k ++)
-                    // {
-                    //     sprintf(payload, "%s 0x%x", payload, videoFrame.payload[k]);
-                    // }
-                    // yang_trace("\n before parseH264Nalu payload = %s\n", payload);
+                    char payload[256] = "";
+                    for (int k = 0; k < 40; k ++)
+                    {
+                        sprintf(payload, "%s 0x%x", payload, videoFrame.payload[k]);
+                    }
+                    yang_trace("\n before parseH264Nalu payload = %s\n", payload);
 
                     memset(&nalu, 0, sizeof(YangH264NaluData));
                     if (videoType == Yang_VED_264)
@@ -284,12 +284,12 @@ void YangRtcPublish::startLoop() {
                 }
             }
 
-            // char payload1[256] = "";
-            // for (int k = 0; k < 40; k ++)
-            // {
-            //     sprintf(payload1, "%s 0x%x", payload1, videoFrame.payload[k]);
-            // }
-            // yang_trace("\n setVideoData videoType = %d, payload = %s\n", videoType, payload1);
+            char payload1[256] = "";
+            for (int k = 0; k < 40; k ++)
+            {
+                sprintf(payload1, "%s 0x%x", payload1, videoFrame.payload[k]);
+            }
+            yang_trace("\n setVideoData videoType = %d, payload = %s\n", videoType, payload1);
 
             data.setVideoData(data.context, &videoFrame, videoType);
             ret = stream->on_video(data.getVideoFrame(data.context));

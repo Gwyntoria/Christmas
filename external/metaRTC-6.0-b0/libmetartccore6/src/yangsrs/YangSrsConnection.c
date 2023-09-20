@@ -131,8 +131,12 @@ int32_t yang_srs_getSignal(YangRtcSession* session, SrsSdpResponseType* srs, cha
 
     char* http = strstr(session->context.streamConfig->url, "http://");
     if (!http) {
-        yang_sprintf(httpRequestBody, "{%capi%c:%chttp://%s:%d/rtc/v1/%s/%c,%cstreamurl%c:%cwebrtc://%s:%d/%s/%s%c,%cclientip%c:null,%csdp%c:%c%s%c}", qt, qt,
-                     qt, session->context.streamConfig->remoteIp, session->context.streamConfig->remotePort, roleStr, qt, qt, qt, qt,
+        yang_sprintf(httpRequestBody,
+                     "{%capi%c:%chttp://%s:%d/rtc/v1/%s/%c,"
+                     "%cstreamurl%c:%cwebrtc://%s:%d/%s/%s%c,"
+                     "%cclientip%c:null,"
+                     "%csdp%c:%c%s%c}",
+                     qt, qt, qt, session->context.streamConfig->remoteIp, session->context.streamConfig->remotePort, roleStr, qt, qt, qt, qt,
                      session->context.streamConfig->remoteIp, session->context.streamConfig->remotePort, session->context.streamConfig->app,
                      session->context.streamConfig->stream, qt, qt, qt, qt, qt, qt, sdp, qt);
         yang_sprintf(apiurl, "rtc/v1/%s/", roleStr);
