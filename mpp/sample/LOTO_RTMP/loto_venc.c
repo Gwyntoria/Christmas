@@ -296,7 +296,7 @@ void *LOTO_VENC_CLASSIC(void *arg)
     HI_S32 s32Ret = 0;
     // HI_S32 s32ChnNum = 2;
     HI_S32 s32ChnNum = 1;
-    HI_S32 s32ViCnt = 2;
+    HI_S32 s32ViCnt = 1;
     HI_BOOL bLowDelay = HI_FALSE;
 
     // HI_S32 s32Ret;
