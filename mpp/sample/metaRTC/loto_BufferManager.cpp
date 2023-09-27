@@ -12,6 +12,7 @@
 #include <yangutil/buffer/YangAudioEncoderBuffer.h>
 #include <yangutil/buffer/YangVideoEncoderBuffer.h>
 #include <yangutil/sys/YangEndian.h>
+#include <yangutil/sys/YangTime.h>
 
 #include "common.h"
 #include "sample_comm.h"
@@ -91,15 +92,11 @@ HI_S32 HisiPutH264DataToBuffer(VENC_STREAM_S *pstStream)
     uint32_t offset = 0;
     uint8_t *buf_offset;
 
-    long long curstamp = get_timestamp(NULL, 1);
-    if (basesatmp == 0)
-        basesatmp = curstamp;
-
     for (i = 0; i < pstStream->u32PackCount; i++) {
         len += pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset;
     }
 
-    videoFrame.pts     = curstamp - basesatmp;
+    videoFrame.pts     = yang_get_system_time();
     videoFrame.payload = (uint8_t *)malloc(len);
 
     for (i = 0; i < pstStream->u32PackCount; i++) {
@@ -187,11 +184,7 @@ HI_S32 HisiPutOpusDataToBuffer(HI_U8 *opus_data, HI_U32 data_size, HI_U64 timest
 {
     YangFrame opusFrame;
 
-    long long curstamp = get_timestamp(NULL, 1);
-    if (basesatmp == 0)
-        basesatmp = curstamp;
-
-    opusFrame.pts     = curstamp - basesatmp;
+    opusFrame.pts     = yang_get_system_time();
     opusFrame.nb      = data_size;
     opusFrame.payload = (uint8_t *)malloc(data_size);
     memcpy(opusFrame.payload, opus_data, data_size);
