@@ -83,8 +83,19 @@ int32_t yang_send_rtcp_sr(YangRtcContext *context, yangbool isAudio,uint32_t ssr
 
 	yang_write_8bytes(&stream, ntp);
 	yang_write_4bytes(&stream, ts);
+	
+	printf("\n[RTCP_SR]\n");
+    printf("NTP timestamp: %llu\n", ntp);
+    printf("RTP timestamp: %u\n", ts);
+
 	yang_write_4bytes(&stream, isAudio?stats->audioRtpPacketCount:stats->videoRtpPacketCount);
 	yang_write_4bytes(&stream, isAudio?stats->audioRtpBytes:stats->videoRtpBytes);
+
+    // for (int i = 0; i < yang_buffer_pos(&stream); i++) {
+    //     printf("%02x ", stream.data[i]);
+    //     if (i % 4 == 3)
+    //         printf("\n");
+    // }
 
 	return yang_send_rtcppacket(context,stream.data,yang_buffer_pos(&stream));
 }

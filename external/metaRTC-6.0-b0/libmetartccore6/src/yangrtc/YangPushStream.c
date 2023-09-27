@@ -135,7 +135,7 @@ int32_t yang_rtcpush_on_rtcp_ps_feedback(YangRtcContext* context, YangRtcPushStr
     int32_t err = Yang_Ok;
 
     uint8_t fmt = rtcp->header.rc;
-    printf("rtcp->header.rc = %d\n", rtcp->header.rc);
+    // printf("rtcp->header.rc = %d\n", rtcp->header.rc);
 
     switch (fmt) {
         case kPLI: {
@@ -176,17 +176,21 @@ int32_t yang_rtcpush_on_rtcp(YangRtcContext* context, YangRtcPushStream* pub, Ya
     if (context == NULL || pub == NULL)
         return ERROR_RTC_PUBLISH;
 
-    printf("rtcp->header.type = %d\n", rtcp->header.type);
+    // printf("rtcp->header.type = %d\n", rtcp->header.type);
 
     if (YangRtcpType_rr == rtcp->header.type) {
         return yang_rtcpush_on_rtcp_rr(context, pub, rtcp);
+
     } else if (YangRtcpType_rtpfb == rtcp->header.type) {
         // currently rtpfb of nack will be handle by player. TWCC will be handled by YangRtcRtcpI
         return yang_rtcpush_on_rtcp_nack(context, pub, rtcp);
+
     } else if (YangRtcpType_psfb == rtcp->header.type) {
         return yang_rtcpush_on_rtcp_ps_feedback(context, pub, rtcp);
+
     } else if (YangRtcpType_xr == rtcp->header.type) {
         return yang_rtcpush_on_rtcp_xr(context, pub, rtcp);
+        
     } else if (YangRtcpType_bye == rtcp->header.type) {
         // TODO: FIXME: process rtcp bye.
         return Yang_Ok;

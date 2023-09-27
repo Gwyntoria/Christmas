@@ -162,6 +162,7 @@ void yang_streamcapture_setMetaTimestamp(void* pcontext,int64_t timestamp){
 		context->video.metaTime=timestamp-context->video.baseTimestamp;
 	}
 
+	// printf("[%s] video.metaTime: %lld\n", __FUNCTION__, context->video.metaTime);
 }
 
 uint8_t* yang_streamcapture_getVideoData(void* pcontext){
@@ -287,6 +288,7 @@ YangFrame* yang_streamcapture_getVideoFrame(void* pcontext){
 	context->videoFrame.payload=(context->video.transType==Yang_Webrtc?context->video.src:context->video.videoBuffer);
 	context->videoFrame.nb=context->video.videoLen;
 	context->videoFrame.pts=yang_streamcapture_getVideoTimestamp(pcontext);
+    // printf("[%s] videoFrame.pts = %lld\n", __FUNCTION__, context->videoFrame.pts);
 	context->videoFrame.frametype=context->video.frametype;
 	return &context->videoFrame;
 }

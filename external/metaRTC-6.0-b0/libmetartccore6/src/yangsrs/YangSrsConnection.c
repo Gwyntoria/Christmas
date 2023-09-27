@@ -38,7 +38,7 @@ int32_t yang_sdp_querySrs(YangRtcSession* session, SrsSdpResponseType* srs, int3
         return yang_error_wrap(1, "query srs sdp failure!");
     }
 
-    printf("\n=============== http post success =============\n");
+    // printf("\n=============== http post success =============\n");
 
     // printf("\n=============== received http return =============\n%s\n", sdp);
 
@@ -61,9 +61,9 @@ int32_t yang_sdp_querySrs(YangRtcSession* session, SrsSdpResponseType* srs, int3
     yang_memset(&strs, 0, sizeof(YangStrings));
     yang_cstr_split(sBuffer, (char*)",", &strs);
 
-    for (int i = 0; i < strs.vsize; i++) {
-        printf("\nstrs[%d]:\n%s\n", i, strs.str[i]);
-    }
+    // for (int i = 0; i < strs.vsize; i++) {
+    //     printf("\nstrs[%d]:\n%s\n", i, strs.str[i]);
+    // }
 
     char* p = NULL;
     for (int32_t i = 0; i < strs.vsize; i++) {
@@ -151,7 +151,7 @@ int32_t yang_srs_getSignal(YangRtcSession* session, SrsSdpResponseType* srs, cha
         yang_sprintf(apiurl, "%s/%s", session->context.streamConfig->app, session->context.streamConfig->stream);
     }
 
-    printf("\n========== apiurl ==========\n%s\n", apiurl);
+    // printf("\n========== apiurl ==========\n%s\n", apiurl);
 
     err = yang_sdp_querySrs(session, srs, role == Yang_Stream_Play ? 1 : 0, (char*)session->context.streamConfig->remoteIp,
                             session->context.streamConfig->remotePort, apiurl, httpRequestBody);
@@ -170,7 +170,7 @@ int32_t yang_srs_connectRtcServer(YangRtcConnection* conn) {
     conn->createOffer(session, &tsdp);
 
     if ((err = yang_srs_getSignal(conn->session, &srs, tsdp)) == Yang_Ok) {
-        printf("\n========== sdp ==========\n%s\n", srs.sdp);
+        // printf("\n========== sdp ==========\n%s\n", srs.sdp);
         conn->setRemoteDescription(conn->session, srs.sdp);
     }
 

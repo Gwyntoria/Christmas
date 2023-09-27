@@ -50,7 +50,7 @@ int32_t yang_http_post(YangIpFamilyType familyType, char* rets, char* ip, int32_
 
     int len = yang_sprintf(buf, s, api, ip, port, plen, data);
 
-    printf("\n========== HTTP POST ==========\n%s\n", buf);
+    // printf("\n========== HTTP POST ==========\n%s\n", buf);
 
     int32_t nBytes = yang_socket_send(socketfd, buf, len, 0);
 

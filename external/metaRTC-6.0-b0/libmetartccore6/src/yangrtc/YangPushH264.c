@@ -25,6 +25,15 @@ int32_t yang_push_h264_encodeVideo(YangRtcSession *session, YangPushH264Rtp *rtp
 				pkt->payload_type);
 	}
 
+    // printf("\n[rtp header]\n");
+    // for (int i = 0; i < 12; i++) {
+    // 	printf("%02x ", rtp->buf.data[i]);
+
+    //     if (i % 4 == 3)
+    //         printf("\n");
+    // }
+    // printf("\n");
+
 	if (pkt->payload_type == YangRtpPacketPayloadTypeRaw) {
 		err = yang_encode_h264_raw(&rtp->buf, &rtp->videoRawData);
 	} else if (pkt->payload_type == YangRtpPacketPayloadTypeFUA2) {
@@ -159,6 +168,7 @@ int32_t yang_push_h264_package_fu_a(YangRtcSession *session, YangPushH264Rtp *rt
 		rtp->videoFuaPacket.frame_type = YangFrameTypeVideo;
 		rtp->videoFuaPacket.header.sequence = rtp->videoSeq++;
 		rtp->videoFuaPacket.header.timestamp = videoFrame->pts;
+        // printf("[%s] rtp hreader timestamp: %u\n", __FUNCTION__, rtp->videoFuaPacket.header.timestamp);
 		rtp->videoFuaPacket.header.marker = (i == num_of_packet - 1) ? 1 : 0;
 
 		rtp->videoFuaPacket.payload_type = YangRtpPacketPayloadTypeFUA2;
