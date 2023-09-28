@@ -238,6 +238,12 @@ void format_time(time_t time, char *formattedTime);
 
 int get_sys_mem_payload(int *used_ram, int *free_ram);
 
+int Com_OpenFile(FILE **file, const char *filename, const char *openType);
+int Com_WriteFile(FILE *file, char *data, size_t dataSize);
+int Com_ReadFile(FILE *file, char *data, size_t dataSize);
+void Com_CloseFile(FILE *file);
+
+
 #ifdef __cplusplus
 }
 #endif

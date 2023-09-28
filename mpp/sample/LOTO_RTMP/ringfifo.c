@@ -306,6 +306,11 @@ HI_S32 HisiPutAACDataToBuffer(AUDIO_STREAM_S *aacStream)
 
         // LOGD("Put FIFO INFO:idx:%d,len:%d,ptr:%x\n",a_iput,aacStream->u32Len,(int)(aacStream->pStream));
 
+        // FILE *aacFile;
+        // Com_OpenFile(&aacFile, "aacRaw", "a");
+        // Com_WriteFile(aacFile, aacStream->pStream, aacStream->u32Len);
+        // Com_CloseFile(aacFile);
+
         a_iput = addring(a_iput);
         a_n++;
     }

@@ -105,21 +105,21 @@ int get_mac(char *mac)
 
 long long string2int(const char *str)
 {
-    char      flag = '+';    // 指示结果是否带符号
+    char      flag = '+'; // 指示结果是否带符号
     long long res  = 0;
 
-    if (*str == '-')    // 字符串带负号
+    if (*str == '-') // 字符串带负号
     {
-        ++str;         // 指向下一个字符
-        flag = '-';    // 将标志设为负号
+        ++str;      // 指向下一个字符
+        flag = '-'; // 将标志设为负号
     }
     // 逐个字符转换，并累加到结果res
-    while (*str >= 48 && *str <= 57)    // 如果是数字才进行转换，数字0~9的ASCII码：48~57
+    while (*str >= 48 && *str <= 57) // 如果是数字才进行转换，数字0~9的ASCII码：48~57
     {
-        res = 10 * res + *str++ - 48;    // 字符'0'的ASCII码为48,48-48=0刚好转化为数字0
+        res = 10 * res + *str++ - 48; // 字符'0'的ASCII码为48,48-48=0刚好转化为数字0
     }
 
-    if (flag == '-')    // 处理是负数的情况
+    if (flag == '-') // 处理是负数的情况
     {
         res = -res;
     }
@@ -279,7 +279,7 @@ const char  padding_char = '=';
 int base64_encode(const unsigned char *sourcedata, int datalength, char *base64)
 {
     int           i = 0, j = 0;
-    unsigned char trans_index = 0;    // 索引是8位，但是高两位都为0
+    unsigned char trans_index = 0; // 索引是8位，但是高两位都为0
     // const int datalength = strlen((const char*)sourcedata);
     for (; i < datalength; i += 3) {
         // 每三个一组，进行编码
@@ -298,11 +298,11 @@ int base64_encode(const unsigned char *sourcedata, int datalength, char *base64)
 
             base64[j++] = padding_char;
 
-            break;    // 超出总长度，可以直接break
+            break; // 超出总长度，可以直接break
         }
         // 第三个
         trans_index = ((sourcedata[i + 1] << 2) & 0x3c);
-        if (i + 2 < datalength) {    // 有的话需要编码2个
+        if (i + 2 < datalength) { // 有的话需要编码2个
             trans_index |= ((sourcedata[i + 2] >> 6) & 0x03);
             base64[j++] = base64char[(int)trans_index];
 
@@ -324,7 +324,7 @@ int base64_encode(const unsigned char *sourcedata, int datalength, char *base64)
  * const char *str ，字符串
  * char c，要查找的字符
  */
-static int num_strchr(const char *str, char c)    //
+static int num_strchr(const char *str, char c) //
 {
     const char *pindex = strchr(str, c);
     if (NULL == pindex) {
@@ -455,10 +455,10 @@ int get_net_time()
     // Construct NTP packets
     uint8_t ntp_packet[NTP_PACKET_SIZE];
     memset(ntp_packet, 0, sizeof(ntp_packet));
-    ntp_packet[0] = 0b11100011;    // NTP version 4, client mode, no leap indicator
-    ntp_packet[1] = 0;             // stratum, or how far away the server is from a reliable time source
-    ntp_packet[2] = 6;             // poll interval, or how often the client will request time
-    ntp_packet[3] = 0xEC;          // precision, or how accurate the client's clock is
+    ntp_packet[0] = 0b11100011; // NTP version 4, client mode, no leap indicator
+    ntp_packet[1] = 0;          // stratum, or how far away the server is from a reliable time source
+    ntp_packet[2] = 6;          // poll interval, or how often the client will request time
+    ntp_packet[3] = 0xEC;       // precision, or how accurate the client's clock is
     // the rest of the packet is all zeros
 
     int       retries = 0;
@@ -643,7 +643,7 @@ uint64_t extract_from_big_endian(uint8_t *array, size_t numBytes)
 void reboot_system()
 {
     LOGI("Rebooting the system...\n");
-    sleep(1);    // 等待一段时间确保打印信息输出
+    sleep(1); // 等待一段时间确保打印信息输出
     // 调用系统命令进行重启
     system("reboot");
 }
@@ -659,7 +659,7 @@ int get_local_ip_address(char *ipAddress)
         return -1;
     }
 
-    strncpy(ifr.ifr_name, "eth0", IFNAMSIZ);    // 你可以根据实际情况更改接口名字
+    strncpy(ifr.ifr_name, "eth0", IFNAMSIZ); // 你可以根据实际情况更改接口名字
 
     if (ioctl(fd, SIOCGIFADDR, &ifr) < 0) {
         perror("ioctl");
@@ -684,7 +684,7 @@ int get_local_mac_address(char *macAddress)
         return -1;
     }
 
-    strncpy(ifr.ifr_name, "eth0", IFNAMSIZ);    // 你可以根据实际情况更改接口名字
+    strncpy(ifr.ifr_name, "eth0", IFNAMSIZ); // 你可以根据实际情况更改接口名字
 
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0) {
         perror("ioctl");
@@ -708,7 +708,7 @@ void format_time(time_t time, char *formattedTime)
 
 /**
  * @brief Get the sys mem payload info: just used RAM and free RAM
- * 
+ *
  * @param used_ram used RAM
  * @param free_ram free RAM
  * @return int 0-success; -1-failure
@@ -726,4 +726,45 @@ int get_sys_mem_payload(int *used_ram, int *free_ram)
     *free_ram = info.freeram / 1024;
 
     return 0;
+}
+
+int Com_OpenFile(FILE **file, const char *filename, const char *openType)
+{
+    *file = fopen(filename, openType);
+
+    if (*file == NULL) {
+        perror("Open file error");
+        return 1;
+    }
+
+    return 0;
+}
+
+int Com_WriteFile(FILE *file, char *data, size_t dataSize)
+{
+    size_t bytesWritten = fwrite(data, 1, dataSize, file);
+
+    if (bytesWritten != dataSize) {
+        perror("Write file error");
+        return 1;
+    }
+
+    return 0;
+}
+
+int Com_ReadFile(FILE *file, char *data, size_t dataSize)
+{
+    size_t bytesRead = fread(data, 1, dataSize, file);
+
+    if (bytesRead != dataSize) {
+        perror("Read file error");
+        return 1;
+    }
+
+    return 0;
+}
+
+void Com_CloseFile(FILE *file)
+{
+    fclose(file);
 }
