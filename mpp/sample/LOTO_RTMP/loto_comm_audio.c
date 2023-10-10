@@ -73,10 +73,10 @@ typedef struct tagSAMPLE_AO_S {
     pthread_t stAoPid;
 } SAMPLE_AO_S;
 
-static SAMPLE_AI_S   gs_stSampleAi[AI_DEV_MAX_NUM* AI_MAX_CHN_NUM];
-static SAMPLE_AENC_S gs_stSampleAenc[AENC_MAX_CHN_NUM];
-static SAMPLE_ADEC_S gs_stSampleAdec[ADEC_MAX_CHN_NUM];
-static SAMPLE_AO_S   gs_stSampleAo[AO_DEV_MAX_NUM];
+// static SAMPLE_AI_S   gs_stSampleAi[AI_DEV_MAX_NUM* AI_MAX_CHN_NUM];
+// static SAMPLE_AENC_S gs_stSampleAenc[AENC_MAX_CHN_NUM];
+// static SAMPLE_ADEC_S gs_stSampleAdec[ADEC_MAX_CHN_NUM];
+// static SAMPLE_AO_S   gs_stSampleAo[AO_DEV_MAX_NUM];
 
 #ifdef HI_ACODEC_TYPE_TLV320AIC31
 HI_S32 SAMPLE_Tlv320_CfgAudio(AIO_MODE_E enWorkmode, AUDIO_SAMPLE_RATE_E enSample)
@@ -1378,13 +1378,17 @@ HI_S32 LOTO_COMM_AUDIO_StartAenc(HI_S32 s32AencChnCnt, AIO_ATTR_S *pstAioAttr, P
     if (PT_ADPCMA == stAencAttr.enType) {
         stAencAttr.pValue       = &stAdpcmAenc;
         stAdpcmAenc.enADPCMType = AUDIO_ADPCM_TYPE;
+
     } else if (PT_G711A == stAencAttr.enType || PT_G711U == stAencAttr.enType) {
         stAencAttr.pValue = &stAencG711;
+
     } else if (PT_G726 == stAencAttr.enType) {
         stAencAttr.pValue    = &stAencG726;
         stAencG726.enG726bps = G726_BPS;
+
     } else if (PT_LPCM == stAencAttr.enType) {
         stAencAttr.pValue = &stAencLpcm;
+
     } else if (PT_AAC == stAencAttr.enType) {
         stAencAttr.pValue      = &stAencAac;
         stAencAac.enAACType    = gs_enAacType;
@@ -1394,6 +1398,7 @@ HI_S32 LOTO_COMM_AUDIO_StartAenc(HI_S32 s32AencChnCnt, AIO_ATTR_S *pstAioAttr, P
         stAencAac.enSoundMode  = pstAioAttr->enSoundmode;
         stAencAac.enTransType  = gs_enAacTransType;
         stAencAac.s16BandWidth = 0;
+
     } else if (PT_OPUS == stAencAttr.enType) {
         stAencAttr.pValue = &stAencOpus;
         // stAencOpus.samplingRate = pstAioAttr->enSamplerate;
@@ -1402,6 +1407,7 @@ HI_S32 LOTO_COMM_AUDIO_StartAenc(HI_S32 s32AencChnCnt, AIO_ATTR_S *pstAioAttr, P
         // stAencOpus.bitrate = OPUS_ENCODE_BITRATE;
         // stAencOpus.vbr = VBR_FALSE;
         // stAencOpus.forceChannel = OPUS_MONO;
+        
     } else {
         LOGE("%s: invalid aenc payload type:%d\n", __FUNCTION__, stAencAttr.enType);
         return HI_FAILURE;

@@ -115,7 +115,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
     HI_S32   s32Ret           = 0;
     uint64_t a_time_count     = 0;
     uint64_t a_time_count_pre = 0;
-    // uint64_t a_start_time     = 0;
+    uint64_t a_start_time     = 0;
     uint64_t v_time_count     = 0;
     uint64_t v_time_count_pre = 0;
     uint64_t v_start_time     = 0;
@@ -164,11 +164,11 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             if (a_ring_buf_len != 0) {
                 cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-                if (a_time_count == 0) {
-                    a_time_count = cur_time;
+                if (a_start_time == 0) {
+                    a_start_time = cur_time;
                 }
 
-                a_time_count = cur_time - a_time_count;
+                a_time_count = cur_time - a_start_time;
 
                 if (a_time_count < a_time_count_pre) {
                     a_time_count += 10;
@@ -186,7 +186,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
                     } else if (gs_audio_encoder == AUDIO_ENCODER_OPUS) {
                         s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     }
-                    
+
                     if (s32Ret == -1) {
                         LOGE("Audio: Request reconnection.\n");
                     }
