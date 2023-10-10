@@ -128,7 +128,8 @@ HI_S32 LOTO_AUDIO_CreatTrdAenc(pthread_t *aencPid, AENC_CHN AeChn)
     pstAenc         = &gs_stLotoAenc[AeChn];
     pstAenc->AeChn  = AeChn;
     pstAenc->bStart = HI_TRUE;
-    HI_S32 nRet     = pthread_create(&pstAenc->stAencPid, 0, LOTO_COMM_AUDIO_AencProc, pstAenc);
+
+    HI_S32 nRet = pthread_create(&pstAenc->stAencPid, 0, LOTO_COMM_AUDIO_AencProc, pstAenc);
 
     if (nRet == 0) {
         *aencPid = pstAenc->stAencPid;
@@ -172,7 +173,8 @@ HI_S32 LOTO_AUDIO_AiAenc(HI_VOID)
          step 1: start Ai
     ********************************************/
     s32AiChnCnt = stAioAttr.u32ChnCnt;
-    s32Ret      = LOTO_COMM_AUDIO_StartAi(AiDev, s32AiChnCnt, &stAioAttr, AUDIO_SAMPLE_RATE_BUTT, HI_FALSE, NULL, 0);
+
+    s32Ret = LOTO_COMM_AUDIO_StartAi(AiDev, s32AiChnCnt, &stAioAttr, AUDIO_SAMPLE_RATE_BUTT, HI_FALSE, NULL, 0);
     if (s32Ret != HI_SUCCESS) {
         LOGE("LOTO_COMM_AUDIO_StartAi failed with %#x!\n", s32Ret);
         goto AIAENC_ERR6;

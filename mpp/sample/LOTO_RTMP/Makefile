@@ -97,6 +97,12 @@ release:
 delete_release:
 	@rm -f ./bin/$(TARGET)-$(BIN_VERSION)
 
+rebuild_librtmp:
+	make -C ../librtmp clean
+	make -C ../librtmp
+
+build_with_librtmp: rebuild_librtmp clean all
+
 clean:
 	@rm -f $(TARGET)
 	@rm -f $(C_OBJS)

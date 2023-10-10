@@ -57,7 +57,7 @@ char           g_device_num[16];
 PIC_SIZE_E     g_resolution;
 PAYLOAD_TYPE_E g_payload = PT_BUTT;
 
-static char BIN_VERSION[16];
+static char APP_VERSION[16];
 
 // static char gs_server_url_buf[1024] = {0};
 static char gs_push_url_buf[1024] = {0};
@@ -98,10 +98,9 @@ HI_S32 LOTO_RTMP_VA_CLASSIC()
     /* audio thread */
     if (gs_audio_state == TRUE) {
         if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
-            /* aac */
             pthread_create(&aid, NULL, LOTO_AENC_CLASSIC, NULL);
+
         } else if (gs_audio_encoder == AUDIO_ENCODER_OPUS) {
-            /* opus */
             pthread_create(&aid, NULL, LOTO_OPUS_AudioEncode, NULL);
         }
     }
@@ -148,6 +147,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
                 rtmp_sender_free(prtmp);
                 prtmp = NULL;
             }
+
             usleep(1000 * 100);
             prtmp = rtmp_sender_alloc(url);
             if (rtmp_sender_start_publish(prtmp, 0, 0) != 0) {
@@ -182,9 +182,11 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
                 if (prtmp != NULL) {
                     if (gs_audio_encoder == AUDIO_ENCODER_AAC) {
                         s32Ret = rtmp_sender_write_aac_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
+
                     } else if (gs_audio_encoder == AUDIO_ENCODER_OPUS) {
                         s32Ret = rtmp_sender_write_opus_frame(prtmp, a_ringinfo.buffer, a_ringinfo.size, a_time_count, 0);
                     }
+                    
                     if (s32Ret == -1) {
                         LOGE("Audio: Request reconnection.\n");
                     }
@@ -215,6 +217,7 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             if (prtmp != NULL && !low_bitrate_mode) {
                 if (g_payload == PT_H264) {
                     s32Ret = rtmp_sender_write_avc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
+
                 } else if (g_payload == PT_H265) {
                     s32Ret = rtmp_sender_write_hevc_frame(prtmp, v_ringinfo.buffer, v_ringinfo.size, v_time_count, 0);
                 }
@@ -284,10 +287,13 @@ void parse_config_file(const char *config_file_path)
     char *resolution = GetConfigKeyValue("push", "resolution", config_file_path);
     if (0 == strncmp("1080", resolution, 4)) {
         g_resolution = PIC_1080P;
+
     } else if (0 == strncmp("1944", resolution, 4)) {
         g_resolution = PIC_2592x1944;
+
     } else if (0 == strncmp("720", resolution, 3)) {
         g_resolution = PIC_720P;
+
     } else {
         LOGE("The set value of resolution is not supported!\n");
     }
@@ -311,10 +317,13 @@ void parse_config_file(const char *config_file_path)
         /* profile */
         if (strncmp("baseline", video_encoder_profile, 8) == 0) {
             g_profile = 0;
+
         } else if (strncmp("main", video_encoder_profile, 4) == 0) {
             g_profile = 1;
+
         } else if (strncmp("high", video_encoder_profile, 4) == 0) {
             g_profile = 2;
+
         } else {
             LOGE("The set value of profile is %s! Please set baseline, main or high.\n", video_encoder_profile);
             exit(1);
@@ -328,8 +337,10 @@ void parse_config_file(const char *config_file_path)
         /* profile */
         if (strncmp("main", video_encoder_profile, 4) == 0) {
             g_profile = 0;
+
         } else if (strncmp("main_10", video_encoder_profile, 7) == 0) {
             g_profile = 1;
+
         } else {
             LOGE("The set value of profile is %s! Please set main or main_10.\n", video_encoder_profile);
             exit(1);
@@ -351,8 +362,10 @@ void parse_config_file(const char *config_file_path)
 
         if (strncmp("aac", audio_encoder, 3) == 0) {
             gs_audio_encoder = AUDIO_ENCODER_AAC;
+
         } else if (strncmp("opus", audio_encoder, 4) == 0) {
             gs_audio_encoder = AUDIO_ENCODER_OPUS;
+
         } else {
             LOGE("The set value of audio_encoder is %s! The supported audio encoders: aac, opus\n", audio_encoder);
             exit(1);
@@ -381,6 +394,7 @@ void *monitor_time_difference(void *arg)
                 LOGI("The running time has exceeded 7 days, reboot now\n");
                 reboot_system();
                 break;
+
             } else {
                 LOGD("There is someone online. Wait for 10s\n");
                 sleep(10);
@@ -403,7 +417,7 @@ void fill_device_net_info(DeviceInfo *device_info)
 
 #define VER_MAJOR 1
 #define VER_MINOR 8
-#define VER_BUILD 5
+#define VER_BUILD 6
 
 int main(int argc, char *argv[])
 {
@@ -431,9 +445,9 @@ int main(int argc, char *argv[])
     program_start_time = time(NULL);
     strcpy(device_info.start_time, GetTimestampString());
 
-    sprintf(BIN_VERSION, "%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD);
-    strcpy(device_info.app_version, BIN_VERSION);
-    LOGI("RTMP App Version: %s\n", BIN_VERSION);
+    sprintf(APP_VERSION, "%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD);
+    strcpy(device_info.app_version, APP_VERSION);
+    LOGI("RTMP App Version: %s\n", APP_VERSION);
 
     /* socket: server */
     // pthread_t socket_server_pid;
