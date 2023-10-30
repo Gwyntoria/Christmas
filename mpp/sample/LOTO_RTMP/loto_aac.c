@@ -297,7 +297,7 @@ void *LOTO_AAC_StartEncode(void *arg) {
         if (ret < 0) {
             break;
         } else if (0 == ret) {
-            LOGE("Get aenc stream select time out\n");
+            LOGE("Get ai stream select time out\n");
             break;
         }
 
