@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
     s32Ret = get_net_time();
     if (s32Ret != HI_SUCCESS) {
         LOGE("Time sync failed\n");
-        exit(1);
+        // exit(1);
     }
 
     /* Gets the program startup time */
