@@ -39,6 +39,10 @@
 #define AUDIO_ENCODER_AAC  0xAC
 #define AUDIO_ENCODER_OPUS 0xAF
 
+#define VER_MAJOR 1
+#define VER_MINOR 8
+#define VER_BUILD 8
+
 typedef struct RtmpThrArg {
     char *url;
     void *rtmp_xiecc;
@@ -56,23 +60,17 @@ PIC_SIZE_E g_enSize[2] = {PIC_1080P, PIC_720P};
 char           g_device_num[16];
 PIC_SIZE_E     g_resolution;
 PAYLOAD_TYPE_E g_payload = PT_BUTT;
+int            g_framerate = 0;
 
 static char APP_VERSION[16];
 
-// static char gs_server_url_buf[1024] = {0};
 static char gs_push_url_buf[1024] = {0};
-// static int g_pushurl_switch = 0;
-int        g_profile        = -1;
-static int gs_audio_state   = -1;
-static int gs_audio_encoder = -1;
-
-// static int gs_server_option = SERVER_OFFI;
+int         g_profile             = -1;
+static int  gs_audio_state        = -1;
+static int  gs_audio_encoder      = -1;
 
 time_t     program_start_time;
 DeviceInfo device_info = {0};
-
-// int  get_server_option() { return gs_server_option; }
-// void set_server_option(int server_option) { gs_server_option = server_option; }
 
 void LotoRtmpHandleSignal(HI_S32 signo)
 {
@@ -352,6 +350,7 @@ void parse_config_file(const char *config_file_path)
     strcpy(device_info.audio_state, audio_state);
     if (strncmp("off", audio_state, 3) == 0) {
         gs_audio_state = FALSE;
+
     } else if (strncmp("on", audio_state, 2) == 0) {
         gs_audio_state = TRUE;
 
@@ -374,6 +373,9 @@ void parse_config_file(const char *config_file_path)
         LOGE("The set value of audio_state is %s! Please set on or off.\n", audio_state);
         exit(1);
     }
+
+    /* framerate */
+    g_framerate = GetIniKeyInt("push", "framerate", config_file_path);
 }
 
 void *monitor_time_difference(void *arg)
@@ -414,10 +416,6 @@ void fill_device_net_info(DeviceInfo *device_info)
     get_local_ip_address(device_info->ip_addr);
     get_local_mac_address(device_info->mac_addr);
 }
-
-#define VER_MAJOR 1
-#define VER_MINOR 8
-#define VER_BUILD 7
 
 int main(int argc, char *argv[])
 {
@@ -506,11 +504,11 @@ int main(int argc, char *argv[])
     usleep(1000 * 10);
 
     /* socket: server */
-    pthread_t socket_server_pid;
-    if (pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL) != 0) {
-        fprintf(stderr, "Failed to create socket_server_thread\n");
-    }
-    usleep(100);
+    // pthread_t socket_server_pid;
+    // if (pthread_create(&socket_server_pid, NULL, socket_server_thread, NULL) != 0) {
+    //     fprintf(stderr, "Failed to create socket_server_thread\n");
+    // }
+    // usleep(100);
 
     pthread_t sync_time_pid;
     if (pthread_create(&sync_time_pid, NULL, sync_time, NULL) != 0) {
