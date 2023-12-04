@@ -49,7 +49,7 @@ typedef struct KeyValuePair {
 static int gs_reboot_switch = 0;
 
 extern time_t     program_start_time;
-extern DeviceInfo device_info;
+extern DeviceInfo g_device_info;
 
 /**
  * @brief 打印出错误信息并结束程序
@@ -383,7 +383,7 @@ int deal_query_string(char *query_string, char *content)
             if (strcasecmp(pairs[i].key, "cover") == 0) {
                 if (strcmp(pairs[i].value, "1") == 0) {
                     LOTO_COVER_Switch(COVER_ON);
-                    PutConfigKeyValue("push", "video_state", "off", PUSH_CONFIG_FILE_PATH);
+                    // PutConfigKeyValue("push", "video_state", "off", PUSH_CONFIG_FILE_PATH);
 
                     sprintf(temp, "Add cover\n");
                     strcat(content, temp);
@@ -391,7 +391,7 @@ int deal_query_string(char *query_string, char *content)
 
                 } else if (strcmp(pairs[i].value, "0") == 0) {
                     LOTO_COVER_Switch(COVER_OFF);
-                    PutConfigKeyValue("push", "video_state", "on", PUSH_CONFIG_FILE_PATH);
+                    // PutConfigKeyValue("push", "video_state", "on", PUSH_CONFIG_FILE_PATH);
 
                     sprintf(temp, "Remove cover\n");
                     strcat(content, temp);
@@ -399,19 +399,16 @@ int deal_query_string(char *query_string, char *content)
 
                 } else {
                     LOGD("value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
-                    sprintf(temp, "value[%s] of key[%s] is wrong\n", pairs[i].value, pairs[i].key);
-                    strcat(content, temp);
-                    temp[0] = '\0';
                     ret--;
                 }
 
             } else if (strcasecmp(pairs[i].key, "server_url") == 0) {
                 int server_url_status = -1;
 
-                if (strcmp(device_info.server_url, TEST_SERVER_URL) == 0) {
+                if (strcmp(g_device_info.server_url, TEST_SERVER_URL) == 0) {
                     server_url_status = 0;
 
-                } else if (strcmp(device_info.server_url, OFFI_SERVER_URL) == 0) {
+                } else if (strcmp(g_device_info.server_url, OFFI_SERVER_URL) == 0) {
                     server_url_status = 1;
 
                 } else {
@@ -459,18 +456,8 @@ int deal_query_string(char *query_string, char *content)
                     ret--;
                 }
 
-            } else if (strcasecmp(pairs[i].key, "server_url") == 0) {
-                PutConfigKeyValue("push", "server_url", pairs[i].value, PUSH_CONFIG_FILE_PATH);
-
-                sprintf(temp, "Set server_url OK\n");
-                strcat(content, temp);
-                temp[0] = '\0';
-
             } else {
                 LOGD("key[%s] is wrong\n", pairs[i].key);
-                sprintf(temp, "key[%s] is wrong\n", pairs[i].key);
-                strcat(content, temp);
-                temp[0] = '\0';
                 ret--;
             }
         }
@@ -606,43 +593,43 @@ int send_plain_response(int client_socket, const char *content)
 
 void get_device_info(char *device_info_content)
 {
-    device_info.running_time = time(NULL) - program_start_time;
-    strcpy(device_info.current_time, GetTimestampString());
-    device_info.video_state = LOTO_COVER_GetCoverState();
-    get_sys_mem_payload(&device_info.used_ram, &device_info.free_ram);
+    g_device_info.running_time = time(NULL) - program_start_time;
+    strcpy(g_device_info.current_time, GetTimestampString());
+    g_device_info.video_state = LOTO_COVER_GetCoverState();
+    get_sys_mem_payload(&g_device_info.used_ram, &g_device_info.free_ram);
 
-    device_info.used_ram_perct = 100 * device_info.used_ram / (device_info.used_ram + device_info.free_ram);
+    g_device_info.used_ram_perct = 100 * g_device_info.used_ram / (g_device_info.used_ram + g_device_info.free_ram);
 
     char running_time[32] = {0};
-    format_time(device_info.running_time, running_time);
+    format_time(g_device_info.running_time, running_time);
 
     char temp[1024] = {0};
 
-    sprintf(temp, "device_num:      %s\r\n", device_info.device_num);
+    sprintf(temp, "device_num:      %s\r\n", g_device_info.device_num);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "ip_addr:         %s\r\n", device_info.ip_addr);
+    sprintf(temp, "ip_addr:         %s\r\n", g_device_info.ip_addr);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "mac_addr:        %s\r\n", device_info.mac_addr);
+    sprintf(temp, "mac_addr:        %s\r\n", g_device_info.mac_addr);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "memory:          %dK used, %dK free, %.2f%% used\r\n", device_info.used_ram, device_info.free_ram, device_info.used_ram_perct);
+    sprintf(temp, "memory:          %dK used, %dK free, %.2f%% used\r\n", g_device_info.used_ram, g_device_info.free_ram, g_device_info.used_ram_perct);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "app_version:     %s\r\n", device_info.app_version);
+    sprintf(temp, "app_version:     %s\r\n", g_device_info.app_version);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "vedio_encoder:   %s\r\n", device_info.video_encoder);
+    sprintf(temp, "vedio_encoder:   %s\r\n", g_device_info.video_encoder);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    if (device_info.video_state == COVER_OFF) {
+    if (g_device_info.video_state == COVER_OFF) {
         sprintf(temp, "video_state:     on\r\n");
         strcat(device_info_content, temp);
         temp[0] = '\0';
@@ -653,19 +640,19 @@ void get_device_info(char *device_info_content)
         temp[0] = '\0';
     }
 
-    sprintf(temp, "audio_encoder:   %s\r\n", device_info.audio_encoder);
+    sprintf(temp, "audio_encoder:   %s\r\n", g_device_info.audio_encoder);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "audio_state:     %s\r\n", device_info.audio_state);
+    sprintf(temp, "audio_state:     %s\r\n", g_device_info.audio_state);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "start_time:      %s\r\n", device_info.start_time);
+    sprintf(temp, "start_time:      %s\r\n", g_device_info.start_time);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "current_time:    %s\r\n", device_info.current_time);
+    sprintf(temp, "current_time:    %s\r\n", g_device_info.current_time);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
@@ -673,11 +660,11 @@ void get_device_info(char *device_info_content)
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "push_url:        %s\r\n", device_info.push_url);
+    sprintf(temp, "push_url:        %s\r\n", g_device_info.push_url);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
-    sprintf(temp, "server_url:      %s\r\n", device_info.server_url);
+    sprintf(temp, "server_url:      %s\r\n", g_device_info.server_url);
     strcat(device_info_content, temp);
     temp[0] = '\0';
 
@@ -755,7 +742,7 @@ int accept_request(int client)
         gs_reboot_switch = 1;
 
         if (send_plain_response(client, content) != 0) {
-            LOGE("send device_info error\n");
+            LOGE("send g_device_info error\n");
             return -1;
         }
 
@@ -771,7 +758,7 @@ int accept_request(int client)
         LOGD("device_info_content:\n%s\n", device_info_content);
 #endif
         if (send_plain_response(client, device_info_content) != 0) {
-            LOGE("send device_info error\n");
+            LOGE("send g_device_info error\n");
             return -1;
         }
     } else {

@@ -41,7 +41,7 @@
 
 #define VER_MAJOR 1
 #define VER_MINOR 8
-#define VER_BUILD 9
+#define VER_BUILD 10
 
 typedef struct RtmpThrArg {
     char *url;
@@ -70,7 +70,7 @@ static int  gs_audio_state        = -1;
 static int  gs_audio_encoder      = -1;
 
 time_t     program_start_time;
-DeviceInfo device_info = {0};
+DeviceInfo g_device_info;
 
 void LotoRtmpHandleSignal(HI_S32 signo)
 {
@@ -111,13 +111,15 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
     LOGI("=== LOTO_VIDEO_AUDIO_RTMP ===\n");
 
     HI_S32   s32Ret           = 0;
+    uint64_t start_time     = 0;
     uint64_t a_time_count     = 0;
     uint64_t a_time_count_pre = 0;
-    uint64_t a_start_time     = 0;
+    // uint64_t a_start_time     = 0;
     uint64_t v_time_count     = 0;
     uint64_t v_time_count_pre = 0;
-    uint64_t v_start_time     = 0;
+    // uint64_t v_start_time     = 0;
     uint64_t cur_time         = 0;
+
 
     struct ringbuf v_ringinfo;
     int            v_ring_buf_len = 0;
@@ -162,11 +164,11 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
             if (a_ring_buf_len != 0) {
                 cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-                if (a_start_time == 0) {
-                    a_start_time = cur_time;
+                if (start_time == 0) {
+                    start_time = cur_time;
                 }
 
-                a_time_count = cur_time - a_start_time;
+                a_time_count = cur_time - start_time;
 
                 if (a_time_count < a_time_count_pre) {
                     a_time_count += 10;
@@ -197,11 +199,11 @@ void *LOTO_VIDEO_AUDIO_RTMP(void *p)
         if (v_ring_buf_len != 0) {
             cur_time = GetTimestampU64(NULL, 1); // get current time(ms)
 
-            if (v_start_time == 0) {
-                v_start_time = cur_time;
+            if (start_time == 0) {
+                start_time = cur_time;
             }
 
-            v_time_count = cur_time - v_start_time;
+            v_time_count = cur_time - start_time;
 
             if (v_time_count < v_time_count_pre) {
                 v_time_count += 10;
@@ -240,6 +242,10 @@ void parse_config_file(const char *config_file_path)
     /* Get default push_url */
     strcpy(gs_push_url_buf, GetConfigKeyValue("push", "push_url", config_file_path));
 
+    /* Get default device num */
+    strncpy(g_device_num, GetConfigKeyValue("device", "device_num", config_file_path), 3);
+    strcpy(g_device_info.device_num, g_device_num);
+
     /* If push address should be requested, server address must be set first */
     if (strncmp("on", GetConfigKeyValue("push", "requested_url", config_file_path), 2) == 0) {
         /* Get server token */
@@ -249,24 +255,8 @@ void parse_config_file(const char *config_file_path)
 
         /* Get server url */
         char server_url[1024];
-        // LOGI("Waiting for updating server address\n");
-        // while (1) {
-        //     if (gs_server_option != SERVER_NULL) {
-        //         break;
-        //     } else {
-        //         LOGE("Waiting......\n");
-        //         sleep(3);
-        //     }
-        // }
-
-        // if (gs_server_option == SERVER_TEST) {
-        //     strcpy(server_url, GetConfigKeyValue("push", "test_server_url", config_file_path));
-        // } else if (gs_server_option == SERVER_OFFI) {
-        //     strcpy(server_url, GetConfigKeyValue("push", "offi_server_url", config_file_path));
-        // }
-
         strcpy(server_url, GetConfigKeyValue("push", "server_url", config_file_path));
-        strcpy(device_info.server_url, server_url);
+        strcpy(g_device_info.server_url, server_url);
 
         LOGI("server_url = %s\n", server_url);
 
@@ -277,9 +267,15 @@ void parse_config_file(const char *config_file_path)
         }
         memset(gs_push_url_buf, 0, sizeof(gs_push_url_buf));
         strcpy(gs_push_url_buf, pRoomInfo->szPushURL);
+
+        memset(g_device_num, 0, sizeof(g_device_num));
+        strcpy(g_device_num, pRoomInfo->szName + 1);
     }
-    strcpy(device_info.push_url, gs_push_url_buf);
+    strcpy(g_device_info.push_url, gs_push_url_buf);
     LOGI("push_url = %s\n", gs_push_url_buf);
+
+    strcpy(g_device_info.device_num, g_device_num);
+    LOGI("device_num = %s\n", g_device_num);
 
     /* resolution */
     char *resolution = GetConfigKeyValue("push", "resolution", config_file_path);
@@ -297,13 +293,8 @@ void parse_config_file(const char *config_file_path)
     }
     LOGI("resolution = %s\n", resolution);
 
-    /* device num */
-    strncpy(g_device_num, GetConfigKeyValue("device", "device_num", config_file_path), 3);
-    strcpy(device_info.device_num, g_device_num);
-    LOGI("device_num = %s\n", g_device_num);
-
     const char *video_encoder = GetConfigKeyValue("push", "video_encoder", config_file_path);
-    strcpy(device_info.video_encoder, video_encoder);
+    strcpy(g_device_info.video_encoder, video_encoder);
     LOGI("video_encoder = %s\n", video_encoder);
 
     if (strncmp("h264", video_encoder, 4) == 0) {
@@ -345,9 +336,15 @@ void parse_config_file(const char *config_file_path)
         }
     }
 
+    if (strncmp("off", GetConfigKeyValue("push", "video_state", config_file_path), 3) == 0) {
+        g_device_info.video_state = COVER_ON;
+    } else {
+        g_device_info.video_state = COVER_OFF;
+    }
+
     /* audio_state */
     char *audio_state = GetConfigKeyValue("push", "audio_state", config_file_path);
-    strcpy(device_info.audio_state, audio_state);
+    strcpy(g_device_info.audio_state, audio_state);
     if (strncmp("off", audio_state, 3) == 0) {
         gs_audio_state = FALSE;
 
@@ -356,7 +353,7 @@ void parse_config_file(const char *config_file_path)
 
         /* audio_encoder */
         const char *audio_encoder = GetConfigKeyValue("push", "audio_encoder", config_file_path);
-        strcpy(device_info.audio_encoder, audio_encoder);
+        strcpy(g_device_info.audio_encoder, audio_encoder);
         LOGI("audio_encoder = %s\n", audio_encoder);
 
         if (strncmp("aac", audio_encoder, 3) == 0) {
@@ -422,6 +419,8 @@ int main(int argc, char *argv[])
     int        s32Ret             = 0;
     const char config_file_path[] = PUSH_CONFIG_FILE_PATH;
 
+    memset(&g_device_info, 0, sizeof(g_device_info));
+
     signal(SIGINT, LotoRtmpHandleSignal);
     signal(SIGTERM, LotoRtmpHandleSignal);
 
@@ -441,10 +440,10 @@ int main(int argc, char *argv[])
 
     /* Gets the program startup time */
     program_start_time = time(NULL);
-    strcpy(device_info.start_time, GetTimestampString());
+    strcpy(g_device_info.start_time, GetTimestampString());
 
     sprintf(APP_VERSION, "%d.%d.%d", VER_MAJOR, VER_MINOR, VER_BUILD);
-    strcpy(device_info.app_version, APP_VERSION);
+    strcpy(g_device_info.app_version, APP_VERSION);
     LOGI("RTMP App Version: %s\n", APP_VERSION);
 
     /* socket: server */
@@ -453,7 +452,7 @@ int main(int argc, char *argv[])
 
     /* get global variables from config file */
     parse_config_file(config_file_path);
-    fill_device_net_info(&device_info);
+    fill_device_net_info(&g_device_info);
 
     /* Initialize rtmp_log file */
     FILE *rtmp_log = NULL;
@@ -490,6 +489,10 @@ int main(int argc, char *argv[])
 
     LOTO_COVER_InitCoverRegion();
     usleep(1000 * 10);
+
+    if (g_device_info.video_state == COVER_ON) {
+        LOTO_COVER_Switch(COVER_ON);
+    }
 
     /* Initialize rtmp_sender */
     RtmpThrArg *rtmp_attr = (RtmpThrArg *)malloc(sizeof(RtmpThrArg));

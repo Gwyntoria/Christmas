@@ -15,6 +15,9 @@
 #include "loto_osd.h"
 #include "loto_venc.h"
 #include "ringfifo.h"
+#include "ConfigParser.h"
+
+extern DeviceInfo g_device_info;
 
 static RGN_HANDLE gs_rgnHandle = 5;
 
@@ -125,11 +128,17 @@ HI_S32 LOTO_COVER_ChangeCover() {
             LOGE("LOTO_COVER_AddCover failed!\n");
             return -1;
         }
+
+        g_device_info.video_state = COVER_ON;
+        PutConfigKeyValue("push", "video_state", "off", PUSH_CONFIG_FILE_PATH);
     } else if (gs_cover_state == COVER_OFF) {
         if (LOTO_COVER_RemoveCover() != 0) {
             LOGE("LOTO_COVER_RemoveCover failed!\n");
             return -1;
         }
+
+        g_device_info.video_state = COVER_OFF;
+        PutConfigKeyValue("push", "video_state", "on", PUSH_CONFIG_FILE_PATH);
     }
 
     gs_cover_switch = 0;
