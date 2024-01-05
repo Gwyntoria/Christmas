@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "ConfigParser.h"
 #include "common.h"
@@ -21,6 +23,7 @@
 
 #define DEBUG_HTTP 0
 
+#define MAX_CLIENTS           10
 #define MAX_PENDING           10
 #define MAX_RESPONSE_SIZE     5120
 #define MAX_HTML_CONTENT_SIZE 4096
@@ -40,13 +43,12 @@
     "\r\n"                                     \
     "%s"
 
-
 typedef struct KeyValuePair {
     char *key;
     char *value;
 } KeyValuePair;
 
-static int gs_reboot_switch = 0;
+static int s_reboot_switch = 0;
 
 extern time_t     program_start_time;
 extern DeviceInfo g_device_info;
@@ -365,6 +367,7 @@ int deal_query_string(char *query_string, char *content)
     // pairs = parse_query_string(query_string, &pairs_num);
 
     KeyValuePair pairs[32];
+    memset(pairs, 32, sizeof(KeyValuePair));
     parse_query_string(query_string, &pairs_num, pairs);
 
 #if DEBUG_HTTP
@@ -408,7 +411,7 @@ int deal_query_string(char *query_string, char *content)
                 if (strcmp(g_device_info.server_url, TEST_SERVER_URL) == 0) {
                     server_url_status = 0;
 
-                } else if (strcmp(g_device_info.server_url, OFFI_SERVER_URL) == 0) {
+                } else if (strcmp(g_device_info.server_url, RELE_SERVER_URL) == 0) {
                     server_url_status = 1;
 
                 } else {
@@ -424,7 +427,7 @@ int deal_query_string(char *query_string, char *content)
                         strcat(content, temp);
                         temp[0] = '\0';
 
-                        gs_reboot_switch = 1;
+                        s_reboot_switch = 1;
 
                     } else {
                         LOGI("remain the setting of server_url\n");
@@ -435,14 +438,14 @@ int deal_query_string(char *query_string, char *content)
 
                 } else if (strcmp(pairs[i].value, "1") == 0) {
                     if (server_url_status == 0) {
-                        PutConfigKeyValue("push", "server_url", OFFI_SERVER_URL, PUSH_CONFIG_FILE_PATH);
+                        PutConfigKeyValue("push", "server_url", RELE_SERVER_URL, PUSH_CONFIG_FILE_PATH);
 
-                        LOGI("Set server_url to OFFI_SERVER_URL\n");
-                        sprintf(temp, "Set server_url to OFFI_SERVER_URL\n");
+                        LOGI("Set server_url to RELE_SERVER_URL\n");
+                        sprintf(temp, "Set server_url to RELE_SERVER_URL\n");
                         strcat(content, temp);
                         temp[0] = '\0';
 
-                        gs_reboot_switch = 1;
+                        s_reboot_switch = 1;
 
                     } else {
                         LOGI("remain the setting of server_url\n");
@@ -482,7 +485,7 @@ void send_header(int client, const char *content_type, int content_length)
             "\r\n",
             content_type, content_length);
 
-    send(client, header, strlen(header), 0);
+    send(client, header, strlen(header), MSG_NOSIGNAL);
 }
 
 // 函数用于读取HTML文件的内容
@@ -562,7 +565,7 @@ int send_html_response(int client_socket, const char *file_path)
     // LOGD("content_length: %d\n", content_length);
     // LOGD("response: %s\n", response);
 
-    if (send(client_socket, response, strlen(response), 0) < 0) {
+    if (send(client_socket, response, strlen(response), MSG_NOSIGNAL) < 0) {
         perror("send");
         free(html_content);
         return -1;
@@ -584,7 +587,7 @@ int send_plain_response(int client_socket, const char *content)
     LOGD("response:\n%s\n", response);
 #endif
 
-    if (send(client_socket, response, strlen(response), 0) < 0) {
+    if (send(client_socket, response, strlen(response), MSG_NOSIGNAL) < 0) {
         return -1;
     }
 
@@ -671,12 +674,57 @@ void get_device_info(char *device_info_content)
     // write_html_file(device_info_html, DEVICE_FILE_PATH);
 }
 
+int handle_request(int client_socket, char* buf, int buf_size, int* header_size) {
+    ssize_t bytes_received;
+
+    bytes_received = recv(client_socket, buf, buf_size, 0);
+    if (bytes_received == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK ) {
+            printf("null data\n");
+            return 1;
+        } else {
+            LOGE("Failed to read request\n");
+            return -1;
+        }
+    } else if (bytes_received == 0) {
+        LOGE("Disconnection\n");
+        return -1;
+    }
+
+    char* p = strstr(buf, "\r\n\r\n");
+    if (p != NULL) {
+        *header_size = p + 4 - buf;
+        buf[*header_size] = '\0';
+        // LOGD("header_size: %d\n", *header_size);
+    } else {
+        LOGE("HTTP header error\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+int set_nonblocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl");
+        return -1;
+    }
+
+    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl");
+        return -1;
+    }
+
+    return 0;
+}
+
 // void* accept_request(void* pclient) {
 int accept_request(int client)
 {
     // int client = *(int*)pclient;
 
-    int  numchars;
+    int  header_size = 0;
     char buf[1024] = {0};
 
     char method[256]        = {0};
@@ -686,11 +734,17 @@ int accept_request(int client)
     char query_string[1024] = {0};
 
     // 获取一行HTTP请求报文
-    numchars = get_request_line(client, buf, sizeof(buf));
+    // header_size = get_request_line(client, buf, sizeof(buf));
+    // LOGD("request_line: %s\n", buf);
 
-    LOGD("request_line: %s\n", buf);
+    int ret = handle_request(client, buf, sizeof(buf), &header_size);
+    if (ret == -1) {
+        return -1;
+    } else if (ret == 1) {
+        return 1;
+    }
 
-    parse_request_line(buf, numchars, method, url, version);
+    parse_request_line(buf, header_size, method, url, version);
 
     // 暂时只支持get方法
     // if (strcasecmp(method, "GET")) {
@@ -707,16 +761,9 @@ int accept_request(int client)
     }
     // 以上将 request_line 解析完毕
 
-    if (strcasecmp(path, "/hello") == 0) {
-        char hello_content[32] = "Hello world!\r\n";
-        if (send_plain_response(client, hello_content) != 0) {
-            LOGE("send error\n");
-            return -1;
-        }
-        // } else if (strcasecmp(path, "/html") == 0) {
-        //     if (send_html_response(client, HTML_FILE_PATH) != 0)
-        //         LOGE("send error\n");
-    } else if (strcasecmp(path, "/set_params") == 0) {
+    if (strcasecmp(path, "/set_params") == 0) {
+        LOGD("url: %s\n", url);
+
         char content[1024] = {0};
 
         if (deal_query_string(query_string, content) < 0) {
@@ -730,28 +777,32 @@ int accept_request(int client)
             return -1;
         }
 
-        if (gs_reboot_switch) {
+        if (s_reboot_switch) {
             reboot_system();
-            gs_reboot_switch = 0;
+            s_reboot_switch = 0;
         }
 
     } else if (strcasecmp(path, "/reboot") == 0) {
+        LOGD("url: %s\n", url);
+        
         char content[1024] = {0};
         sprintf(content, "Restarting\r\n");
 
-        gs_reboot_switch = 1;
+        s_reboot_switch = 1;
 
         if (send_plain_response(client, content) != 0) {
             LOGE("send g_device_info error\n");
             return -1;
         }
 
-        if (gs_reboot_switch) {
-            gs_reboot_switch = 0;
+        if (s_reboot_switch) {
+            s_reboot_switch = 0;
             reboot_system();
         }
 
     } else if ((strcmp(path, "/") == 0) || (strcasecmp(path, "/home") == 0)) {
+        LOGD("url: %s\n", url);
+        
         char device_info_content[4096] = {0};
         get_device_info(device_info_content);
 #if DEBUG_HTTP
@@ -774,13 +825,37 @@ int accept_request(int client)
 // socket initial: socket() ---> bind() ---> listen()
 int startup(uint16_t *port)
 {
-    int                httpd = 0;
-    struct sockaddr_in name;
+    int ret   = 0;
+    int httpd = 0;
+    int opt   = 0;
 
     httpd = socket(AF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
         error_die("socket");
 
+    opt = -1;
+
+    ret = setsockopt(httpd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if (-1 == ret) {
+        perror("setsockopt");
+        // return -1;
+    }
+
+    opt = 1024 * 10;
+
+    ret = setsockopt(httpd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(opt));
+    if (-1 == ret) {
+        perror("setsockopt");
+        // return -1;
+    }
+
+    // 设置Socket为非阻塞模式
+    if (set_nonblocking(httpd) == -1) {
+        exit(EXIT_FAILURE);
+    }
+
+    // 初始化服务器地址结构
+    struct sockaddr_in name;
     memset(&name, 0, sizeof(name));
     name.sin_family      = AF_INET;
     name.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -814,29 +889,104 @@ void *http_server(void *arg)
     int                server_sock = -1;
     uint16_t           port        = 80; // 监听端口号
     int                client_sock = -1;
-    struct sockaddr_in client_name;
-    socklen_t          client_name_len = sizeof(client_name);
-    // pthread_t          new_thread;
+    struct sockaddr_in client_addr;
+    socklen_t          client_addr_len = sizeof(client_addr);
 
     server_sock = startup(&port); // 服务器端监听套接字设置
     LOGI("http running on port %d\n", port);
 
+    fd_set read_fds;
+    int    max_fd;
+    int    activity;
+    int    i = 0;
+
+    struct timeval timeout;
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 1000 * 100;
+
+    int client_sockets[MAX_CLIENTS];
+    for (i = 0; i < MAX_CLIENTS; i++) {
+        client_sockets[i] = -1;
+    }
+
     while (1) {
-        client_sock = accept(server_sock, (struct sockaddr *)&client_name, &client_name_len);
-        if (client_sock == -1) {
-            error_die("accept");
-        } else {
-            // LOGI("HTTP client connected.\n");
+        FD_ZERO(&read_fds);
+        FD_SET(server_sock, &read_fds);
+        max_fd = server_sock;
+
+        // 将已连接的客户端socket加入到read_fds中
+        for (i = 0; i < MAX_CLIENTS; ++i) {
+            if (client_sockets[i] > 0) {
+                // printf("before select: sock[%d] = %d\n", i, client_sockets[i]);
+                FD_SET(client_sockets[i], &read_fds);
+                max_fd = (max_fd > client_sockets[i]) ? max_fd : client_sockets[i];
+            }
         }
 
-        /* accept_request(client_sock); */
-        // if (pthread_create(&new_thread, NULL, accept_request, (void*)&client_sock) != 0)
-        //     perror("accept_request");
-        // usleep(10);
+        // 使用select等待有事件发生
+        activity = select(max_fd + 1, &read_fds, NULL, NULL, &timeout);
+        if (activity == -1) {
+            perror("select");
+            break;
 
-        accept_request(client_sock);
-        close(client_sock);
-        // LOGI("HTTP client disconnected.\n");
+        } else if (activity == 0) {
+            // 没有事件发生，超时
+            // printf("http: select timeout\n");
+            usleep(1000 * 10);
+            continue;
+        }
+
+        // 判断是否是 server 端有事件发生
+        if (FD_ISSET(server_sock, &read_fds)) {
+            client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &client_addr_len);
+            if (client_sock == -1) {
+                break;
+            } else {
+                // printf("New connection, socket fd is %d, IP is: %s, port: %d\n",
+                //         client_sock, 
+                //         inet_ntoa(client_addr.sin_addr), 
+                //         ntohs(client_addr.sin_port));
+
+                if (set_nonblocking(client_sock) == -1) {
+                    close(client_sock);
+                    break;
+                }
+
+                // 将新连接的socket加入到client_sockets数组中
+                for (i = 0; i < MAX_CLIENTS; ++i) {
+                    if (client_sockets[i] == -1) {
+                        client_sockets[i] = client_sock;
+                        // printf("client_sockets[%d]: %d\n", i, client_sockets[i]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 处理已连接的客户端socket上的数据
+        //*接收的第一个client，在接收到的本次循环中不做处理，留待下一次循环中将client加入select的轮询中
+        for (i = 0; i < MAX_CLIENTS; ++i) {
+            if (client_sockets[i] > 0 && FD_ISSET(client_sockets[i], &read_fds)) {
+                // printf("after select: sock[%d] = %d\n", i, client_sockets[i]);
+
+                if (accept_request(client_sockets[i]) == 1) {
+                    continue;
+                }
+
+                usleep(500);
+                close(client_sockets[i]);
+                client_sockets[i] = -1;
+
+            }
+        }
+
+        usleep(500);
+    }
+
+    for (i = 0; i < MAX_CLIENTS; i++) {
+        if (client_sockets[i] > 0) {
+            close(client_sockets[i]);
+        }
     }
 
     close(server_sock);
