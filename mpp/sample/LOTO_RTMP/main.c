@@ -41,7 +41,7 @@
 
 #define VER_MAJOR 1
 #define VER_MINOR 8
-#define VER_BUILD 11
+#define VER_BUILD 12
 
 typedef struct RtmpThrArg {
     char *url;
@@ -490,9 +490,9 @@ int main(int argc, char *argv[])
     LOTO_COVER_InitCoverRegion();
     usleep(1000 * 10);
 
-    if (g_device_info.video_state == COVER_ON) {
-        LOTO_COVER_Switch(COVER_ON);
-    }
+    // if (g_device_info.video_state == COVER_ON) {
+    //     LOTO_COVER_Switch(COVER_ON);
+    // }
 
     /* Initialize rtmp_sender */
     RtmpThrArg *rtmp_attr = (RtmpThrArg *)malloc(sizeof(RtmpThrArg));
